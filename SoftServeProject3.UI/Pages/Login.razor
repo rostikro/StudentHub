@@ -1,0 +1,41 @@
+﻿@page "/login"
+@inject HttpClient Http
+@inject NavigationManager Navigation 
+
+<h3>Login</h3>
+
+<label>Email:</label>
+<input @bind="email" type="email" />
+
+<label>Password:</label>
+<input @bind="password" type="password" />
+
+<button @onclick="AttemptLogin">Login</button>
+
+<p>@errorMessage</p> 
+@code {
+    private string email = "";
+    private string password = "";
+    private string errorMessage = ""; 
+
+    private async Task AttemptLogin()
+    {
+        var loginRequest = new
+        {
+            Email = email,
+            Password = password
+        };
+
+        var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/login", loginRequest);
+
+        if (response.IsSuccessStatusCode)
+        {
+            errorMessage = ""; 
+            Navigation.NavigateTo("/"); 
+        }
+        else
+        {
+            errorMessage = "Login failed. Please check your email and password.";
+        }
+    }
+}
