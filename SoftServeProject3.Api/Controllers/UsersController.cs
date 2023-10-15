@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using SoftServeProject3.Api.Configurations;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -12,14 +13,16 @@ namespace SoftServeProject3.Api.Controllers
     [Route("[controller]")]
     public class UsersController : ControllerBase
     {
-        
-        private readonly IUserRepository _userRepository;
 
-        public UsersController(IUserRepository userRepository)
+        private readonly IUserRepository _userRepository;
+        private readonly IJwtService _jwtService;
+
+        public UsersController(IUserRepository userRepository, IJwtService jwtService)
         {
             _userRepository = userRepository;
+            _jwtService = jwtService;
         }
-       
+
         [HttpPost("login")]
         public IActionResult Login(User loginRequest)
         {
@@ -31,13 +34,13 @@ namespace SoftServeProject3.Api.Controllers
             }
 
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password);
-            
+
             if (!isPasswordValid)
             {
                 return BadRequest("Invalid email or password.");
             }
-          
-            
+
+
 
             return Ok(new { Message = "Logged in successfully." });
         }
@@ -49,14 +52,14 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Email and Password are required.");
             }
 
-            
+
             var existingUser = _userRepository.GetByEmail(registerRequest.Email);
             if (existingUser != null)
             {
                 return BadRequest("Email already exists.");
             }
 
-            
+
             _userRepository.Register(registerRequest);
 
             return Ok(new { Message = "Registration successful." });
@@ -70,7 +73,7 @@ namespace SoftServeProject3.Api.Controllers
             };
             return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
         }
-        
+
         [HttpGet("auth/google/callback")]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -81,8 +84,10 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Error authenticating with Google");
             }
 
-            
+
             var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
+            //gets user's name from Google
+            var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
             if (emailClaim == null)
             {
@@ -94,31 +99,68 @@ namespace SoftServeProject3.Api.Controllers
 
             if (userInDb == null)
             {
-                
+
                 var newUser = new User
                 {
                     Email = userEmail,
-                    IsEmailConfirmed = true 
+                    IsEmailConfirmed = true
                 };
                 Console.WriteLine("NoUser");
                 // Save to database
+                //return Ok(new { Message = "Successfully registered!" });
             }
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, userEmail),
-                
+
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
             // Generate JWT token
-            
 
-            return Ok(new { Message = "Google login success!", Token = "YourGeneratedToken" });
+            return Ok(new { Message = "Google login success!", Token = _jwtService.GenerateJwtToken(claims)});
+
         }
-        
+
+        [HttpGet("register/google")]
+        public IActionResult GoogleRegister()
+        {
+            var authenticationProperties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("RegGoogleResponse")
+            };
+            return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        /*[HttpGet("auth/google/callback")]
+        public async Task<IActionResult> RegGoogleResponse()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (!authenticateResult.Succeeded)
+            {
+                return BadRequest("Error authenticating with Google");
+            }
+            var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
+
+            if (emailClaim == null)
+            {
+                return BadRequest("No email claim found");
+            }
+
+            var userEmail = emailClaim.Value;
+
+            var newUser = new User
+            {
+                Email = userEmail,
+                IsEmailConfirmed = true
+            };
+        }*/
+
+
         //Playground
-      
-        
+
+
     }
 }
