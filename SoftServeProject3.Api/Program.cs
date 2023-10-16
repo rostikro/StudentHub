@@ -7,6 +7,7 @@ using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 namespace SoftServeProject3.Api
 {
@@ -33,6 +34,9 @@ namespace SoftServeProject3.Api
             builder.Configuration.GetSection(nameof(JwtSettings)).Bind(jwtSettings);
             builder.Services.AddSingleton(jwtSettings);
 
+            string secretKey = KeyGenerator.GenerateRandomKey(64); // Adjust the key length as needed
+            builder.Services.AddTransient<IJwtService>(sp => new JwtService(secretKey, jwtSettings));
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; 
@@ -49,7 +53,7 @@ namespace SoftServeProject3.Api
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey)),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     RequireExpirationTime = false,
@@ -61,7 +65,7 @@ namespace SoftServeProject3.Api
                 googleOptions.ClientId = builder.Configuration["GoogleOAuth:ClientId"];
                 googleOptions.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
                 googleOptions.CallbackPath = "/signin-google"; // /signin-google
-            }); ;
+            }); 
 
 
             var configuration = builder.Configuration;
