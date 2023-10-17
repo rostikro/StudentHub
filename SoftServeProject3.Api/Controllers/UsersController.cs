@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
-using SoftServeProject3.Api.Configurations;
+using SoftServeProject3.Api.Configurations; 
+
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -89,6 +90,9 @@ namespace SoftServeProject3.Api.Controllers
             //gets user's name from Google
             var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
+            //gets user's name from Google
+            //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
+
             if (emailClaim == null)
             {
                 return BadRequest("No email claim found");
@@ -103,11 +107,12 @@ namespace SoftServeProject3.Api.Controllers
                 var newUser = new User
                 {
                     Email = userEmail,
+                    Password = KeyGenerator.GenerateRandomKey(64),
                     IsEmailConfirmed = true
                 };
                 Console.WriteLine("NoUser");
-                // Save to database
-                //return Ok(new { Message = "Successfully registered!" });
+                _userRepository.Register(newUser);
+                return Ok(new { Message = "Successfully registered!" });
             }
             var claims = new List<Claim>
             {
@@ -121,6 +126,8 @@ namespace SoftServeProject3.Api.Controllers
 
             return Ok(new { Message = "Google login success!", Token = _jwtService.GenerateJwtToken(claims)});
 
+        }
+       
         }
 
         [HttpGet("register/google")]
