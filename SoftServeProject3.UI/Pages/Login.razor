@@ -1,6 +1,9 @@
 ﻿@page "/login"
 @inject HttpClient Http
 @inject NavigationManager Navigation 
+@inject TokenService TokenService
+@using SoftServeProject3.UI.Data
+@using Microsoft.AspNetCore.WebUtilities;
 
 <h3>Login</h3>
 
@@ -11,9 +14,11 @@
 <input @bind="password" type="password" />
 
 <button @onclick="AttemptLogin">Login</button>
+<button @onclick="StartGoogleLogin">Login with Google</button> 
 
 <p>@errorMessage</p> 
 @code {
+
     private string email = "";
     private string password = "";
     private string errorMessage = ""; 
@@ -30,12 +35,31 @@
 
         if (response.IsSuccessStatusCode)
         {
-            errorMessage = ""; 
-            Navigation.NavigateTo("/"); 
+            errorMessage = "";
+            Navigation.NavigateTo("/");
         }
         else
         {
             errorMessage = "Login failed. Please check your email and password.";
         }
     }
+    
+    private void StartGoogleLogin()
+        {
+        
+        Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(Navigation.Uri);
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
+        {
+            await TokenService.StoreToken(token.ToString());
+            Navigation.NavigateTo("/", forceLoad: true); 
+        }
+    }
+    
+    
 }
