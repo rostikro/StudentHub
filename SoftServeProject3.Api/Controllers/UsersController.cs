@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Configurations; 
 
+
 namespace SoftServeProject3.Api.Controllers
 {
     [ApiController]
@@ -74,7 +75,6 @@ namespace SoftServeProject3.Api.Controllers
             return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
         }
 
-
         [HttpGet("auth/google/callback")]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -87,6 +87,8 @@ namespace SoftServeProject3.Api.Controllers
 
 
             var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
+            //gets user's name from Google
+            var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
             //gets user's name from Google
             //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
@@ -127,6 +129,43 @@ namespace SoftServeProject3.Api.Controllers
 
         }
        
+        }
+
+        [HttpGet("register/google")]
+        public IActionResult GoogleRegister()
+        {
+            var authenticationProperties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("RegGoogleResponse")
+            };
+            return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        /*[HttpGet("auth/google/callback")]
+        public async Task<IActionResult> RegGoogleResponse()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (!authenticateResult.Succeeded)
+            {
+                return BadRequest("Error authenticating with Google");
+            }
+            var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
+
+            if (emailClaim == null)
+            {
+                return BadRequest("No email claim found");
+            }
+
+            var userEmail = emailClaim.Value;
+
+            var newUser = new User
+            {
+                Email = userEmail,
+                IsEmailConfirmed = true
+            };
+        }*/
+
 
         //Playground
 
