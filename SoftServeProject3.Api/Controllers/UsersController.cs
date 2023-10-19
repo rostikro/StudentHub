@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
-using SoftServeProject3.Api.Configurations; 
+using SoftServeProject3.Api.Configurations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -91,6 +92,9 @@ namespace SoftServeProject3.Api.Controllers
             //gets user's name from Google
             //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
+            //gets user's name from Google
+            //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
+
             if (emailClaim == null)
             {
                 return BadRequest("No email claim found");
@@ -98,6 +102,14 @@ namespace SoftServeProject3.Api.Controllers
 
             var userEmail = emailClaim.Value;
             var userInDb = _userRepository.GetByEmail(userEmail);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, userEmail),
+
+            };
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
             if (userInDb == null)
             {
@@ -110,25 +122,23 @@ namespace SoftServeProject3.Api.Controllers
                 };
                 Console.WriteLine("NoUser");
                 _userRepository.Register(newUser);
-                return Ok(new { Message = "Successfully registered!" });
+
+                var RegToken = _jwtService.GenerateJwtToken(claims);
+                return Redirect($"https://localhost:7182/login?token={RegToken}");
             }
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, userEmail),
+            
 
-            };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            
             // Generate JWT token
 
-            return Ok(new { Message = "Google login success!", Token = _jwtService.GenerateJwtToken(claims)});
+            var token = _jwtService.GenerateJwtToken(claims);
+            return Redirect($"https://localhost:7182/login?token={token}");
 
         }
-       
+
 
         //Playground
-
 
     }
 }
