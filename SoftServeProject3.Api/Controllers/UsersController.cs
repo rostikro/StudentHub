@@ -124,7 +124,8 @@ namespace SoftServeProject3.Api.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
             // Generate JWT token
 
-            return Ok(new { Message = "Google login success!", Token = _jwtService.GenerateJwtToken(claims)});
+            var token = _jwtService.GenerateJwtToken(claims);
+            return Redirect($"https://localhost:7182/login?token={token}");
 
         }
        
