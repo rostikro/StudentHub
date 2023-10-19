@@ -8,6 +8,7 @@ using System.Security.Claims;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 
+
 namespace SoftServeProject3.Api.Controllers
 {
     [ApiController]
@@ -75,7 +76,6 @@ namespace SoftServeProject3.Api.Controllers
             return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
         }
 
-
         [HttpGet("auth/google/callback")]
         public async Task<IActionResult> GoogleResponse()
         {
@@ -88,6 +88,8 @@ namespace SoftServeProject3.Api.Controllers
 
 
             var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
+            //gets user's name from Google
+            var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
             //gets user's name from Google
             //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
