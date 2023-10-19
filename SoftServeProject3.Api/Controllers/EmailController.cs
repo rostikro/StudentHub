@@ -22,25 +22,6 @@ public class EmailController : ControllerBase
     }
 
     [HttpPost]
-    [Route("TEST_SendTestEmailAsync")]
-    public async Task<IActionResult> SendTestEmailAsync(EmailData emailData)
-    {
-        if (!await _emailService.SendEmailAsync(emailData, "123456"))
-        {
-            return BadRequest("Email send error.");
-        }
-
-        return Ok("Email send successfully.");
-    }
-
-    [HttpPost]
-    [Route("TEST_Code")]
-    public IActionResult CodeTest()
-    {
-        return Ok("Code: " + RandomGenerator.GenerateRandomCode());
-    }
-
-    [HttpPost]
     [Route("SendVerificationCode")]
     public async Task<IActionResult> SendVerificationCodeAsync(EmailData emailData)
     {
