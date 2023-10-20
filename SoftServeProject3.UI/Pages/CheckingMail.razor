@@ -1,0 +1,62 @@
+﻿@page "/checking_mail"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+<link rel="stylesheet" href="Checking mail.razor.css">
+
+
+<head>
+    <PageTitle>Checking mail</PageTitle>
+
+
+</head>
+
+
+<body>
+    <div class="form">
+        <h3>Скидання пароля</h3>
+        <div class="email">
+            <label>E-mail:</label>
+            <input @bind="email" type="email" placeholder="Введіть ваш E-mail" />
+            <button @onclick="AttemptLogin">Відправити код</button>
+
+
+            <label>Поле для коду:</label>
+            <input @bind="password" type="password" placeholder="Введіть ваш код" />
+
+            <button @onclick="AttemptLogin">Скинути пароль</button>
+            <button @onclick="AttemptLogin">Відправити пароль знову</button>
+        </div>
+    </div>
+
+
+
+
+
+    <p>@errorMessage</p>
+    @code {
+        private string email = "";
+        private string password = "";
+        private string errorMessage = "";
+
+        private async Task AttemptLogin()
+        {
+            var loginRequest = new
+            {
+                Email = email,
+                Password = password
+            };
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/login", loginRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                errorMessage = "";
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Login failed. Please check your email and password.";
+            }
+        }
+    }
+</body>
