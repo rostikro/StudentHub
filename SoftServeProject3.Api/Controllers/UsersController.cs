@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Configurations;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -89,6 +91,9 @@ namespace SoftServeProject3.Api.Controllers
             //gets user's name from Google
             var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
+
+            //gets user's name from Google
+            //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
             if (emailClaim == null)
             {
                 return BadRequest("No email claim found");
@@ -97,70 +102,39 @@ namespace SoftServeProject3.Api.Controllers
             var userEmail = emailClaim.Value;
             var userInDb = _userRepository.GetByEmail(userEmail);
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, userEmail),
+
+            };
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
             if (userInDb == null)
             {
 
                 var newUser = new User
                 {
                     Email = userEmail,
+                    Password = KeyGenerator.GenerateRandomKey(64),
                     IsEmailConfirmed = true
                 };
                 Console.WriteLine("NoUser");
-                // Save to database
-                //return Ok(new { Message = "Successfully registered!" });
+                _userRepository.Register(newUser);
+
+                var RegToken = _jwtService.GenerateJwtToken(claims);
+                return Redirect($"https://localhost:7182/login?token={RegToken}");
+
             }
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, userEmail),
+            
 
-            };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            
             // Generate JWT token
 
-            return Ok(new { Message = "Google login success!", Token = _jwtService.GenerateJwtToken(claims)});
+            var token = _jwtService.GenerateJwtToken(claims);
+            return Redirect($"https://localhost:7182/login?token={token}");
 
         }
-
-        [HttpGet("register/google")]
-        public IActionResult GoogleRegister()
-        {
-            var authenticationProperties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action("RegGoogleResponse")
-            };
-            return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
-        }
-
-        /*[HttpGet("auth/google/callback")]
-        public async Task<IActionResult> RegGoogleResponse()
-        {
-            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-            if (!authenticateResult.Succeeded)
-            {
-                return BadRequest("Error authenticating with Google");
-            }
-            var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
-
-            if (emailClaim == null)
-            {
-                return BadRequest("No email claim found");
-            }
-
-            var userEmail = emailClaim.Value;
-
-            var newUser = new User
-            {
-                Email = userEmail,
-                IsEmailConfirmed = true
-            };
-        }*/
-
-
-        //Playground
-
-
     }
 }

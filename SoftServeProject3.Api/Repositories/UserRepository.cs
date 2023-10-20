@@ -17,6 +17,35 @@ namespace SoftServeProject3.Api.Repositories
             _users = database.GetCollection<User>("users");
         }
 
+        public async Task<bool> IsUserExistsAsync(string email)
+        {
+            try
+            {
+                var user = await _users.Find(user => user.Email == email).FirstOrDefaultAsync();
+
+                return user != null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        public async Task UpdateUserAsync(string email)
+        {
+            try
+            {
+                await _users.UpdateOneAsync(user => user.Email == email,
+                    Builders<User>.Update.Set(user => user.IsEmailConfirmed, true));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
         public User GetByEmail(string email)
         {
             try
