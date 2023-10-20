@@ -1,0 +1,78 @@
+﻿@page "/mainpage"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+<link rel="stylesheet" href="MainPage.razor.css">
+<head>
+    <PageTitle>Checking mail</PageTitle>
+</head>
+<body>
+        <div class="navbar">
+            <div class="left-links">
+                <a href="#">Home</a>
+                <a href="fetchdata">Пошук студентів</a>
+                <a href="login">Налаштування</a>
+            </div>
+            <div class="right-links">
+            <a href="counter">Чат</a>
+                <a href="checking_mail">Профіль</a>
+            </div>
+        </div>
+
+    <div class="container">
+        <div class="button">
+            <div class="button-content">
+                <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
+                <div class="oval">Василенко Василь Васильович</div>
+                <div class="oval">КНУ ім Тараса Шевченка 122 інформатика (2 курс)</div>
+                <div class="oval">ООП, Мат логіка, Диф рівняння, Теор йм...</div>
+            </div>
+        </div>
+        <div class="button">
+            <div class="button-content">
+                <div class="circle2"></div>
+                <div class="oval">Rosikss</div>
+                <div class="oval">КНУ ім Тараса Шевченка 122 інформатика (2 курс)</div>
+                <div class="oval">ООП, Мат логіка, Диф рівняння, Теор йм...</div>
+            </div>
+        </div>
+        <div class="button">
+            <div class="button-content">
+                <div class="circle3"></div>
+                <div class="oval">IvanAxe-Dev</div>
+                <div class="oval">КНУ ім Тараса Шевченка 122 інформатика (2 курс)</div>
+                <div class="oval">ООП, Мат логіка, Диф рівняння, Теор йм...</div>
+            </div>
+        </div>
+        <div class="button">
+            <div class="button-content">
+                <div class="circle4"><a href="#"></a></div>
+                <div class="oval">Жбобик спенжик</div>
+                <div class="oval">Default</div>
+                <div class="oval">Default</div>
+            </div>
+        </div>
+        <div class="button">
+            <div class="button-content">
+                <div class="circle5"></div>
+                <div class="oval">Default</div>
+                <div class="oval">Default</div>
+                <div class="oval">Default</div>
+            </div>
+        </div>
+        <div class="button">
+            <div class="button-content">
+                <div class="circle5"></div>
+                <div class="oval">Default</div>
+                <div class="oval">Default</div>
+                <div class="oval">Default</div>
+            </div>
+        </div>
+    </div>
+<p>@errorMessage</p>
+@code {
+    
+    string errorMessage = ""; 
+    }
+
+</body>
+

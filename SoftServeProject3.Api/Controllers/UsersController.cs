@@ -9,7 +9,6 @@ using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 
 
-
 namespace SoftServeProject3.Api.Controllers
 {
     [ApiController]
@@ -92,8 +91,6 @@ namespace SoftServeProject3.Api.Controllers
             //gets user's name from Google
             var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
-            //gets user's name from Google
-            //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
             //gets user's name from Google
             //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
@@ -139,11 +136,5 @@ namespace SoftServeProject3.Api.Controllers
             return Redirect($"https://localhost:7182/login?token={token}");
 
         }
-       
-        
-
-
-        //Playground
-
     }
 }
