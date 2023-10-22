@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Pages\Checking mail - Copy.razor.css.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Pages\RegistrationPage.razor.css.jpg" />
     <Content Include="Pages\Checking mail.razor.css.jpg" />
   </ItemGroup>
 
