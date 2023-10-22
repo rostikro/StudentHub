@@ -8,6 +8,9 @@ namespace SoftServeProject3.Api.Entities
     public class User
     {
         public ObjectId _id { get; set; }
+        
+        [BsonElement("username")]
+        public string Username { get; set; }
 
         [BsonElement("email")]
         public string Email { get; set; }

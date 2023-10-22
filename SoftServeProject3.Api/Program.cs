@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
+using SoftServeProject3.Api.Services;
+
 
 namespace SoftServeProject3.Api
 {
@@ -26,6 +28,18 @@ namespace SoftServeProject3.Api
                                .AllowAnyHeader();
                     });
             });
+            
+            // Email configuration
+            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.AddTransient<IEmailService, EmailService>();
+
+            builder.Services.AddHttpClient("EmailClient", (services, client) =>
+            {
+                var emailSettings = services.GetRequiredService<IOptions<EmailSettings>>().Value;
+                client.BaseAddress = new Uri(emailSettings.ApiBaseUrl);
+                client.DefaultRequestHeaders.Add("Api-Token", emailSettings.ApiToken);
+            });
+            
             var mongoDBConnectionString = builder.Configuration["MongoDBSettings:ConnectionString"] ?? throw new InvalidOperationException("MongoDB connection string is not set in the configuration.");
             
             builder.Services.AddSingleton<IUserRepository>(sp => new UserRepository(mongoDBConnectionString));
