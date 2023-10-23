@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <Content Include="Pages\RegistrationPage.razor.css.jpg" />
-    <Content Include="Pages\Checking mail.razor.css.jpg" />
   </ItemGroup>
 
   <ItemGroup>
