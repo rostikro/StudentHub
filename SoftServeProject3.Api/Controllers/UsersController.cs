@@ -90,9 +90,9 @@ namespace SoftServeProject3.Api.Controllers
             //gets user's name from Google
             var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
 
+
             //gets user's name from Google
             //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
-
             if (emailClaim == null)
             {
                 return BadRequest("No email claim found");
@@ -123,8 +123,10 @@ namespace SoftServeProject3.Api.Controllers
 
                 var RegToken = _jwtService.GenerateJwtToken(claims);
                 return Redirect($"https://localhost:7182/login?token={RegToken}");
+
             }
             
+
 
             
             // Generate JWT token
@@ -133,11 +135,5 @@ namespace SoftServeProject3.Api.Controllers
             return Redirect($"https://localhost:7182/login?token={token}");
 
         }
-
-
-
-
-        //Playground
-
     }
 }
