@@ -7,16 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Pages\Checking mail - Copy.razor.css.jpg" />
+  </ItemGroup>
 
-    <Content Remove="Pages\Checking mail - Копировать.razor" />
-  </ItemGroup>
   <ItemGroup>
-    <None Remove="Pages\Checking mail - Копировать (2).razor.css.jpg" />
-    <None Remove="Pages\Checking mail - Копировать.razor.css" />
-    <None Remove="Pages\Checking mail - Копировать.razor.css.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Pages\CheckingMail.razor.css.jpg" />
+    <Content Include="Pages\RegistrationPage.razor.css.jpg" />
+    <Content Include="Pages\Checking mail.razor.css.jpg" />
   </ItemGroup>
 
   <ItemGroup>
