@@ -71,6 +71,31 @@ namespace SoftServeProject3.Api.Repositories
                 return null;
             }
         }
+        public User GetByUsername(string username)
+        {
+            try
+            {
+
+
+                var user = _users.Find(user => user.Username == username).FirstOrDefault();
+
+                if (user == null)
+                {
+                    Console.WriteLine($"No user found with username: {username}");
+                }
+                else
+                {
+                    Console.WriteLine($"User found with username: {user.Username}");
+                }
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching user by username: {ex.Message}");
+                return null;
+            }
+        }
         public void Register(User user)
         {
             try
