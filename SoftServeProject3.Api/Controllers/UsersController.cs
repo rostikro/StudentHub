@@ -24,43 +24,51 @@ namespace SoftServeProject3.Api.Controllers
             _userRepository = userRepository;
             _jwtService = jwtService;
         }
-
+        // Добавить токен
         [HttpPost("login")]
         public IActionResult Login(User loginRequest)
         {
             var userInDb = _userRepository.GetByEmail(loginRequest.Email);
-
-            if (userInDb == null)
+            var userInDb2 = _userRepository.GetByUsername(loginRequest.Username);
+            
+            if (userInDb == null && userInDb2 == null)
             {
-                return BadRequest("Invalid email or password.");
+                return BadRequest("Invalid email/username");
             }
-
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password);
+            
+            bool isPasswordValid = userInDb == null ? BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb2.Password) : BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password);
+            
 
             if (!isPasswordValid)
             {
-                return BadRequest("Invalid email or password.");
+                return BadRequest("Invalid password.");
             }
 
 
 
             return Ok(new { Message = "Logged in successfully." });
         }
+        // Добавить токен
         [HttpPost("register")]
         public IActionResult Register(User registerRequest)
         {
-            if (string.IsNullOrEmpty(registerRequest.Email) || string.IsNullOrEmpty(registerRequest.Password))
+            if (string.IsNullOrEmpty(registerRequest.Email) || string.IsNullOrEmpty(registerRequest.Password) || string.IsNullOrEmpty(registerRequest.Username))
             {
-                return BadRequest("Email and Password are required.");
+                return BadRequest("Email, UserName and Password are required.");
             }
 
 
-            var existingUser = _userRepository.GetByEmail(registerRequest.Email);
-            if (existingUser != null)
+            var existingEmail = _userRepository.GetByEmail(registerRequest.Email);
+            var existingUsername = _userRepository.GetByUsername(registerRequest.Username);
+            
+            if (existingEmail != null)
             {
                 return BadRequest("Email already exists.");
             }
-
+            else if(existingUsername != null)
+            {
+                return BadRequest("Username already exists.");
+            }
 
             _userRepository.Register(registerRequest);
 
