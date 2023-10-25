@@ -14,8 +14,9 @@
     <div class="form">
         <h3>Вхід</h3>
         <div class="email">
-            <label>Email:</label>
-            <input @bind="email" type="email" placeholder="Введіть ваш Email" />
+            <label>Email/UserName:</label>
+            <input @bind="emailOrUsername" type="text" placeholder="Введіть ваш Email/UserName" />
+
 
             <label>Password:</label>
             <input @bind="password" type="password" placeholder="Введіть ваш пароль" />
@@ -36,15 +37,18 @@
 
 @code {
 
-    private string email = "";
+    private string emailOrUsername = "";
     private string password = "";
     private string errorMessage = "";
 
     private async Task AttemptLogin()
     {
+        var isEmail = emailOrUsername.Contains("@") && emailOrUsername.Contains(".");
+
         var loginRequest = new
         {
-            Email = email,
+            Username = isEmail ? "" : emailOrUsername,
+            Email = isEmail ? emailOrUsername : "",
             Password = password
         };
 
@@ -69,7 +73,7 @@
 
     
     private void StartGoogleLogin()
-        {
+    {
         
         Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
     }
@@ -84,5 +88,5 @@
             Navigation.NavigateTo("/", forceLoad: true); 
         }
     }
-    }
+}
 

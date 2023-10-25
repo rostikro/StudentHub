@@ -17,14 +17,14 @@
         <div class="email">
             <label>E-mail:</label>
             <input @bind="email" type="email" placeholder="Введіть ваш E-mail" />
-            <button @onclick="AttemptLogin">Відправити код</button>
+            <button @onclick="SendCode">Відправити код</button>
 
 
             <label>Поле для коду:</label>
-            <input @bind="password" type="password" placeholder="Введіть ваш код" />
+            <input @bind="code" type="text" placeholder="Введіть ваш код" />
 
-            <button @onclick="AttemptLogin">Скинути пароль</button>
-            <button @onclick="AttemptLogin">Відправити пароль знову</button>
+            <button @onclick="VerifyCode">Скинути пароль</button>
+            <button @onclick="SendCode">Відправити код знову</button>
         </div>
     </div>
 
@@ -35,28 +35,38 @@
     <p>@errorMessage</p>
     @code {
         private string email = "";
-        private string password = "";
+        private string code = "";
         private string errorMessage = "";
-
-        private async Task AttemptLogin()
+       
+        private async Task SendCode()
         {
-            var loginRequest = new
+            var emailData = new
             {
-                Email = email,
-                Password = password
+                EmailTo = email,
             };
 
-            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/login", loginRequest);
+            await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCode", emailData);
+            
+        }
+        private async Task VerifyCode()
+        {
+            var emailData = new
+            {
+                EmailTo = email,
+            };
+
+            var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCode?code={code}", emailData);
 
             if (response.IsSuccessStatusCode)
             {
                 errorMessage = "";
-                Navigation.NavigateTo("/");
+                Navigation.NavigateTo("/login");
             }
             else
             {
-                errorMessage = "Login failed. Please check your email and password.";
+                errorMessage = "Verification failed.";
             }
         }
+
     }
 </body>

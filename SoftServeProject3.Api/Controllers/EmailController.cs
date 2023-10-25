@@ -55,7 +55,7 @@ public class EmailController : ControllerBase
 
     [HttpPost]
     [Route(("VerifyCode"))]
-    public async Task<IActionResult> VerifyCodeAsync(EmailData emailData, string code)
+    public async Task<IActionResult> VerifyCodeAsync([FromBody] EmailData emailData, [FromQuery] string code)
     {
         try
         {
