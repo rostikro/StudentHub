@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
+using SoftServeProject3.Core.DTOs;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -64,6 +65,23 @@ namespace SoftServeProject3.Api.Controllers
             _userRepository.Register(registerRequest);
 
             return Ok(new { Message = "Registration successful." });
+        }
+        [HttpPost("set/newPassword")]
+        public IActionResult SetNewPassword(SetPassword newPasswordRequest)
+        {
+            if (newPasswordRequest.Password != newPasswordRequest.ConfirmPassword)
+            {
+                return BadRequest("Passwords don't match.");
+            }
+            else if (newPasswordRequest.Password.Length < 8)
+            {
+                return BadRequest("Password should be at least 8 character long.");
+            }
+            else
+            {
+                return Ok();
+            }
+
         }
         [HttpGet("login/google")]
         public IActionResult GoogleLogin()
@@ -125,10 +143,10 @@ namespace SoftServeProject3.Api.Controllers
                 return Redirect($"https://localhost:7182/login?token={RegToken}");
 
             }
-            
 
 
-            
+
+
             // Generate JWT token
 
             var token = _jwtService.GenerateJwtToken(claims);

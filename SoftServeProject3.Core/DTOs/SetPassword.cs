@@ -8,8 +8,8 @@ namespace SoftServeProject3.Core.DTOs
 {
     public class SetPassword
     {
-        int Code { get; set; }  
-        string Password { get; set; }
-        string ConfirmPassword { get; set; }
+        public string Code { get; set; }
+        public string Password { get; set; }
+        public string ConfirmPassword { get; set; }
     }
 }
