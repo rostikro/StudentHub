@@ -24,7 +24,7 @@ namespace SoftServeProject3.Api.Controllers
             _userRepository = userRepository;
             _jwtService = jwtService;
         }
-        // Добавить токен
+        //TODO: Добавить токен
         [HttpPost("login")]
         public IActionResult Login(User loginRequest)
         {
@@ -48,7 +48,8 @@ namespace SoftServeProject3.Api.Controllers
 
             return Ok(new { Message = "Logged in successfully." });
         }
-        // Добавить токен
+
+        //TODO: Добавить токен
         [HttpPost("register")]
         public IActionResult Register(User registerRequest)
         {
@@ -74,6 +75,7 @@ namespace SoftServeProject3.Api.Controllers
 
             return Ok(new { Message = "Registration successful." });
         }
+
         [HttpGet("login/google")]
         public IActionResult GoogleLogin()
         {
@@ -94,14 +96,8 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Error authenticating with Google");
             }
 
-
             var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
-            //gets user's name from Google
-            var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
-
-
-            //gets user's name from Google
-            //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
+            
             if (emailClaim == null)
             {
                 return BadRequest("No email claim found");
@@ -135,11 +131,6 @@ namespace SoftServeProject3.Api.Controllers
 
             }
             
-
-
-            
-            // Generate JWT token
-
             var token = _jwtService.GenerateJwtToken(claims);
             return Redirect($"https://localhost:7182/login?token={token}");
 
