@@ -25,7 +25,18 @@ hr {
     margin-bottom: 25px;
 }
 
-.registerbtn {
+.registerbtn-disabled {
+    background-color: grey;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: not-allowed;
+    width: 100%;
+    opacity: 0.9;
+}
+
+.registerbtn-enabled {
     background-color: #4CAF50;
     color: white;
     padding: 16px 20px;
@@ -36,9 +47,9 @@ hr {
     opacity: 0.9;
 }
 
-    .registerbtn:hover {
-        opacity: 1;
-    }
+.registerbtn-enabled:hover {
+    opacity: 1;
+}
 
 a {
     color: dodgerblue;

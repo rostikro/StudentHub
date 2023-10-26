@@ -1,13 +1,13 @@
 ﻿@page "/registrationpage"
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject TokenService TokenService
+@using SoftServeProject3.UI.Data
+@using Microsoft.AspNetCore.WebUtilities;
 <link rel="stylesheet" href="RegistrationPage.razor.css">
-
 
 <head>
     <PageTitle>Registration Page</PageTitle>
-
-
 </head>
 
 
@@ -16,7 +16,7 @@
         <h1>Register</h1>
         <p>Please fill in this form to create an account.</p>
         <hr>
-
+        <button @onclick="StartGoogleLogin">Register with Google</button>
         <label for="username"><b>Username</b></label>
         <input type="text" placeholder="Enter Username" maxLength="20" @bind="username" required>
 
@@ -29,9 +29,15 @@
         <label for="repeatPassword"><b>Repeat Password</b></label>
         <input type="password" placeholder="Repeat Password" @bind="repeatPassword" required>
         <hr>
+        <button @onclick="SendCode">Відправити код</button>
+        <label>Поле для коду:</label>
+        <input @bind="code" type="text" placeholder="Введіть ваш код" />
+
+        <button @onclick="VerifyCode">Скинути пароль</button>
+        <button @onclick="SendCode">Відправити код знову</button>
 
         <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
-        <button @onclick="Register" class="registerbtn">Register</button>
+        <button @onclick="Register" class="@registerButtonClass" disabled="@(!isCodeVerified)">Register</button>
     </div>
 
     <div class="container signin">
@@ -47,7 +53,10 @@
     private string password = "";
     private string repeatPassword = "";
     private string errorMessage = "";
-
+    private string code = "";
+    private bool isCodeVerified = false;
+    private string registerButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
+    
     private async Task Register()
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
@@ -75,7 +84,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Navigation.NavigateTo("/checking_mail");
+                Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
             }
             else
             {
@@ -85,6 +94,53 @@
         catch (Exception ex)
         {
             errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+    private async Task SendCode()
+    {
+        var emailData = new
+        {
+            EmailTo = email,
+        };
+
+        await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
+        isCodeVerified = false;
+
+    }
+    private async Task VerifyCode()
+    {
+        var emailData = new
+        {
+            EmailTo = email,
+        };
+
+        var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCode?code={code}", emailData);
+
+        if (response.IsSuccessStatusCode)
+        {
+            errorMessage = "";
+            isCodeVerified = true;
+        }
+        else
+        {
+            errorMessage = "Verification failed.";
+            isCodeVerified = false;
+        }
+    }
+    private void StartGoogleLogin()
+    {
+
+        Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(Navigation.Uri);
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
+        {
+            await TokenService.StoreToken(token.ToString());
+            Navigation.NavigateTo("/", forceLoad: true);
         }
     }
 }
