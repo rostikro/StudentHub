@@ -45,7 +45,10 @@ namespace SoftServeProject3.Api.Repositories
                 throw;
             }
         }
-
+        public async Task UpdateUserAsync(User user)
+        {
+            await _users.ReplaceOneAsync(u => u.Email == user.Email, user);
+        }
         public User GetByEmail(string email)
         {
             try
@@ -111,6 +114,11 @@ namespace SoftServeProject3.Api.Repositories
                 throw;
             }
         }
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+        }
+
 
     }
 }

@@ -36,7 +36,7 @@
 </body>
 
 @code {
-
+    
     private string emailOrUsername = "";
     private string password = "";
     private string errorMessage = "";
@@ -49,14 +49,15 @@
         {
             Username = isEmail ? "" : emailOrUsername,
             Email = isEmail ? emailOrUsername : "",
-            Password = password
+            Password = password,
         };
 
         var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/login", loginRequest);
 
-        if (response.IsSuccessStatusCode)
+        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        if (result != null && !string.IsNullOrEmpty(result.Token))
         {
-            errorMessage = "";
+            await TokenService.StoreToken(result.Token);
             Navigation.NavigateTo("/");
         }
         else
@@ -65,7 +66,10 @@
         }
     }
 
-
+    public class LoginResponse
+    {
+        public string Token { get; set; }
+    }
     private void ForgotPassword()
     {
         

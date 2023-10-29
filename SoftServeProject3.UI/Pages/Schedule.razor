@@ -1,0 +1,245 @@
+﻿@page "/schedule"
+@inject HttpClient Http
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+
+@using System.Globalization
+
+<head>
+    <PageTitle>Розклад</PageTitle>
+</head>
+
+<body>
+    <h1>Мій розклад</h1>
+    @if (errorMessage != null)
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
+    @if (schedule == null)
+    {
+        <p>Loading...</p>
+    }
+    else if (schedule.Count == 0)
+    {
+        <p>Розклад пустий</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>День тижня</th>
+                    <th>Час</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var kvp in schedule)
+                {
+                    var dayOfWeek = kvp.Key;
+                    var tasks = kvp.Value;
+                    <tr>
+                        <td>@dayOfWeek</td>
+                        <td>
+                            @if (tasks != null && tasks.Count > 0)
+                            {
+                                @for (int index = 0; index < tasks.Count; index++)
+                                {
+                                    var task = tasks[index];
+                                    if (task != null)
+                                    {
+                                        <div>
+                                            <input type="text" @bind="task.StartString" placeholder="Початок" />
+                                            -
+                                            <input type="text" @bind="task.EndString" placeholder="Кінець" />
+                                            <button @onclick="() => RemoveTask(tasks, index - 1)">Видалити</button> 
+                                        </div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <div>Немає завдань</div>
+                            }
+                            <button @onclick="() => AddNewTask(tasks)">Додати час</button>
+                        </td>
+                        <td>
+                            <button @onclick="() => SaveChanges(dayOfWeek, tasks)">Зберегти</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</body>
+
+
+@code {
+
+    private Dictionary<DayOfWeek, List<TimeRange>> schedule;
+    private string email;
+    private DayOfWeek? selectedDay;
+    public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
+    public class UserInfo
+    {
+        public string Email { get; set; }
+    }
+    private void AddNewTask(List<TimeRange> tasks)
+    {
+        if (tasks == null)
+        {
+            tasks = new List<TimeRange>();
+        }
+
+        tasks.Add(new TimeRange());
+        StateHasChanged(); 
+    }
+
+    private void AddTask(DayOfWeek dayOfWeek)
+    {
+        if (!schedule.ContainsKey(dayOfWeek))
+        {
+            schedule[dayOfWeek] = new List<TimeRange>();
+        }
+
+        schedule[dayOfWeek].Add(new TimeRange());
+    }
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await TokenService.GetToken();
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/get-user-info", token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var userInfo = await response.Content.ReadFromJsonAsync<UserInfo>();
+                email = userInfo.Email;
+                await LoadSchedule();
+            }
+            else
+            {
+                errorMessage = "Failed to load user info";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    private async Task LoadSchedule()
+    {
+        try
+        {
+            var rawSchedule = await Http.GetFromJsonAsync<Dictionary<string, List<TimeRange>>>($"https://localhost:7292/Users/{email}");
+            schedule = rawSchedule.ToDictionary(
+                kvp => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), kvp.Key),
+                kvp =>
+                {
+                    var timeRanges = kvp.Value;
+                    foreach (var range in timeRanges)
+                    {
+                        range.StartString = range.Start.ToString("HH:mm");
+                        range.EndString = range.End.ToString("HH:mm");
+                    }
+                    return timeRanges;
+                }
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading schedule: {ex.Message}");
+            errorMessage = "Failed to load schedule";
+        }
+    }
+
+    private async Task UpdateSchedule(DayOfWeek dayOfWeek, List<TimeRange> tasks)
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"https://localhost:7292/Users/{email}/{dayOfWeek}", tasks);
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = "Failed to update schedule";
+            }
+            else
+            {
+                await LoadSchedule(); 
+                StateHasChanged(); 
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    private async Task SaveChanges(DayOfWeek dayOfWeek, List<TimeRange> tasks)
+    {
+        try
+        {
+            var timeRanges = new List<TimeRange>();
+            foreach (var tr in tasks)
+            {
+                if (tr != null)
+                {
+                    if (DateTime.TryParseExact(tr.StartString, "HH:mm", null, DateTimeStyles.None, out var start) &&
+                        DateTime.TryParseExact(tr.EndString, "HH:mm", null, DateTimeStyles.None, out var end))
+                    {
+                        if (end <= start)
+                        {
+                            errorMessage = "Час завершення повинен бути пізніше часу початку.";
+                            return;
+                        }
+                        timeRanges.Add(new TimeRange { Start = start, End = end });
+                    }
+                    else
+                    {
+                        
+                        errorMessage = "Неправильний формат часу. Будь ласка, введіть час у форматі HH:mm.";
+                        return;
+                    }
+                }
+            }
+
+            await UpdateSchedule(dayOfWeek, timeRanges);
+            Console.WriteLine("Розклад успішно оновлено");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Виникла помилка: {ex.Message}";
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    private void RemoveTask(List<TimeRange> tasks, int index)
+    {
+        Console.WriteLine($"Removing {index}");
+        
+        if (tasks == null)
+        {
+            return;
+        }
+
+        if (index < 0 || index >= tasks.Count)
+        {
+            return;
+        }
+
+        tasks.RemoveAt(index);
+        StateHasChanged();
+    }
+    public class TimeRange
+    {
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+
+        public string StartString { get; set; } = "";
+        public string EndString { get; set; } = "";
+    }
+}
+    
+
+
