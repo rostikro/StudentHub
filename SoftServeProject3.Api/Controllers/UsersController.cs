@@ -35,7 +35,7 @@
             _userRepository = userRepository;
             _jwtService = jwtService;
         }
-        
+
         [HttpPost("login")]
         public IActionResult Login(LoginRequest loginRequest)
         {
@@ -78,6 +78,7 @@
             }
             return Ok(user.Schedule);
         }
+
 
         [HttpPut("{email}/{dayOfWeek}")]
         public async Task<IActionResult> UpdateSchedule(string email, string dayOfWeek, [FromBody] List<TimeRange> updatedSchedule)
@@ -126,6 +127,7 @@
             }
         }
         
+
         [HttpPost("register")]
         public IActionResult Register(User registerRequest)
         {
@@ -159,6 +161,7 @@
             var token = _jwtService.GenerateJwtToken(claims);
             return Ok(new { Token = token});
         }
+
         [HttpGet("login/google")]
         public IActionResult GoogleLogin()
         {
@@ -179,14 +182,8 @@
                 return BadRequest("Error authenticating with Google");
             }
 
-
             var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
-            //gets user's name from Google
-            var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
-
-
-            //gets user's name from Google
-            //var nameClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Name);
+            
             if (emailClaim == null)
             {
                 return BadRequest("No email claim found");
@@ -230,11 +227,6 @@
 
             }
             
-
-
-            
-            // Generate JWT token
-
             var token = _jwtService.GenerateJwtToken(claims);
             return Redirect($"https://localhost:7182/login?token={token}");
 
