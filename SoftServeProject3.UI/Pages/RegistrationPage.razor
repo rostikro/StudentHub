@@ -5,6 +5,9 @@
 @using SoftServeProject3.UI.Data
 @using Microsoft.AspNetCore.WebUtilities;
 <link rel="stylesheet" href="RegistrationPage.razor.css">
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
 
 <head>
     <PageTitle>Registration Page</PageTitle>
@@ -53,10 +56,18 @@
     private string password = "";
     private string repeatPassword = "";
     private string errorMessage = "";
+
+    public class TimeRange
+    {
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+    }
+
     private string code = "";
     private bool isCodeVerified = false;
     private string registerButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
     
+
     private async Task Register()
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
@@ -75,16 +86,30 @@
         {
             Username = username,
             Email = email,
-            Password = password
+            Password = password,
+            Schedule = new Dictionary<string, List<TimeRange>>
+                    {
+                        { "Monday", new List<TimeRange>() },
+                        { "Tuesday", new List<TimeRange>() },
+                        { "Wednesday", new List<TimeRange>() },
+                        { "Thursday", new List<TimeRange>() },
+                        { "Friday", new List<TimeRange>() },
+                        { "Saturday", new List<TimeRange>() },
+                        { "Sunday", new List<TimeRange>() },
+                    }
         };
 
         try
         {
             var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
 
-            if (response.IsSuccessStatusCode)
+            var result = await response.Content.ReadFromJsonAsync<RegistrationResponse>();
+            if (result != null && !string.IsNullOrEmpty(result.Token))
             {
+
+                await TokenService.StoreToken(result.Token);
                 Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
+
             }
             else
             {
@@ -96,6 +121,12 @@
             errorMessage = $"An error occurred: {ex.Message}";
         }
     }
+
+    public class RegistrationResponse
+    {
+        public string Token { get; set; }
+    }
+
     private async Task SendCode()
     {
         var emailData = new

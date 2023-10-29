@@ -1,32 +1,43 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SoftServeProject3.Api.Entities;
-using SoftServeProject3.Api.Interfaces;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
-using SoftServeProject3.Api.Configurations;
-using Microsoft.AspNetCore.Authorization;
+﻿    using Microsoft.AspNetCore.Mvc;
+    using SoftServeProject3.Api.Entities;
+    using SoftServeProject3.Api.Interfaces;
+    using Microsoft.AspNetCore.Authentication.Cookies;
+    using Microsoft.AspNetCore.Authentication.Google;
+    using Microsoft.AspNetCore.Authentication;
+    using System.Security.Claims;
+    using SoftServeProject3.Api.Configurations;
+    using Microsoft.AspNetCore.Authorization;
+    
 
-
-namespace SoftServeProject3.Api.Controllers
-{
-    [ApiController]
-    [Route("[controller]")]
-    public class UsersController : ControllerBase
+    namespace SoftServeProject3.Api.Controllers
     {
+        [ApiController]
+        [Route("[controller]")]
+        public class UsersController : ControllerBase
+        {
 
-        private readonly IUserRepository _userRepository;
-        private readonly IJwtService _jwtService;
-
+            private readonly IUserRepository _userRepository;
+            private readonly IJwtService _jwtService;
+        public class LoginRequest
+        {
+            public string Username { get; set; }
+            public string Email { get; set; }
+            public string Password { get; set; }
+        }
+        public class registerRequest
+        {
+            public string Username { get; set; }
+            public string Email { get; set; }
+            public string Password { get; set; }
+        }
         public UsersController(IUserRepository userRepository, IJwtService jwtService)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
         }
-        //TODO: Добавить токен
+
         [HttpPost("login")]
-        public IActionResult Login(User loginRequest)
+        public IActionResult Login(LoginRequest loginRequest)
         {
             var userInDb = _userRepository.GetByEmail(loginRequest.Email);
             var userInDb2 = _userRepository.GetByUsername(loginRequest.Username);
@@ -37,19 +48,86 @@ namespace SoftServeProject3.Api.Controllers
             }
             
             bool isPasswordValid = userInDb == null ? BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb2.Password) : BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password);
-            
+                
 
             if (!isPasswordValid)
             {
                 return BadRequest("Invalid password.");
             }
 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, loginRequest.Email),
+                // Треба додати username
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var token = _jwtService.GenerateJwtToken(claims);
+            return Ok(new { Token = token });
+        }
+        [HttpGet("{email}")]
+        public async Task<IActionResult> GetSchedule(string email)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
 
 
-            return Ok(new { Message = "Logged in successfully." });
+            if (user == null || user.Schedule == null)
+            {
+                return NotFound();
+            }
+            return Ok(user.Schedule);
         }
 
-        //TODO: Добавить токен
+
+        [HttpPut("{email}/{dayOfWeek}")]
+        public async Task<IActionResult> UpdateSchedule(string email, string dayOfWeek, [FromBody] List<TimeRange> updatedSchedule)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (user.Schedule == null)
+            {
+                user.Schedule = new Dictionary<string, List<TimeRange>>();
+            }
+
+            if (!user.Schedule.ContainsKey(dayOfWeek))
+            {
+                user.Schedule[dayOfWeek] = new List<TimeRange>();
+            }
+
+            TimeZoneInfo utcZone = TimeZoneInfo.Utc;
+
+
+            user.Schedule[dayOfWeek] = updatedSchedule.Select(tr => new TimeRange
+            {
+                Start = TimeZoneInfo.ConvertTimeToUtc(new DateTime(1, 1, 1, tr.Start.Hour, tr.Start.Minute, 0), utcZone),
+                End = TimeZoneInfo.ConvertTimeToUtc(new DateTime(1, 1, 1, tr.End.Hour, tr.End.Minute, 0), utcZone)
+            }).ToList();
+
+
+            await _userRepository.UpdateUserAsync(user);
+            return NoContent();
+        }
+        
+        [HttpPost("get-user-info")]
+        public ActionResult<UserInfo> GetUserInfo([FromBody] string token)
+        {
+            try
+            {
+                var userInfo = _jwtService.DecodeJwtToken(token);
+                return Ok(userInfo);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        
+
         [HttpPost("register")]
         public IActionResult Register(User registerRequest)
         {
@@ -72,8 +150,16 @@ namespace SoftServeProject3.Api.Controllers
             }
 
             _userRepository.Register(registerRequest);
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, registerRequest.Email),
+                // Треба додати username
+            };
 
-            return Ok(new { Message = "Registration successful." });
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var token = _jwtService.GenerateJwtToken(claims);
+            return Ok(new { Token = token});
         }
 
         [HttpGet("login/google")]
@@ -121,7 +207,17 @@ namespace SoftServeProject3.Api.Controllers
                 {
                     Email = userEmail,
                     Password = KeyGenerator.GenerateRandomKey(64),
-                    IsEmailConfirmed = true
+                    IsEmailConfirmed = true,
+                    Schedule = new Dictionary<string, List<TimeRange>>
+                    {
+                        { "Monday", new List<TimeRange>() },
+                        { "Tuesday", new List<TimeRange>() },
+                        { "Wednesday", new List<TimeRange>() },
+                        { "Thursday", new List<TimeRange>() },
+                        { "Friday", new List<TimeRange>() },
+                        { "Saturday", new List<TimeRange>() },
+                        { "Sunday", new List<TimeRange>() },
+                    }
                 };
                 Console.WriteLine("NoUser");
                 _userRepository.Register(newUser);

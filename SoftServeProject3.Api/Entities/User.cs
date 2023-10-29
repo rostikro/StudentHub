@@ -20,5 +20,20 @@ namespace SoftServeProject3.Api.Entities
         
         [BsonElement("isEmailConfirmed")]
         public bool IsEmailConfirmed { get; set; }
+        [BsonElement("schedule")]
+        public Dictionary<string, List<TimeRange>> Schedule { get; set; }
+    }
+    public class ScheduleDay
+    {
+        public string DayOfWeek { get; set; }
+        public List<TimeRange> TimeSlots { get; set; }
+    }
+    public class TimeRange
+    {
+        [BsonElement("Start")]
+        public DateTime Start { get; set; }
+
+        [BsonElement("End")]
+        public DateTime End { get; set; }
     }
 }
