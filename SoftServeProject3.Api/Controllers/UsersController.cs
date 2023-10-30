@@ -1,16 +1,15 @@
-﻿    using Microsoft.AspNetCore.Mvc;
-    using SoftServeProject3.Api.Entities;
-    using SoftServeProject3.Api.Interfaces;
-    using Microsoft.AspNetCore.Authentication.Cookies;
-    using Microsoft.AspNetCore.Authentication.Google;
-    using Microsoft.AspNetCore.Authentication;
-    using System.Security.Claims;
-    using SoftServeProject3.Api.Configurations;
-    using Microsoft.AspNetCore.Authorization;
-    
+﻿using Microsoft.AspNetCore.Mvc;
+using SoftServeProject3.Api.Entities;
+using SoftServeProject3.Api.Interfaces;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using SoftServeProject3.Api.Configurations;
+using Microsoft.AspNetCore.Authorization;
 
-    namespace SoftServeProject3.Api.Controllers
-    {
+namespace SoftServeProject3.Api.Controllers
+{
         [ApiController]
         [Route("[controller]")]
         public class UsersController : ControllerBase
@@ -133,7 +132,7 @@
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, registerRequest.Email),
-                
+                new Claim(ClaimTypes.Name, registerRequest.Username)
             };
 
             var token = _jwtService.GenerateJwtToken(claims);
@@ -172,7 +171,7 @@
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, userEmail),
-                
+                new Claim(ClaimTypes.Name, userEmail)
             };
 
             if (userInDb == null)
@@ -182,7 +181,16 @@
                     Email = userEmail,
                     Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey(64)),
                     IsEmailConfirmed = true,
-                    Schedule = Enumerable.Range(1, 7).ToDictionary(day => Enum.GetName(typeof(DayOfWeek), day - 1), day => new List<TimeRange>())
+                    Schedule = new Dictionary<string, List<TimeRange>>
+                    {
+                        { "Monday", new List<TimeRange>() },
+                        { "Tuesday", new List<TimeRange>() },
+                        { "Wednesday", new List<TimeRange>() },
+                        { "Thursday", new List<TimeRange>() },
+                        { "Friday", new List<TimeRange>() },
+                        { "Saturday", new List<TimeRange>() },
+                        { "Sunday", new List<TimeRange>() },
+                    }
                 };
 
                 _userRepository.Register(newUser);
