@@ -10,10 +10,10 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SoftServeProject3.Api.Controllers
 {
-        [ApiController]
-        [Route("[controller]")]
-        public class UsersController : ControllerBase
-        {
+    [ApiController]
+    [Route("[controller]")]
+    public class UsersController : ControllerBase
+    {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
 
