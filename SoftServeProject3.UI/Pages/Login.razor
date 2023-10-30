@@ -39,7 +39,7 @@
 </body>
 
 @code {
-    
+
     private string emailOrUsername = "";
     private string password = "";
     private string errorMessage = "";
@@ -56,17 +56,24 @@
         };
 
         var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/login", loginRequest);
-
-        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        if (result != null && !string.IsNullOrEmpty(result.Token))
+        if (response.IsSuccessStatusCode)
         {
-            await TokenService.StoreToken(result.Token);
-            Navigation.NavigateTo("/");
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            if (result != null && !string.IsNullOrEmpty(result.Token))
+            {
+                await TokenService.StoreToken(result.Token);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Login failed. Please check your email and password.";
+            }
         }
         else
         {
             errorMessage = "Login failed. Please check your email and password.";
         }
+        
     }
 
 
@@ -74,11 +81,6 @@
     {
         public string Token { get; set; }
     }
-    private void ForgotPassword()
-    {
-        
-    }
-
     
     private void StartGoogleLogin()
     {

@@ -118,7 +118,10 @@ namespace SoftServeProject3.Api.Repositories
         {
             return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
-
+        public async Task<User> GetUserByUsernameAsync(string username)
+        {
+            return await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
+        }
 
     }
 }

@@ -63,7 +63,8 @@ public class JwtService : IJwtService
 
         var jwtToken = (JwtSecurityToken)validatedToken;
         var userEmail = jwtToken.Claims.First(x => x.Type == "email").Value;
+        var userUsername = jwtToken.Claims.First(x => x.Type == "unique_name").Value;
 
-        return new UserInfo { Email = userEmail };
+        return new UserInfo { Email = userEmail, Username = userUsername };
     }
 }

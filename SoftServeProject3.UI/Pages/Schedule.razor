@@ -78,11 +78,13 @@
 
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
     private string email;
+    private string username;
     private DayOfWeek? selectedDay;
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     public class UserInfo
     {
         public string Email { get; set; }
+        public string Username { get; set; }
     }
     private void AddNewTask(List<TimeRange> tasks)
     {
@@ -116,7 +118,7 @@
             if (response.IsSuccessStatusCode)
             {
                 var userInfo = await response.Content.ReadFromJsonAsync<UserInfo>();
-                email = userInfo.Email;
+                email = userInfo.Username == "" ? userInfo.Email : userInfo.Username;
                 await LoadSchedule();
             }
             else
