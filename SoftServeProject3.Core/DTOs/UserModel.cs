@@ -5,9 +5,12 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace SoftServeProject3.Api.Entities
 {
-    public class User
+    public class UserModel
     {
         public ObjectId _id { get; set; }
+        
+        [BsonElement("username")]
+        public string Username { get; set; }
 
         [BsonElement("email")]
         public string Email { get; set; }

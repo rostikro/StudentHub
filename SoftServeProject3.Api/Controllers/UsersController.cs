@@ -26,7 +26,7 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login(User loginRequest)
+        public IActionResult Login(UserModel loginRequest)
         {
             var userInDb = _userRepository.GetByEmail(loginRequest.Email);
 
@@ -47,7 +47,7 @@ namespace SoftServeProject3.Api.Controllers
             return Ok(new { Message = "Logged in successfully." });
         }
         [HttpPost("register")]
-        public IActionResult Register(User registerRequest)
+        public IActionResult Register(UserModel registerRequest)
         {
             if (string.IsNullOrEmpty(registerRequest.Email) || string.IsNullOrEmpty(registerRequest.Password))
             {
@@ -116,7 +116,7 @@ namespace SoftServeProject3.Api.Controllers
             if (userInDb == null)
             {
 
-                var newUser = new User
+                var newUser = new UserModel
                 {
                     Email = userEmail,
                     Password = KeyGenerator.GenerateRandomKey(64),
@@ -139,6 +139,11 @@ namespace SoftServeProject3.Api.Controllers
 
         }
 
+        [HttpPost("/reset-password")]
+        public IActionResult ResetPassword()
+        {
+            return Ok(new { Message = "" });
+        }
 
         //Playground
 
