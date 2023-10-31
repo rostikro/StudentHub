@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @inject HttpClient Http
-@inject NavigationManager Navigation 
+@inject NavigationManager Navigation
+<link rel="stylesheet" href="Login.razor.css">
 @inject TokenService TokenService
 @using SoftServeProject3.UI.Data
 @using Microsoft.AspNetCore.WebUtilities;
@@ -16,7 +17,16 @@
 <button @onclick="AttemptLogin">Login</button>
 <button @onclick="StartGoogleLogin">Login with Google</button> 
 
-<p>@errorMessage</p> 
+        </div>
+    </div>
+
+    <p>@errorMessage</p>
+
+    <div class="registration-link">
+        <p>Ще не зареєстровані? <a href="/register">Зареєструватися</a></p>
+    </div>
+</body>
+
 @code {
 
     private string email = "";
@@ -43,6 +53,13 @@
             errorMessage = "Login failed. Please check your email and password.";
         }
     }
+
+
+    private void ForgotPassword()
+    {
+        
+    }
+
     
     private void StartGoogleLogin()
         {
@@ -60,6 +77,5 @@
             Navigation.NavigateTo("/", forceLoad: true); 
         }
     }
-    
-    
-}
+    }
+
