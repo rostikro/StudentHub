@@ -1,0 +1,72 @@
+﻿@page "/checking_mail"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+<link rel="stylesheet" href="CheckingMail.razor.css">
+
+
+<head>
+    <PageTitle>Checking mail</PageTitle>
+
+
+</head>
+
+
+<body>
+    <div class="form">
+        <h3>Скидання пароля</h3>
+        <div class="email">
+            <label>E-mail:</label>
+            <input @bind="email" type="email" placeholder="Введіть ваш E-mail" />
+            <button @onclick="SendCode">Відправити код</button>
+
+
+            <label>Поле для коду:</label>
+            <input @bind="code" type="text" placeholder="Введіть ваш код" />
+
+            <button @onclick="VerifyCode">Скинути пароль</button>
+            <button @onclick="SendCode">Відправити код знову</button>
+        </div>
+    </div>
+
+
+
+
+
+    <p>@errorMessage</p>
+    @code {
+        private string email = "";
+        private string code = "";
+        private string errorMessage = "";
+       
+        private async Task SendCode()
+        {
+            var emailData = new
+            {
+                EmailTo = email,
+            };
+
+            await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCode", emailData);
+            
+        }
+        private async Task VerifyCode()
+        {
+            var emailData = new
+            {
+                EmailTo = email,
+            };
+
+            var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCode?code={code}", emailData);
+
+            if (response.IsSuccessStatusCode)
+            {
+                errorMessage = "";
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = "Verification failed.";
+            }
+        }
+
+    }
+</body>

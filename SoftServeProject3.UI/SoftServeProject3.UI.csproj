@@ -7,7 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Pages\Checking mail.razor.css.jpg" />
+    <None Remove="Pages\Checking mail - Copy.razor.css.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Pages\RegistrationPage.razor.css.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\js\SetNewPassword.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,6 +23,10 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.11" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.1" />
     <PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SoftServeProject3.Core\SoftServeProject3.Core.csproj" />
   </ItemGroup>
 
 </Project>

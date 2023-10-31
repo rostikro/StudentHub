@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 body {
     background-image: url('Checking mail.razor.css.jpg');
     background-image: image();
@@ -18,6 +18,7 @@ body {
     margin: 0;
     /*зовнішні відступи = 0 */
 }
+
 .form {
     width: 350px;
     height: 360px;
@@ -32,9 +33,11 @@ body {
     align-items: center;
     /*елементи будуть центровані відносно ширини контейнера.*/
 }
+
     .form h3 {
         font-family: popins;
     }
+
     .form .email {
         display: flex;
         /* <body> стає гнучким контейнером і всі його прямі дочірні елементи стають гнучкими дочірніми елементами*/
@@ -43,7 +46,6 @@ body {
         margin-bottom: 10px;
         padding: 5px;
         width: 80%;
-        
     }
 
 label {
