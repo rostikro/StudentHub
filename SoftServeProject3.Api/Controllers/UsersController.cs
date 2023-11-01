@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SoftServeProject3.Api.Controllers
 {
+    /// <summary>
+    /// Контролер для управління операціями користувача, такими як автентифікація, реєстрація та управління розкладом.
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class UsersController : ControllerBase
@@ -17,17 +20,33 @@ namespace SoftServeProject3.Api.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
 
+        /// <summary>
+        /// Ініціалізує новий екземпляр класу <see cref="UsersController"/>.
+        /// </summary>
+        /// <param name="userRepository">Репозиторій користувачів.</param>
+        /// <param name="jwtService">Служба JWT.</param>
+        /// <exception cref="ArgumentNullException">Викидається, коли userRepository або jwtService дорівнює null.</exception>
         public UsersController(IUserRepository userRepository, IJwtService jwtService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
         }
+
+        /// <summary>
+        /// Представляє запит на вхід користувача в систему.
+        /// </summary>
         public class LoginRequest
         {
             public string Username { get; set; }
             public string Email { get; set; }
             public string Password { get; set; }
         }
+
+        /// <summary>
+        /// Автентифікація користувача на основі його імені користувача/електронної пошти та пароля.
+        /// </summary>
+        /// <param name="loginRequest">Запит на вхід.</param>
+        /// <returns>Токен JWT, якщо автентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest loginRequest)
         {
@@ -53,6 +72,11 @@ namespace SoftServeProject3.Api.Controllers
             return Ok(new { Token = token });
         }
 
+        /// <summary>
+        /// Отримання розкладу для вказаного користувача за його електронною поштою.
+        /// </summary>
+        /// <param name="email">Електронна пошта користувача.</param>
+        /// <returns>Розклад, якщо він знайдений; в іншому випадку, NotFound.</returns>
         [HttpGet("{email}")]
         public async Task<IActionResult> GetSchedule(string email)
         {
@@ -75,6 +99,13 @@ namespace SoftServeProject3.Api.Controllers
             
         }
 
+        /// <summary>
+        /// Оновлення розкладу для вказаного користувача в певний день тижня.
+        /// </summary>
+        /// <param name="email">Електронна пошта користувача.</param>
+        /// <param name="dayOfWeek">День тижня.</param>
+        /// <param name="updatedSchedule">Оновлений розклад.</param>
+        /// <returns>NoContent, якщо розклад оновлено; в іншому випадку, NotFound.</returns>
         [HttpPut("{email}/{dayOfWeek}")]
         public async Task<IActionResult> UpdateSchedule(string email, string dayOfWeek, [FromBody] List<TimeRange> updatedSchedule)
         {
@@ -95,6 +126,11 @@ namespace SoftServeProject3.Api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Отримання інформації про користувача з наданого токена JWT.
+        /// </summary>
+        /// <param name="token">Токен JWT.</param>
+        /// <returns>Інформація про користувача, якщо токен дійсний; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("get-user-info")]
         public ActionResult<UserInfo> GetUserInfo([FromBody] string token)
         {
@@ -109,6 +145,11 @@ namespace SoftServeProject3.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Реєстрація нового користувача.
+        /// </summary>
+        /// <param name="registerRequest">Запит на реєстрацію.</param>
+        /// <returns>Токен JWT, якщо реєстрація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("register")]
         public IActionResult Register([FromBody] User registerRequest)
         {
@@ -139,6 +180,10 @@ namespace SoftServeProject3.Api.Controllers
             return Ok(new { Token = token });
         }
 
+        /// <summary>
+        /// Ініціація процесу входу в систему Google OAuth.
+        /// </summary>
+        /// <returns>Результат виклику, який перенаправляє на Google для аутентифікації.</returns>
         [HttpGet("login/google")]
         public IActionResult GoogleLogin()
         {
@@ -149,6 +194,10 @@ namespace SoftServeProject3.Api.Controllers
             return Challenge(authenticationProperties, "Google");
         }
 
+        /// <summary>
+        /// Обробка відповіді від Google OAuth та завершення процесу аутентифікації.
+        /// </summary>
+        /// <returns>Результат перенаправлення з токеном JWT, якщо аутентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpGet("auth/google/callback")]
         public async Task<IActionResult> GoogleResponse()
         {

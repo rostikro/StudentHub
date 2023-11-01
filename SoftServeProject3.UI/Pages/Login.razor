@@ -44,6 +44,9 @@
     private string password = "";
     private string errorMessage = "";
 
+    /// <summary>
+    /// Спроба авторизації користувача з використанням його електронної пошти/імені користувача та пароля.
+    /// </summary>
     private async Task AttemptLogin()
     {
         var isEmail = emailOrUsername.Contains("@") && emailOrUsername.Contains(".");
@@ -81,13 +84,19 @@
     {
         public string Token { get; set; }
     }
-    
+
+    /// <summary>
+    /// Розпочинає процес входу через Google.
+    /// </summary>
     private void StartGoogleLogin()
     {
         
         Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
     }
     
+    /// <summary>
+    /// Викликається під час ініціалізації сторінки.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(Navigation.Uri);

@@ -67,7 +67,9 @@
     private bool isCodeVerified = false;
     private string registerButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
 
-
+    /// <summary>
+    /// Виконує реєстрацію користувача.
+    /// </summary>
     private async Task Register()
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
@@ -134,6 +136,9 @@
         public string Token { get; set; }
     }
 
+    /// <summary>
+    /// Відправляє на електронну пошту користувача код для підтвердження реєстрації.
+    /// </summary>
     private async Task SendCode()
     {
         var emailData = new
@@ -145,6 +150,10 @@
         isCodeVerified = false;
 
     }
+
+    /// <summary>
+    /// Перевіряє введений користувачем код на відповідність.
+    /// </summary>
     private async Task VerifyCode()
     {
         var emailData = new
@@ -165,12 +174,20 @@
             isCodeVerified = false;
         }
     }
+
+    /// <summary>
+    /// Ініціалізує процес входу через Google.
+    /// </summary>
     private void StartGoogleLogin()
     {
 
         Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
     }
 
+    /// <summary>
+    /// Метод, який викликається при ініціалізації компоненту.
+    /// Перевіряє URL на наявність токену та обробляє його.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(Navigation.Uri);

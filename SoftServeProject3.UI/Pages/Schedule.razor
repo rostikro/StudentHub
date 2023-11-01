@@ -15,6 +15,7 @@
     {
         <p class="text-danger">@errorMessage</p>
     }
+    <!-- Код для відображення розкладу -->
     @if (schedule == null)
     {
         <p>Loading...</p>
@@ -25,6 +26,7 @@
     }
     else
     {
+        <!-- Таблиця для відображення розкладу -->
         <table class="table">
             <thead>
                 <tr>
@@ -48,6 +50,7 @@
                                     var task = tasks[index];
                                     if (task != null)
                                     {
+                                        <!-- Компонент для редагування часу завдання -->
                                         <div>
                                             <input type="text" @bind="task.StartString" placeholder="Початок" />
                                             -
@@ -59,11 +62,14 @@
                             }
                             else
                             {
-                                <div>Немає завдань</div>
+                                <!-- Повідомлення, якщо часу немає -->
+                                <div>Немає часу</div>
                             }
+                            <!-- Кнопка для додавання нового завдання -->
                             <button @onclick="() => AddNewTask(tasks)">Додати час</button>
                         </td>
                         <td>
+                            <!-- Кнопка для збереження змін у розкладі -->
                             <button @onclick="() => SaveChanges(dayOfWeek, tasks)">Зберегти</button>
                         </td>
                     </tr>
@@ -79,13 +85,19 @@
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
     private string email;
     private string username;
+    private string errorMessage;
     private DayOfWeek? selectedDay;
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
+
     public class UserInfo
     {
         public string Email { get; set; }
         public string Username { get; set; }
     }
+
+    /// <summary>
+    /// Метод для додавання нового часу на конкретний день.
+    /// </summary>
     private void AddNewTask(List<TimeRange> tasks)
     {
         if (tasks == null)
@@ -97,6 +109,9 @@
         StateHasChanged(); 
     }
 
+    /// <summary>
+    /// Метод для часу до розкладу на конкретний день.
+    /// </summary>
     private void AddTask(DayOfWeek dayOfWeek)
     {
         if (!schedule.ContainsKey(dayOfWeek))
@@ -106,8 +121,12 @@
 
         schedule[dayOfWeek].Add(new TimeRange());
     }
-    private string errorMessage;
+    
 
+    /// <summary>
+    /// Метод, який викликається під час ініціалізації сторінки.
+    /// Відповідає за завантаження інформації про користувача з токену який зберігається в localStorage.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         try
@@ -132,6 +151,9 @@
         }
     }
 
+    /// <summary>
+    /// Метод для завантаження розкладу з сервера.
+    /// </summary>
     private async Task LoadSchedule()
     {
         try
@@ -158,6 +180,9 @@
         }
     }
 
+    /// <summary>
+    /// Метод для оновлення розкладу на сервері.
+    /// </summary>
     private async Task UpdateSchedule(DayOfWeek dayOfWeek, List<TimeRange> tasks)
     {
         try
@@ -179,6 +204,10 @@
             Console.WriteLine(ex.ToString());
         }
     }
+
+    /// <summary>
+    /// Метод для збереження змін у розкладі.
+    /// </summary>
     private async Task SaveChanges(DayOfWeek dayOfWeek, List<TimeRange> tasks)
     {
         try
@@ -216,6 +245,10 @@
             Console.WriteLine(ex.ToString());
         }
     }
+
+    /// <summary>
+    /// Метод для видалення проміжку часу.
+    /// </summary>
     private void RemoveTask(List<TimeRange> tasks, int index)
     {
         Console.WriteLine($"Removing {index}");
