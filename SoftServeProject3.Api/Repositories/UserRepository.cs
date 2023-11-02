@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using MongoDB.Driver;
 using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
 
@@ -22,6 +23,33 @@ namespace SoftServeProject3.Api.Repositories
             var database = client.GetDatabase("test");
 
             _users = database.GetCollection<User>("users");
+        }
+
+        public async Task UpdateProfileAsync(UpdateProfile profile)
+        {
+            try
+            {
+                // TODO: get email from authToken !!!
+                // temp solution
+                var email = "testmail";
+                
+                await _users.UpdateOneAsync(user => user.Email == email,
+                    Builders<User>.Update
+                        .Set(u => u.Username, profile.username)
+                        .Set(u => u.PhotoUrl, profile.photoUrl)
+                        .Set(u => u.Faculty, profile.faculty)
+                        .Set(u => u.Name, profile.name)
+                        .Set(u => u.Desription, profile.desription)
+                        .Set(u => u.Subjects, profile.subjects)
+                        .Set(u => u.Social, profile.social)
+                        .Set(u => u.Schedule, profile.schedule)
+                    );
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         /// <summary>

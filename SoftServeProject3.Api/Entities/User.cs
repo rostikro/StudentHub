@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -7,6 +7,7 @@ namespace SoftServeProject3.Api.Entities
 {
     public class User
     {
+        [JsonIgnore]
         public ObjectId _id { get; set; }
         
         [BsonElement("username")]
@@ -15,11 +16,32 @@ namespace SoftServeProject3.Api.Entities
         [BsonElement("email")]
         public string Email { get; set; }
 
+        [JsonIgnore]
         [BsonElement("password")]
         public string Password { get; set; }
         
+        [JsonIgnore]
         [BsonElement("isEmailConfirmed")]
         public bool IsEmailConfirmed { get; set; }
+        
+        [BsonElement("photoUrl")]
+        public string PhotoUrl { get; set; }
+        
+        [BsonElement("faculty")]
+        public string Faculty { get; set; }
+        
+        [BsonElement("name")]
+        public string Name { get; set; }
+        
+        [BsonElement("desription")]
+        public string Desription { get; set; }
+        
+        [BsonElement("subjects")]
+        public List<string> Subjects { get; set; }
+        
+        [BsonElement("social")]
+        public Dictionary<string, string> Social { get; set; }
+        
         [BsonElement("schedule")]
         public Dictionary<string, List<TimeRange>> Schedule { get; set; }
     }
