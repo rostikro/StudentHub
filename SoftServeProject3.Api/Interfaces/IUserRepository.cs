@@ -11,6 +11,7 @@ namespace SoftServeProject3.Api.Interfaces
         User GetByUsername(string username);
         void Register(User user);
         Task<User> GetUserByEmailAsync(string email);
+        Task<User> GetUserByUsernameAsync(string username);
 
     }
 }
