@@ -11,6 +11,8 @@ namespace SoftServeProject3.Core.DTOs
 {
     public class ForgotPasswordModel
     {
+        public ObjectId _id { get; set; }
+
         [BsonElement("email")]
         public string Email { get; set; }
 

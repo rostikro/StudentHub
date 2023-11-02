@@ -34,51 +34,55 @@ public class EmailController : ControllerBase
             //{
             //    return BadRequest("User with the email does not exist.");
             //}
-            // check if user can send a code to his email now
-            if (_verRepository.GetByEmail(emailData.EmailTo).ResendCode < DateTime.UtcNow)
+
+            var code = RandomGenerator.GenerateRandomCode();
+
+            var result = await _emailService.SendEmailAsync(emailData, code);
+
+            if (!result)
             {
-                var code = RandomGenerator.GenerateRandomCode();
+                return BadRequest("Failed to send verification code.");
+            }
 
-                var result = await _emailService.SendEmailAsync(emailData, code);
+            var user = _userRepository.GetByEmail(emailData.EmailTo);
 
-                if (!result)
-                {
-                    return BadRequest("Failed to send verification code.");
-                }
+            var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
+            //setting data for verification -> database
+            var setData = new ForgotPasswordModel
+            {
+                Email = emailData.EmailTo,
+                Code = code,
+                ExpirationTime = DateTime.UtcNow.AddMinutes(10)
+            };
 
-                var user = _userRepository.GetByEmail(emailData.EmailTo);
+            // check if user can send a code to his email now
 
-                var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
-                //setting data for verification -> database
-                var setData = new ForgotPasswordModel
-                {
-                    Email = emailData.EmailTo,
-                    Code = code,
-                    ExpirationTime = DateTime.UtcNow.AddMinutes(10)
-                };
-
-                //changing user code if they exist in verification database + adding resend time 
-                if (existingVerification != null)
+            //changing user code if they exist in verification database + adding resend time 
+            if (existingVerification != null)
+            {
+                if (_verRepository.GetByEmail(emailData.EmailTo).ResendCode < DateTime.UtcNow)
                 {
 
                     await _verRepository.UpdateCodeAsync(setData);
 
                     return Ok("Verification code changed.");
                 }
+
                 else
                 {
-
-                    _verRepository.CreateVerification(setData);
-
-                    return Ok("Verification code has been set to user.");
+                    //telling user to wait to resend a code
+                    return BadRequest($"You can resend code in " +
+                        $"{Math.Round((_verRepository.GetByEmail(emailData.EmailTo).ResendCode - DateTime.UtcNow).TotalSeconds)} seconds.");
                 }
             }
             else
             {
-                //telling user to wait to resend a code
-                return BadRequest($"You can resend code in " +
-                    $"{(_verRepository.GetByEmail(emailData.EmailTo).ResendCode - DateTime.UtcNow).TotalSeconds} seconds.");
+
+                _verRepository.CreateVerification(setData);
+
+                return Ok("Verification code has been set to user.");
             }
+
         }
         catch (Exception e)
         {
@@ -108,7 +112,8 @@ public class EmailController : ControllerBase
             //changing user email data to verified and removing user verification
             await _userRepository.UpdateUserAsync(emailData.EmailTo);
             var result = _verRepository.RemoveVerification(emailData.EmailTo);
-            if(result == null) 
+
+            if (!result)
             {
                 return BadRequest("Can't delete user verification.");
             }

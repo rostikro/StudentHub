@@ -39,10 +39,12 @@ namespace SoftServeProject3.Api.Repositories
             try
             {
                 await _verifications.UpdateOneAsync(verification => verification.Email == resetData.Email,
-                    Builders<ForgotPasswordModel>.Update.Set(verification => verification.Code, resetData.Code));
+                    Builders<ForgotPasswordModel>.Update.Set(verification => 
+                    verification.Code, BCrypt.Net.BCrypt.HashPassword(resetData.Code)));
 
                 await _verifications.UpdateOneAsync(verification => verification.Email == resetData.Email,
-                    Builders<ForgotPasswordModel>.Update.Set(verification => verification.ResendCode, DateTime.UtcNow.AddMinutes(CAN_RESEND_CODE_IN_MIN)));
+                    Builders<ForgotPasswordModel>.Update.Set(verification => 
+                    verification.ResendCode, DateTime.UtcNow.AddMinutes(CAN_RESEND_CODE_IN_MIN)));
             }
             catch (Exception e)
             {
@@ -68,8 +70,8 @@ namespace SoftServeProject3.Api.Repositories
                 {
                     Console.WriteLine($"Verification found with email: {email}");
                 }
-
                 return verification;
+
             }
             catch (Exception ex)
             {
