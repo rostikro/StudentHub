@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using System.Text.Json;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 
@@ -70,6 +71,54 @@ namespace SoftServeProject3.Api.Controllers
 
             var token = _jwtService.GenerateJwtToken(claims);
             return Ok(new { Token = token });
+        }
+        
+        /// <summary>
+        /// Returns a json representation of user profile
+        /// </summary>
+        /// <param name="email">user email</param>
+        [HttpGet("profile/{email}")]
+        public async Task<IActionResult> GetProfileAsync(string email)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByEmailAsync(email);
+                if (user == null)
+                {
+                    return BadRequest("Invalid email/username");
+                }
+                
+                var serializeOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true
+                };
+
+                var jsonRepsonse = JsonSerializer.Serialize<User>(user, serializeOptions);
+
+                return Ok(jsonRepsonse);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("updateProfile")]
+        public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
+        {
+            try
+            {
+                await _userRepository.UpdateProfileAsync(profile);
+                
+                return Ok("Success");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
         }
 
         /// <summary>
