@@ -314,7 +314,13 @@ namespace SoftServeProject3.Api.Controllers
                         { "Friday", new List<TimeRange>() },
                         { "Saturday", new List<TimeRange>() },
                         { "Sunday", new List<TimeRange>() },
-                    }
+                    },
+                    PhotoUrl = "",
+                    Faculty = "",
+                    Name = "",
+                    Description = "", // Corrected the typo here
+                    Subjects = new List<string>(), // Initialized the Subjects list
+                    Social = new Dictionary<string, string>() // Added the missing Social dictionary
                 };
 
                 _userRepository.Register(newUser);

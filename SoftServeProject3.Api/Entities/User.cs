@@ -17,7 +17,7 @@ namespace SoftServeProject3.Api.Entities
         [BsonElement("email")]
         public string Email { get; set; }
 
-        [JsonIgnore]
+        
         [BsonElement("password")]
         public string Password { get; set; }
         
@@ -35,7 +35,7 @@ namespace SoftServeProject3.Api.Entities
         public string Name { get; set; }
 
         [BsonElement("desription")]
-        public string Desription { get; set; }
+        public string Description { get; set; }
 
         [BsonElement("subjects")]
         public List<string> Subjects { get; set; }
