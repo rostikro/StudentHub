@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
+using SoftServeProject3.Api.Utils;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -126,6 +127,30 @@ namespace SoftServeProject3.Api.Controllers
             return NoContent();
         }
 
+        [HttpGet("username/{username}")]
+        public async Task<IActionResult> GetUserByUsername(string username)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(new
+            {
+                Id = user._id.ToString(),
+                Username = user.Username,
+                Email = user.Email,
+                IsEmailConfirmed = user.IsEmailConfirmed,
+                Schedule = user.Schedule
+            });
+        }
+
+        [HttpGet("list")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            return Ok(users);
+        }
         /// <summary>
         /// Отримання інформації про користувача з наданого токена JWT.
         /// </summary>
@@ -227,6 +252,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 var newUser = new User
                 {
+                    Username = $"user-{RandomGenerator.GenerateRandomCode()}",
                     Email = userEmail,
                     Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey(64)),
                     IsEmailConfirmed = true,

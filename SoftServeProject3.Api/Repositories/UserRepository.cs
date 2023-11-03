@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
 
@@ -174,7 +175,9 @@ namespace SoftServeProject3.Api.Repositories
         {
             return await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
         }
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return await _users.Find(_ => true).ToListAsync();
+        }
     }
 }
-
-
