@@ -1,0 +1,162 @@
+﻿body {
+    background-color: #fcd19c;
+    height: 110vh;
+}
+* {
+    box-sizing: border-box;
+
+}
+
+.wrapper {
+    max-width: 940px;
+    margin: 0 auto;
+}
+
+    .wrapper > div {
+    
+        border-radius: 5px;
+        padding: 1em;
+    }
+
+.wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    grid-auto-rows: minmax(100px, auto);
+}
+
+.one {
+    grid-column: 1 / 4;
+    grid-row: 1;
+    list-style: none;
+    background-color: #b3b3b3;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 40px 20px;
+}
+    .one a {
+        background-color: #757575;
+        display: inline-block;
+        border: 10px solid #757575;
+        border-radius: 5px;
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+        padding: 0px 5px;
+    }
+.one a:hover {
+    background-color: peru;
+    border: 10px solid peru;
+}
+
+.left-links a:first-child {
+    margin-left: 0;
+}
+
+.right-links a:last-child {
+    margin-right: 0;
+}
+.two {
+    grid-column: 1;
+    grid-row: 2;
+    color: red;
+    background-color: #fcd19c;
+    display: flex;
+    align-items: center; /* Центрує елементи по вертикалі */
+    justify-content: center; /* Центрує елементи по горизонталі */
+    flex-direction: column;
+    height: auto; /* Робить контейнер повністю висоти вікна */
+    width: auto;
+    padding: 40px;
+}
+
+.profile-picture {
+    background-color: pink;
+    width: 20vh;
+    height: 20vh;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 20px; /* Перенесено до профільного зображення для зручності */
+}
+.profile-picture img {
+    width: 100%;
+    height: 100%;
+
+}
+.three {
+    text-align: center;
+    grid-column: 2/4;
+    grid-row: 2 / 6;
+    background-color: #757575;
+}
+
+.four {
+
+    grid-column: 1;
+    grid-row: 3\6;
+    text-align: center;
+    background-color: #757575;
+}
+.username-container h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    color: white;
+}
+.five {
+    grid-column: 1;
+    grid-row: 4;
+    background-color: #757575;
+}
+
+.six {
+    grid-column: 1;
+    grid-row: 5;
+    background-color: #757575;
+}
+tbody {
+    background-color: palegreen;
+}
+tr {
+    background-color: forestgreen;
+}
+.day {
+    color: red;
+    height: 5vh; /* Робить контейнер повністю висоти вікна */
+    width: 10vh;
+    border: 10px solid #757575;
+    border-radius: 20px;
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+}
+td {
+
+    background-color: powderblue;
+}
+td div  {
+    background-color: yellowgreen;
+}
+td div button {
+    background-color: fuchsia;
+}
+thead {
+    background-color: saddlebrown;
+}
+.start {
+    background-color: khaki;
+}
+/*те що знаходиться всередині плейсхолдеру*/
+placeholder-shown {
+    color: red;
+    font-size: 1.2em;
+    font-style: italic;
+    width: 20px;
+    background-color: khaki;
+}
+button {
+    background-color: khaki;
+    border-radius: 20px;
+}

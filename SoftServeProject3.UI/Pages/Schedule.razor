@@ -10,70 +10,100 @@
 </head>
 
 <body>
-    <h1>Мій розклад</h1>
-    @if (errorMessage != null)
-    {
-        <p class="text-danger">@errorMessage</p>
-    }
-    @if (schedule == null)
-    {
-        <p>Loading...</p>
-    }
-    else if (schedule.Count == 0)
-    {
-        <p>Розклад пустий</p>
-    }
-    else
-    {
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>День тижня</th>
-                    <th>Час</th>
-                    <th>Дії</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var kvp in schedule)
-                {
-                    var dayOfWeek = kvp.Key;
-                    var tasks = kvp.Value;
-                    <tr>
-                        <td>@dayOfWeek</td>
-                        <td>
-                            @if (tasks != null && tasks.Count > 0)
-                            {
-                                @for (int index = 0; index < tasks.Count; index++)
-                                {
-                                    var task = tasks[index];
-                                    if (task != null)
+    <div class="wrapper">
+        <div class="one">
+            <div class="left-links">
+                <a href="#">Home</a>
+                <a href="fetchdata">Пошук студентів</a>
+                <a href="login">Налаштування</a>
+            </div>
+            <div class="right-links">
+                <a href="counter">Чат</a>
+                <a href="checking_mail">Профіль</a>
+            </div>
+        </div>
+        <div class="two">
+            <div class="profile-picture">
+                <img src="https://avatars.githubusercontent.com/u/129945281?v=4" alt="Фото профілю">
+            </div>
+        </div>
+        <div class="three">
+            <h1>Мій розклад</h1>
+            @if (errorMessage != null)
+            {
+                <p class="text-danger">@errorMessage</p>
+            }
+            @if (schedule == null)
+            {
+                <p>Loading...</p>
+            }
+            else if (schedule.Count == 0)
+            {
+                <p>Розклад пустий</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>День тижня</th>
+                            <th>Час</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var kvp in schedule)
+                        {
+                            var dayOfWeek = kvp.Key;
+                            var tasks = kvp.Value;
+                            <tr>
+                                <td class="day">@dayOfWeek</td>
+                                <td>
+                                    @if (tasks != null && tasks.Count > 0)
                                     {
-                                        <div>
-                                            <input type="text" @bind="task.StartString" placeholder="Початок" />
-                                            -
-                                            <input type="text" @bind="task.EndString" placeholder="Кінець" />
-                                            <button @onclick="() => RemoveTask(tasks, index - 1)">Видалити</button> 
-                                        </div>
+                                        @for (int index = 0; index < tasks.Count; index++)
+                                        {
+                                            var task = tasks[index];
+                                            if (task != null)
+                                            {
+                                                <div class="start">
+                                                    <input type="text" @bind="task.StartString" placeholder="Початок" />
+                                                    
+                                                    <input type="text" @bind="task.EndString" placeholder="Кінець" />
+                                                    <button @onclick="() => RemoveTask(tasks, index - 1)">Видалити</button>
+                                                </div>
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                            else
-                            {
-                                <div>Немає завдань</div>
-                            }
-                            <button @onclick="() => AddNewTask(tasks)">Додати час</button>
-                        </td>
-                        <td>
-                            <button @onclick="() => SaveChanges(dayOfWeek, tasks)">Зберегти</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
+                                    else
+                                    {
+                                        <div>Немає завдань</div>
+                                    }
+                                    <button @onclick="() => AddNewTask(tasks)">Додати час</button>
+                                </td>
+                                <td>
+                                    <button @onclick="() => SaveChanges(dayOfWeek, tasks)">Зберегти</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+        <div class="four">
+            <div class="username-container">
+                <h3>Нікнейм користувача (повинне бути обмеження по кількості символів)</h3>
+            </div>
+
+        </div>
+        <div class="five">Five</div>
+        <div class="six">Six</div>
+    </div>
+
+   
 </body>
-
-
+@* evgeniypoklov@gmail.com *@
+@* 33 *@
 @code {
 
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
