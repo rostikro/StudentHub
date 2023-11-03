@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using SoftServeProject3.Api.Utils;
 using System.Text.Json;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
+
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -72,7 +74,7 @@ namespace SoftServeProject3.Api.Controllers
             var token = _jwtService.GenerateJwtToken(claims);
             return Ok(new { Token = token });
         }
-        
+
         /// <summary>
         /// Returns a json representation of user profile
         /// </summary>
@@ -103,23 +105,22 @@ namespace SoftServeProject3.Api.Controllers
                 Console.WriteLine(e);
                 return BadRequest("Internal error");
             }
-        }
+          }
+          [HttpPost("updateProfile")]
+          public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
+          {
+              try
+              {
+                  await _userRepository.UpdateProfileAsync(profile);
 
-        [HttpPost("updateProfile")]
-        public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
-        {
-            try
-            {
-                await _userRepository.UpdateProfileAsync(profile);
-                
-                return Ok("Success");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return BadRequest("Internal error");
-            }
-        }
+                  return Ok("Success");
+              }
+              catch (Exception e)
+              {
+                  Console.WriteLine(e);
+                  return BadRequest("Internal error");
+              }
+          }
 
         /// <summary>
         /// Отримання розкладу для вказаного користувача за його електронною поштою.
@@ -163,7 +164,6 @@ namespace SoftServeProject3.Api.Controllers
             {
                 return NotFound();
             }
-
             user.Schedule ??= new Dictionary<string, List<TimeRange>>();
             user.Schedule[dayOfWeek] = updatedSchedule.Select(tr => new TimeRange
             {
@@ -173,6 +173,31 @@ namespace SoftServeProject3.Api.Controllers
 
             await _userRepository.UpdateUserAsync(user);
             return NoContent();
+        }
+
+        [HttpGet("username/{username}")]
+        public async Task<IActionResult> GetUserByUsername(string username)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(new
+            {
+                Id = user._id.ToString(),
+                Username = user.Username,
+                Email = user.Email,
+                IsEmailConfirmed = user.IsEmailConfirmed,
+                Schedule = user.Schedule
+            });
+        }
+
+        [HttpGet("list")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            return Ok(users);
         }
 
         /// <summary>
@@ -276,6 +301,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 var newUser = new User
                 {
+                    Username = $"user-{RandomGenerator.GenerateRandomCode()}",
                     Email = userEmail,
                     Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey(64)),
                     IsEmailConfirmed = true,

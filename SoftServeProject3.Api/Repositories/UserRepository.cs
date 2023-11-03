@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+using MongoDB.Bson;
+using Microsoft.AspNetCore.Http.HttpResults;
 using MongoDB.Driver;
 using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
@@ -24,6 +25,7 @@ namespace SoftServeProject3.Api.Repositories
 
             _users = database.GetCollection<User>("users");
         }
+
 
         public async Task UpdateProfileAsync(UpdateProfile profile)
         {
@@ -51,6 +53,7 @@ namespace SoftServeProject3.Api.Repositories
                 throw;
             }
         }
+
 
         /// <summary>
         /// Перевіряє, чи існує користувач з вказаною електронною поштою в базі даних.
@@ -202,7 +205,11 @@ namespace SoftServeProject3.Api.Repositories
         {
             return await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
         }
+
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return await _users.Find(_ => true).ToListAsync();
+        }
+
     }
 }
-
-
