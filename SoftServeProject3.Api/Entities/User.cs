@@ -18,7 +18,7 @@ namespace SoftServeProject3.Api.Entities
         [JsonProperty("email")]
         [BsonElement("email")]
         public string Email { get; set; }
-        
+      
         [JsonProperty("password")]
         [BsonElement("password")]
         public string Password { get; set; }
