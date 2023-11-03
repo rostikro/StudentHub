@@ -6,7 +6,7 @@ namespace SoftServeProject3.Api.Interfaces
     {
         Task UpdateUserAsync(User user);
         Task UpdateUserAsync(string email);
-        Task UpdateProfileAsync(UpdateProfile profile);
+        Task UpdateProfileAsync(UpdateProfile profile, string email);
         Task<bool> IsUserExistsAsync(string email);
         User GetByEmail(string email);
         User GetByUsername(string username);

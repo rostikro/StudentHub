@@ -111,7 +111,9 @@ namespace SoftServeProject3.Api.Controllers
           {
               try
               {
-                  await _userRepository.UpdateProfileAsync(profile);
+                  string email = _jwtService.DecodeJwtToken(profile.authToken).Email;
+                  
+                  await _userRepository.UpdateProfileAsync(profile, email);
 
                   return Ok("Success");
               }
