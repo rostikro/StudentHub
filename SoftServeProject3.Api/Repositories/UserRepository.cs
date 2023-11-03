@@ -25,14 +25,10 @@ namespace SoftServeProject3.Api.Repositories
             _users = database.GetCollection<User>("users");
         }
 
-        public async Task UpdateProfileAsync(UpdateProfile profile)
+        public async Task UpdateProfileAsync(UpdateProfile profile, string email)
         {
             try
             {
-                // TODO: get email from authToken !!!
-                // temp solution
-                var email = "testmail";
-                
                 await _users.UpdateOneAsync(user => user.Email == email,
                     Builders<User>.Update
                         .Set(u => u.Username, profile.username)
