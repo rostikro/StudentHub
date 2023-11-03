@@ -37,7 +37,7 @@ namespace SoftServeProject3.Api.Repositories
                         .Set(u => u.PhotoUrl, profile.photoUrl)
                         .Set(u => u.Faculty, profile.faculty)
                         .Set(u => u.Name, profile.name)
-                        .Set(u => u.Desription, profile.desription)
+                        .Set(u => u.Description, profile.description)
                         .Set(u => u.Subjects, profile.subjects)
                         .Set(u => u.Social, profile.social)
                         .Set(u => u.Schedule, profile.schedule)

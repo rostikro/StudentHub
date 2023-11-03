@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Utils;
-using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 
@@ -90,13 +91,12 @@ namespace SoftServeProject3.Api.Controllers
                     return BadRequest("Invalid email/username");
                 }
                 
-                var serializeOptions = new JsonSerializerOptions
+                var serializeOptions = new JsonSerializerSettings
                 {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true
+                    ContractResolver = new GetUserContractResolver(),
                 };
 
-                var jsonRepsonse = JsonSerializer.Serialize<User>(user, serializeOptions);
+                var jsonRepsonse = JsonConvert.SerializeObject(user, serializeOptions);
 
                 return Ok(jsonRepsonse);
             }
