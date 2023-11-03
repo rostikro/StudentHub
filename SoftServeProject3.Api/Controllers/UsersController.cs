@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using SoftServeProject3.Api.Utils;
+using System.Text.Json;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
-using SoftServeProject3.Api.Utils;
+
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -74,6 +76,53 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         /// <summary>
+        /// Returns a json representation of user profile
+        /// </summary>
+        /// <param name="email">user email</param>
+        [HttpGet("profile/{email}")]
+        public async Task<IActionResult> GetProfileAsync(string email)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByEmailAsync(email);
+                if (user == null)
+                {
+                    return BadRequest("Invalid email/username");
+                }
+                
+                var serializeOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true
+                };
+
+                var jsonRepsonse = JsonSerializer.Serialize<User>(user, serializeOptions);
+
+                return Ok(jsonRepsonse);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+          }
+          [HttpPost("updateProfile")]
+          public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
+          {
+              try
+              {
+                  await _userRepository.UpdateProfileAsync(profile);
+
+                  return Ok("Success");
+              }
+              catch (Exception e)
+              {
+                  Console.WriteLine(e);
+                  return BadRequest("Internal error");
+              }
+          }
+
+        /// <summary>
         /// Отримання розкладу для вказаного користувача за його електронною поштою.
         /// </summary>
         /// <param name="email">Електронна пошта користувача.</param>
@@ -115,7 +164,6 @@ namespace SoftServeProject3.Api.Controllers
             {
                 return NotFound();
             }
-
             user.Schedule ??= new Dictionary<string, List<TimeRange>>();
             user.Schedule[dayOfWeek] = updatedSchedule.Select(tr => new TimeRange
             {
@@ -151,6 +199,7 @@ namespace SoftServeProject3.Api.Controllers
             var users = await _userRepository.GetAllUsersAsync();
             return Ok(users);
         }
+
         /// <summary>
         /// Отримання інформації про користувача з наданого токена JWT.
         /// </summary>
