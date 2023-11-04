@@ -34,7 +34,7 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="userRepository">Репозиторій користувачів.</param>
         /// <param name="jwtService">Служба JWT.</param>
         /// <exception cref="ArgumentNullException">Викидається, коли userRepository або jwtService дорівнює null.</exception>
-        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env)
+        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env, IVerificationRepository verRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
@@ -285,7 +285,7 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="registerRequest">Запит на реєстрацію.</param>
         /// <returns>Токен JWT, якщо реєстрація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("register")]
-        public IActionResult Register([FromBody] User registerRequest)
+        public IActionResult Register([FromBody] UserModel registerRequest)
         {
             if (string.IsNullOrWhiteSpace(registerRequest.Email) || string.IsNullOrWhiteSpace(registerRequest.Password) || string.IsNullOrWhiteSpace(registerRequest.Username))
             {
@@ -359,7 +359,7 @@ namespace SoftServeProject3.Api.Controllers
 
             if (userInDb == null)
             {
-                var newUser = new User
+                var newUser = new UserModel
                 {
                     Username = $"user-{RandomGenerator.GenerateRandomCode()}",
                     Email = userEmail,

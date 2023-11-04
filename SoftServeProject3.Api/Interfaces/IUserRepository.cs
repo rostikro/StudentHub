@@ -8,8 +8,8 @@ namespace SoftServeProject3.Api.Interfaces
         Task UpdateUserAsync(string email);
         Task UpdateProfileAsync(UpdateProfile profile, string email);
         Task<bool> IsUserExistsAsync(string email);
-        User GetByEmail(string email);
-        User GetByUsername(string username);
+        UserModel GetByEmail(string email);
+        UserModel GetByUsername(string username);
         void Register(UserModel user);
         Task<UserModel> GetUserByEmailAsync(string email);
         Task<UserModel> GetUserByUsernameAsync(string username);
