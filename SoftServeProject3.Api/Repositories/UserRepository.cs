@@ -47,16 +47,16 @@ namespace SoftServeProject3.Api.Repositories
             {
                 Console.WriteLine(e);
                 throw;
+                _users = database.GetCollection<UserModel>("users");
             }
         }
-
 
         /// <summary>
         /// Перевіряє, чи існує користувач з вказаною електронною поштою в базі даних.
         /// </summary>
         /// <param name="email">Електронна пошта для пошуку користувача.</param>
         /// <returns>Повертає <c>true</c>, якщо користувач існує; в іншому випадку, <c>false</c>.</returns>
-        public async Task<bool> IsUserExistsAsync(string email)
+            public async Task<bool> IsUserExistsAsync(string email)
         {
             try
             {
