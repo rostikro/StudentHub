@@ -1,56 +1,67 @@
-﻿    using Microsoft.AspNetCore.Mvc;
-    using SoftServeProject3.Api.Entities;
-    using SoftServeProject3.Api.Interfaces;
-    using Microsoft.AspNetCore.Authentication.Cookies;
-    using Microsoft.AspNetCore.Authentication.Google;
-    using Microsoft.AspNetCore.Authentication;
-    using System.Security.Claims;
-    using SoftServeProject3.Api.Configurations;
-    using Microsoft.AspNetCore.Authorization;
-    
+using Microsoft.AspNetCore.Mvc;
+using SoftServeProject3.Api.Entities;
+using SoftServeProject3.Api.Interfaces;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using SoftServeProject3.Api.Utils;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using SoftServeProject3.Api.Configurations;
+using Microsoft.AspNetCore.Authorization;
 
-    namespace SoftServeProject3.Api.Controllers
+
+namespace SoftServeProject3.Api.Controllers
+{
+    /// <summary>
+    /// Контролер для управління операціями користувача, такими як автентифікація, реєстрація та управління розкладом.
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class UsersController : ControllerBase
     {
-        [ApiController]
-        [Route("[controller]")]
-        public class UsersController : ControllerBase
-        {
+        private readonly IUserRepository _userRepository;
+        private readonly IJwtService _jwtService;
 
-            private readonly IUserRepository _userRepository;
-            private readonly IJwtService _jwtService;
+        /// <summary>
+        /// Ініціалізує новий екземпляр класу <see cref="UsersController"/>.
+        /// </summary>
+        /// <param name="userRepository">Репозиторій користувачів.</param>
+        /// <param name="jwtService">Служба JWT.</param>
+        /// <exception cref="ArgumentNullException">Викидається, коли userRepository або jwtService дорівнює null.</exception>
+        public UsersController(IUserRepository userRepository, IJwtService jwtService)
+        {
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+        }
+
+        /// <summary>
+        /// Представляє запит на вхід користувача в систему.
+        /// </summary>
         public class LoginRequest
         {
             public string Username { get; set; }
             public string Email { get; set; }
             public string Password { get; set; }
         }
-        public class registerRequest
-        {
-            public string Username { get; set; }
-            public string Email { get; set; }
-            public string Password { get; set; }
-        }
-        public UsersController(IUserRepository userRepository, IJwtService jwtService)
-        {
-            _userRepository = userRepository;
-            _jwtService = jwtService;
-        }
 
+        /// <summary>
+        /// Автентифікація користувача на основі його імені користувача/електронної пошти та пароля.
+        /// </summary>
+        /// <param name="loginRequest">Запит на вхід.</param>
+        /// <returns>Токен JWT, якщо автентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("login")]
-        public IActionResult Login(LoginRequest loginRequest)
+        public IActionResult Login([FromBody] LoginRequest loginRequest)
         {
-            var userInDb = _userRepository.GetByEmail(loginRequest.Email);
-            var userInDb2 = _userRepository.GetByUsername(loginRequest.Username);
-            
-            if (userInDb == null && userInDb2 == null)
+            var userInDb = _userRepository.GetByEmail(loginRequest.Email) ?? _userRepository.GetByUsername(loginRequest.Username);
+
+            if (userInDb == null)
             {
                 return BadRequest("Invalid email/username");
             }
-            
-            bool isPasswordValid = userInDb == null ? BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb2.Password) : BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password);
-                
 
-            if (!isPasswordValid)
+            if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password))
             {
                 return BadRequest("Invalid password.");
             }
@@ -58,28 +69,95 @@
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, loginRequest.Email),
-                // Треба додати username
+                new Claim(ClaimTypes.Name, loginRequest.Username)
             };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
             var token = _jwtService.GenerateJwtToken(claims);
             return Ok(new { Token = token });
         }
+
+        /// <summary>
+        /// Returns a json representation of user profile
+        /// </summary>
+        /// <param name="email">user email</param>
+        [HttpGet("profile/{email}")]
+        public async Task<IActionResult> GetProfileAsync(string email)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByEmailAsync(email);
+                if (user == null)
+                {
+                    return BadRequest("Invalid email/username");
+                }
+                
+                var serializeOptions = new JsonSerializerSettings
+                {
+                    ContractResolver = new GetUserContractResolver(),
+                };
+
+                var jsonRepsonse = JsonConvert.SerializeObject(user, serializeOptions);
+
+                return Ok(jsonRepsonse);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+          }
+          [HttpPost("updateProfile")]
+          public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
+          {
+              try
+              {
+                  string email = _jwtService.DecodeJwtToken(profile.authToken).Email;
+                  
+                  await _userRepository.UpdateProfileAsync(profile, email);
+
+                  return Ok("Success");
+              }
+              catch (Exception e)
+              {
+                  Console.WriteLine(e);
+                  return BadRequest("Internal error");
+              }
+          }
+
+        /// <summary>
+        /// Отримання розкладу для вказаного користувача за його електронною поштою.
+        /// </summary>
+        /// <param name="email">Електронна пошта користувача.</param>
+        /// <returns>Розклад, якщо він знайдений; в іншому випадку, NotFound.</returns>
         [HttpGet("{email}")]
         public async Task<IActionResult> GetSchedule(string email)
         {
+            
             var user = await _userRepository.GetUserByEmailAsync(email);
-
-
-            if (user == null || user.Schedule == null)
+            var user2 = await _userRepository.GetUserByUsernameAsync(email);
+            if (user?.Schedule == null && user2?.Schedule == null)
             {
                 return NotFound();
             }
-            return Ok(user.Schedule);
+            if (user ==  null) 
+            { 
+                return Ok(user2.Schedule); 
+            }
+            else
+            {
+                return Ok(user.Schedule);
+            }
+            
+            
         }
 
-
+        /// <summary>
+        /// Оновлення розкладу для вказаного користувача в певний день тижня.
+        /// </summary>
+        /// <param name="email">Електронна пошта користувача.</param>
+        /// <param name="dayOfWeek">День тижня.</param>
+        /// <param name="updatedSchedule">Оновлений розклад.</param>
+        /// <returns>NoContent, якщо розклад оновлено; в іншому випадку, NotFound.</returns>
         [HttpPut("{email}/{dayOfWeek}")]
         public async Task<IActionResult> UpdateSchedule(string email, string dayOfWeek, [FromBody] List<TimeRange> updatedSchedule)
         {
@@ -88,31 +166,47 @@
             {
                 return NotFound();
             }
-
-            if (user.Schedule == null)
-            {
-                user.Schedule = new Dictionary<string, List<TimeRange>>();
-            }
-
-            if (!user.Schedule.ContainsKey(dayOfWeek))
-            {
-                user.Schedule[dayOfWeek] = new List<TimeRange>();
-            }
-
-            TimeZoneInfo utcZone = TimeZoneInfo.Utc;
-
-
+            user.Schedule ??= new Dictionary<string, List<TimeRange>>();
             user.Schedule[dayOfWeek] = updatedSchedule.Select(tr => new TimeRange
             {
-                Start = TimeZoneInfo.ConvertTimeToUtc(new DateTime(1, 1, 1, tr.Start.Hour, tr.Start.Minute, 0), utcZone),
-                End = TimeZoneInfo.ConvertTimeToUtc(new DateTime(1, 1, 1, tr.End.Hour, tr.End.Minute, 0), utcZone)
+                Start = DateTime.SpecifyKind(tr.Start, DateTimeKind.Utc),
+                End = DateTime.SpecifyKind(tr.End, DateTimeKind.Utc)
             }).ToList();
-
 
             await _userRepository.UpdateUserAsync(user);
             return NoContent();
         }
-        
+
+        [HttpGet("username/{username}")]
+        public async Task<IActionResult> GetUserByUsername(string username)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(new
+            {
+                Id = user._id.ToString(),
+                Username = user.Username,
+                Email = user.Email,
+                IsEmailConfirmed = user.IsEmailConfirmed,
+                Schedule = user.Schedule
+            });
+        }
+
+        [HttpGet("list")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userRepository.GetAllUsersAsync();
+            return Ok(users);
+        }
+
+        /// <summary>
+        /// Отримання інформації про користувача з наданого токена JWT.
+        /// </summary>
+        /// <param name="token">Токен JWT.</param>
+        /// <returns>Інформація про користувача, якщо токен дійсний; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("get-user-info")]
         public ActionResult<UserInfo> GetUserInfo([FromBody] string token)
         {
@@ -126,42 +220,46 @@
                 return BadRequest(ex.Message);
             }
         }
-        
 
+        /// <summary>
+        /// Реєстрація нового користувача.
+        /// </summary>
+        /// <param name="registerRequest">Запит на реєстрацію.</param>
+        /// <returns>Токен JWT, якщо реєстрація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("register")]
-        public IActionResult Register(User registerRequest)
+        public IActionResult Register([FromBody] User registerRequest)
         {
-            if (string.IsNullOrEmpty(registerRequest.Email) || string.IsNullOrEmpty(registerRequest.Password) || string.IsNullOrEmpty(registerRequest.Username))
+            if (string.IsNullOrWhiteSpace(registerRequest.Email) || string.IsNullOrWhiteSpace(registerRequest.Password) || string.IsNullOrWhiteSpace(registerRequest.Username))
             {
                 return BadRequest("Email, UserName and Password are required.");
             }
 
-
-            var existingEmail = _userRepository.GetByEmail(registerRequest.Email);
-            var existingUsername = _userRepository.GetByUsername(registerRequest.Username);
-            
-            if (existingEmail != null)
+            if (_userRepository.GetByEmail(registerRequest.Email) != null)
             {
                 return BadRequest("Email already exists.");
             }
-            else if(existingUsername != null)
+
+            if (_userRepository.GetByUsername(registerRequest.Username) != null)
             {
                 return BadRequest("Username already exists.");
             }
 
             _userRepository.Register(registerRequest);
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, registerRequest.Email),
-                // Треба додати username
+                new Claim(ClaimTypes.Name, registerRequest.Username)
             };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
             var token = _jwtService.GenerateJwtToken(claims);
-            return Ok(new { Token = token});
+            return Ok(new { Token = token });
         }
 
+        /// <summary>
+        /// Ініціація процесу входу в систему Google OAuth.
+        /// </summary>
+        /// <returns>Результат виклику, який перенаправляє на Google для аутентифікації.</returns>
         [HttpGet("login/google")]
         public IActionResult GoogleLogin()
         {
@@ -169,21 +267,24 @@
             {
                 RedirectUri = Url.Action("GoogleResponse")
             };
-            return Challenge(authenticationProperties, GoogleDefaults.AuthenticationScheme);
+            return Challenge(authenticationProperties, "Google");
         }
 
+        /// <summary>
+        /// Обробка відповіді від Google OAuth та завершення процесу аутентифікації.
+        /// </summary>
+        /// <returns>Результат перенаправлення з токеном JWT, якщо аутентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpGet("auth/google/callback")]
         public async Task<IActionResult> GoogleResponse()
         {
-            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            var authenticateResult = await HttpContext.AuthenticateAsync("Google");
 
             if (!authenticateResult.Succeeded)
             {
                 return BadRequest("Error authenticating with Google");
             }
 
-            var emailClaim = authenticateResult.Principal.FindFirst(ClaimTypes.Email);
-            
+            var emailClaim = authenticateResult.Principal?.FindFirst(ClaimTypes.Email);
             if (emailClaim == null)
             {
                 return BadRequest("No email claim found");
@@ -195,18 +296,16 @@
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, userEmail),
-
+                new Claim(ClaimTypes.Name, userEmail)
             };
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
             if (userInDb == null)
             {
-
                 var newUser = new User
                 {
+                    Username = $"user-{RandomGenerator.GenerateRandomCode()}",
                     Email = userEmail,
-                    Password = KeyGenerator.GenerateRandomKey(64),
+                    Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey(64)),
                     IsEmailConfirmed = true,
                     Schedule = new Dictionary<string, List<TimeRange>>
                     {
@@ -219,17 +318,14 @@
                         { "Sunday", new List<TimeRange>() },
                     }
                 };
-                Console.WriteLine("NoUser");
-                _userRepository.Register(newUser);
 
+                _userRepository.Register(newUser);
                 var RegToken = _jwtService.GenerateJwtToken(claims);
                 return Redirect($"https://localhost:7182/login?token={RegToken}");
-
             }
-            
+
             var token = _jwtService.GenerateJwtToken(claims);
             return Redirect($"https://localhost:7182/login?token={token}");
-
         }
     }
 }

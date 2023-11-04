@@ -66,8 +66,10 @@
     private string code = "";
     private bool isCodeVerified = false;
     private string registerButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
-    
 
+    /// <summary>
+    /// Виконує реєстрацію користувача.
+    /// </summary>
     private async Task Register()
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
@@ -88,33 +90,40 @@
             Email = email,
             Password = password,
             Schedule = new Dictionary<string, List<TimeRange>>
-                    {
-                        { "Monday", new List<TimeRange>() },
-                        { "Tuesday", new List<TimeRange>() },
-                        { "Wednesday", new List<TimeRange>() },
-                        { "Thursday", new List<TimeRange>() },
-                        { "Friday", new List<TimeRange>() },
-                        { "Saturday", new List<TimeRange>() },
-                        { "Sunday", new List<TimeRange>() },
-                    }
+            {
+                { "Monday", new List<TimeRange>() },
+                { "Tuesday", new List<TimeRange>() },
+                { "Wednesday", new List<TimeRange>() },
+                { "Thursday", new List<TimeRange>() },
+                { "Friday", new List<TimeRange>() },
+                { "Saturday", new List<TimeRange>() },
+                { "Sunday", new List<TimeRange>() },
+            }
         };
 
         try
         {
             var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
-
-            var result = await response.Content.ReadFromJsonAsync<RegistrationResponse>();
-            if (result != null && !string.IsNullOrEmpty(result.Token))
+            if (response.IsSuccessStatusCode)
             {
+                var result = await response.Content.ReadFromJsonAsync<RegistrationResponse>();
+                if (result != null && !string.IsNullOrEmpty(result.Token))
+                {
 
-                await TokenService.StoreToken(result.Token);
-                Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
+                    await TokenService.StoreToken(result.Token);
+                    Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
 
+                }
+                else
+                {
+                    errorMessage = "Registration failed. Please try again.";
+                }
             }
             else
             {
                 errorMessage = "Registration failed. Please try again.";
             }
+
         }
         catch (Exception ex)
         {
@@ -127,6 +136,9 @@
         public string Token { get; set; }
     }
 
+    /// <summary>
+    /// Відправляє на електронну пошту користувача код для підтвердження реєстрації.
+    /// </summary>
     private async Task SendCode()
     {
         var emailData = new
@@ -134,10 +146,14 @@
             EmailTo = email,
         };
 
-        await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
+        await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodeRegister", emailData);
         isCodeVerified = false;
 
     }
+
+    /// <summary>
+    /// Перевіряє введений користувачем код на відповідність.
+    /// </summary>
     private async Task VerifyCode()
     {
         var emailData = new
@@ -158,12 +174,20 @@
             isCodeVerified = false;
         }
     }
+
+    /// <summary>
+    /// Ініціалізує процес входу через Google.
+    /// </summary>
     private void StartGoogleLogin()
     {
 
         Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
     }
 
+    /// <summary>
+    /// Метод, який викликається при ініціалізації компоненту.
+    /// Перевіряє URL на наявність токену та обробляє його.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(Navigation.Uri);

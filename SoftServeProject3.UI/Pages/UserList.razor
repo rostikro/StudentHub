@@ -1,0 +1,42 @@
+﻿@page "/list"
+@inject HttpClient Http
+
+<h3>Список користувачів</h3>
+
+@if (users == null)
+{
+    <p><em>Завантаження...</em></p>
+}
+else if (users.Length == 0)
+{
+    <p>Користувачі відсутні.</p>
+}
+else
+{
+    <ul>
+        @foreach (var user in users)
+        {
+            <li>
+                <a href="UserProfile/@user.Username">@user.Username</a>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private User[] users;
+
+    /// <summary>
+    /// Метод, який викликається при ініціалізації компоненту.
+    /// Витягує список користувачів з бази.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Http.GetFromJsonAsync<User[]>("https://localhost:7292/Users/list");
+    }
+
+    public class User
+    {
+        public string Username { get; set; }
+    }
+}

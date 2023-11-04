@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using SoftServeProject3.Api.Configurations;
 using SoftServeProject3.Api.Entities;
 
+
 public class JwtService : IJwtService
 {
     private readonly string _jwtSecret; // Your JWT secret
@@ -48,6 +49,12 @@ public class JwtService : IJwtService
 
         // The generated token is returned as a string, and it's typically sent as part of a response to a client after successful authentication.
     }
+
+    /// <summary>
+    /// Декодує JWT токен і витягує інформацію користувача.
+    /// </summary>
+    /// <param name="token">JWT токен, який необхідно декодувати.</param>
+    /// <returns>Об'єкт <see cref="UserInfo"/>, що містить інформацію про користувача.</returns>
     public UserInfo DecodeJwtToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -63,7 +70,8 @@ public class JwtService : IJwtService
 
         var jwtToken = (JwtSecurityToken)validatedToken;
         var userEmail = jwtToken.Claims.First(x => x.Type == "email").Value;
+        var userUsername = jwtToken.Claims.First(x => x.Type == "unique_name").Value;
 
-        return new UserInfo { Email = userEmail };
+        return new UserInfo { Email = userEmail, Username = userUsername };
     }
 }
