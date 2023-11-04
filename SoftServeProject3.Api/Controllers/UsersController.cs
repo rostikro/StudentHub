@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -11,6 +10,7 @@ using Newtonsoft.Json.Serialization;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
+using MongoDB.Driver;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -22,6 +22,7 @@ namespace SoftServeProject3.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IVerificationRepository _verRepository;
         private readonly IJwtService _jwtService;
         private readonly IWebHostEnvironment _env;
 
@@ -33,11 +34,12 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="userRepository">Репозиторій користувачів.</param>
         /// <param name="jwtService">Служба JWT.</param>
         /// <exception cref="ArgumentNullException">Викидається, коли userRepository або jwtService дорівнює null.</exception>
-        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env)
+        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env, IVerificationRepository verRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
             _env = env;
+            _verRepository = verRepository;
         }
 
         /// <summary>
@@ -62,7 +64,7 @@ namespace SoftServeProject3.Api.Controllers
 
             if (userInDb == null)
             {
-                return BadRequest("Invalid email/username");
+                return BadRequest("Invalid email or password.");
             }
 
             if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password))
@@ -283,7 +285,7 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="registerRequest">Запит на реєстрацію.</param>
         /// <returns>Токен JWT, якщо реєстрація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("register")]
-        public IActionResult Register([FromBody] User registerRequest)
+        public IActionResult Register([FromBody] UserModel registerRequest)
         {
             if (string.IsNullOrWhiteSpace(registerRequest.Email) || string.IsNullOrWhiteSpace(registerRequest.Password) || string.IsNullOrWhiteSpace(registerRequest.Username))
             {
@@ -357,7 +359,7 @@ namespace SoftServeProject3.Api.Controllers
 
             if (userInDb == null)
             {
-                var newUser = new User
+                var newUser = new UserModel
                 {
                     Username = $"user-{RandomGenerator.GenerateRandomCode()}",
                     Email = userEmail,
@@ -389,5 +391,46 @@ namespace SoftServeProject3.Api.Controllers
             var token = _jwtService.GenerateJwtToken(claims);
             return Redirect($"https://localhost:7182/login?token={token}");
         }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPassword)
+        {
+            if (resetPassword.Password != resetPassword.ConfirmPassword)
+                return BadRequest("Паролі не співпадають.");
+
+
+            var verification = _verRepository.GetByHashCode(resetPassword.HashCode).Result;
+
+            //перевірки клієнта
+            if (verification == null)
+                return BadRequest("Користувача не знайдено.");
+            
+            if(!BCrypt.Net.BCrypt.Verify(verification.Code, resetPassword.HashCode))
+                return BadRequest("Щось пішло не так : (");
+
+            if (verification.ExpirationTime < DateTime.UtcNow)
+                return BadRequest("Час на зміну пароля сплив. Спробуйте відіслати код ще раз.");
+
+            //зміна паролю
+            var existingUser = _userRepository.GetByEmail(verification.Email);
+
+            var result = _verRepository.RemoveVerification(verification.Email);
+
+            if (!result)
+            {
+                return BadRequest("Can't delete user verification.");
+            }
+
+            if (existingUser == null)
+                return BadRequest("Неможливо знайти користувача : (");
+            else
+            {
+                existingUser.Password = resetPassword.Password;
+                return Ok(new { Message = "Password has been changed successfully." });
+            }
+        }
+
+        //Playground
+
     }
 }

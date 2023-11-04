@@ -1,8 +1,8 @@
 using MongoDB.Bson;
 using Microsoft.AspNetCore.Http.HttpResults;
 using MongoDB.Driver;
-using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
+using SoftServeProject3.Core.DTOs;
 
 namespace SoftServeProject3.Api.Repositories
 {
@@ -11,7 +11,7 @@ namespace SoftServeProject3.Api.Repositories
     /// </summary>
     public class UserRepository : IUserRepository
     {
-        private readonly IMongoCollection<User> _users;
+        private readonly IMongoCollection<UserModel> _users;
 
         /// <summary>
         /// Ініціалізує новий екземпляр класу <see cref="UserRepository"/>.
@@ -23,7 +23,7 @@ namespace SoftServeProject3.Api.Repositories
             var client = new MongoClient(connectionString);
             var database = client.GetDatabase("test");
 
-            _users = database.GetCollection<User>("users");
+            _users = database.GetCollection<UserModel>("users");
         }
 
 
@@ -32,7 +32,7 @@ namespace SoftServeProject3.Api.Repositories
             try
             {
                 await _users.UpdateOneAsync(user => user.Email == email,
-                    Builders<User>.Update
+                    Builders<UserModel>.Update
                         .Set(u => u.Username, profile.username)
                         .Set(u => u.PhotoUrl, profile.photoUrl)
                         .Set(u => u.Faculty, profile.faculty)
@@ -81,7 +81,7 @@ namespace SoftServeProject3.Api.Repositories
             try
             {
                 await _users.UpdateOneAsync(user => user.Email == email,
-                    Builders<User>.Update.Set(user => user.IsEmailConfirmed, true));
+                    Builders<UserModel>.Update.Set(user => user.IsEmailConfirmed, true));
             }
             catch (Exception e)
             {
@@ -95,7 +95,7 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="user">Новий об'єкт користувача.</param>
         /// <returns>Асинхронна задача.</returns>
-        public async Task UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(UserModel user)
         {
             await _users.ReplaceOneAsync(u => u.Email == user.Email, user);
         }
@@ -105,7 +105,7 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="email">Електронна пошта користувача.</param>
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
-        public User GetByEmail(string email)
+        public UserModel GetByEmail(string email)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="username">Ім'я користувача.</param>
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
-        public User GetByUsername(string username)
+        public UserModel GetByUsername(string username)
         {
             try
             {
@@ -166,11 +166,11 @@ namespace SoftServeProject3.Api.Repositories
         /// Реєструє нового користувача в системі.
         /// </summary>
         /// <param name="user">Об'єкт користувача для реєстрації.</param>
-        public void Register(User user)
+        public void Register(UserModel user)
         {
             try
             {
-                
+
                 user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
                 _users.InsertOne(user);
                 Console.WriteLine($"User registered with email: {user.Email}");
@@ -187,7 +187,7 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="email">Електронна пошта користувача.</param>
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<UserModel> GetUserByEmailAsync(string email)
         {
             return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
@@ -197,12 +197,12 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="username">Ім'я користувача. </param>
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
-        public async Task<User> GetUserByUsernameAsync(string username)
+        public async Task<UserModel> GetUserByUsernameAsync(string username)
         {
             return await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserModel>> GetAllUsersAsync()
         {
             return await _users.Find(_ => true).ToListAsync();
         }
