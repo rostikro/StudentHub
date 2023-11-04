@@ -22,7 +22,7 @@
             <input @bind="password" type="password" placeholder="Введіть ваш пароль" />
 
             <button @onclick="AttemptLogin">Увійти</button>
-            <button @onclick="StartGoogleLogin">Login with Google</button>
+            <button @onclick="StartGoogleLogin">Login with Google</button> 
 
         </div>
     </div>
@@ -76,9 +76,10 @@
         {
             errorMessage = "Login failed. Please check your email and password.";
         }
-
+        
     }
 
+    }
 
     public class LoginResponse
     {
@@ -93,7 +94,7 @@
 
         Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
     }
-
+    
     /// <summary>
     /// Викликається під час ініціалізації сторінки.
     /// </summary>

@@ -1,13 +1,16 @@
 ﻿@page "/registrationpage"
 @inject HttpClient Http
 @inject NavigationManager Navigation
-<link rel="stylesheet" href="RegistrationPage.razor.css">
+@inject TokenService TokenService
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using SoftServeProject3.UI.Data
+@using Microsoft.AspNetCore.WebUtilities;
 
+<link rel="stylesheet" href="RegistrationPage.razor.css">
 
 <head>
     <PageTitle>Registration Page</PageTitle>
-
-
 </head>
 
 
@@ -17,21 +20,40 @@
         <p>Please fill in this form to create an account.</p>
         <hr>
 
-        <label for="username"><b>Username</b></label>
-        <input type="text" placeholder="Enter Username" maxLength="20" @bind="username" required>
+        @if (!isCodeSent)
+        {
+            <button @onclick="StartGoogleLogin">Register with Google</button>
 
-        <label for="email"><b>Email</b></label>
-        <input type="text" placeholder="Enter Email" @bind="email" required>
+            <label for="username"><b>Username</b></label>
+            <input type="text" placeholder="Enter Username" maxLength="20" @bind="username" required>
 
-        <label for="password"><b>Password</b></label>
-        <input type="password" placeholder="Enter Password" @bind="password" required>
+            <label for="email"><b>Email</b></label>
+            <input type="text" placeholder="Enter Email" @bind="email" required>
 
-        <label for="repeatPassword"><b>Repeat Password</b></label>
-        <input type="password" placeholder="Repeat Password" @bind="repeatPassword" required>
-        <hr>
+            <label for="password"><b>Password</b></label>
+            <input type="password" placeholder="Enter Password" @bind="password" required>
 
-        <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
-        <button @onclick="Register" class="registerbtn">Register</button>
+            <label for="repeatPassword"><b>Repeat Password</b></label>
+            <input type="password" placeholder="Repeat Password" @bind="repeatPassword" required>
+
+            <hr>
+            <button @onclick="SendCode">Далі</button>
+        }
+        else
+        {
+            <label>Поле для коду:</label>
+            <input @bind="code" type="text" placeholder="Введіть ваш код" />
+
+            <button @onclick="VerifyCode">Підтвердити</button>
+            <button @onclick="SendCode">Відправити код знову</button>
+            <button @onclick="ResetForm">Повернутися</button>
+        }
+
+        @if (isCodeVerified)
+        {
+            <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
+            <button @onclick="Register" class="@registerButtonClass">Register</button>
+        }
     </div>
 
     <div class="container signin">
@@ -47,8 +69,86 @@
     private string password = "";
     private string repeatPassword = "";
     private string errorMessage = "";
+    private bool isCodeSent = false;
 
+    public class TimeRange
+    {
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+    }
+
+    private string code = "";
+    private bool isCodeVerified = false;
+    private string registerButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
+
+    /// <summary>
+    /// Виконує реєстрацію користувача.
+    /// </summary>
     private async Task Register()
+    {
+
+        var registerRequest = new
+        {
+            Username = username,
+            Email = email,
+            Password = password,
+            Schedule = new Dictionary<string, List<TimeRange>>
+            {
+                { "Monday", new List<TimeRange>() },
+                { "Tuesday", new List<TimeRange>() },
+                { "Wednesday", new List<TimeRange>() },
+                { "Thursday", new List<TimeRange>() },
+                { "Friday", new List<TimeRange>() },
+                { "Saturday", new List<TimeRange>() },
+                { "Sunday", new List<TimeRange>() },
+            },
+            PhotoUrl = "",
+            Faculty = "",
+            Name = "",
+            Description = "", // Corrected the typo here
+            Subjects = new List<string>(), // Initialized the Subjects list
+            Social = new Dictionary<string, string>() // Added the missing Social dictionary
+        };
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<RegistrationResponse>();
+                if (result != null && !string.IsNullOrEmpty(result.Token))
+                {
+
+                    await TokenService.StoreToken(result.Token);
+                    Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
+
+                }
+                else
+                {
+                    errorMessage = "Registration failed. Please try again.";
+                }
+            }
+            else
+            {
+                errorMessage = "Registration failed. Please try again.";
+            }
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    public class RegistrationResponse
+    {
+        public string Token { get; set; }
+    }
+
+    /// <summary>
+    /// Відправляє на електронну пошту користувача код для підтвердження реєстрації.
+    /// </summary>
+    private async Task SendCode()
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
             string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(repeatPassword))
@@ -62,29 +162,73 @@
             return;
         }
 
-        var registerRequest = new
+        var emailData = new
         {
-            Username = username,
-            Email = email,
-            Password = password
+            EmailTo = email,
         };
 
-        try
-        {
-            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
+        await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodeRegister", emailData);
+        isCodeSent = true;
+        isCodeVerified = false;
 
-            if (response.IsSuccessStatusCode)
-            {
-                Navigation.NavigateTo("/checking_mail");
-            }
-            else
-            {
-                errorMessage = "Registration failed. Please try again.";
-            }
-        }
-        catch (Exception ex)
+    }
+
+    /// <summary>
+    /// Перевіряє введений користувачем код на відповідність.
+    /// </summary>
+    private async Task VerifyCode()
+    {
+        var emailData = new
         {
-            errorMessage = $"An error occurred: {ex.Message}";
+            EmailTo = email,
+        };
+
+        var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCode?code={code}", emailData);
+
+        if (response.IsSuccessStatusCode)
+        {
+            errorMessage = "";
+            isCodeVerified = true;
+        }
+        else
+        {
+            errorMessage = "Verification failed.";
+            isCodeVerified = false;
+        }
+    }
+
+    /// <summary>
+    /// Повертає до введення полів.
+    /// </summary>
+    private void ResetForm()
+    {
+        // Скидуємо стани, щоб користувач міг знову ввести дані
+        isCodeSent = false;
+        isCodeVerified = false;
+        code = "";
+    }
+
+    /// <summary>
+    /// Ініціалізує процес входу через Google.
+    /// </summary>
+    private void StartGoogleLogin()
+    {
+
+        Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
+    }
+
+    /// <summary>
+    /// Метод, який викликається при ініціалізації компоненту.
+    /// Перевіряє URL на наявність токену та обробляє його.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(Navigation.Uri);
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
+        {
+            await TokenService.StoreToken(token.ToString());
+            Navigation.NavigateTo("/", forceLoad: true);
         }
     }
 }

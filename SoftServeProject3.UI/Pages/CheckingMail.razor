@@ -54,6 +54,11 @@
     @code {
         private bool showCodeInput = false;
         private string errorMessage = "";
+        //TODO: В body додати два поля: пароль і повтор пароля, зробити їх активними/неактивними(активне після підтверження коду) як в реєстрації, + логіка 'забули пароль'
+
+        /// <summary>
+        /// Відправляє запит на сервер для отримання коду верифікації на електронну пошту користувача.
+        /// </summary>
 
         EmailDataModel emailData = new EmailDataModel();
         ForgotPasswordModel forgotPassword = new ForgotPasswordModel();
@@ -69,6 +74,10 @@
                 showCodeInput = true;
 
         }
+
+        /// <summary>
+        /// Перевіряє введений користувачем код та здійснює подальші дії на основі результату перевірки.
+        /// </summary>
         private async Task VerifyCode()
         {
             forgotPassword.Email = emailData.EmailTo;
