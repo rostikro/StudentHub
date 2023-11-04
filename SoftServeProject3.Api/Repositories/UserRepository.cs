@@ -50,7 +50,6 @@ namespace SoftServeProject3.Api.Repositories
             }
         }
 
-
         /// <summary>
         /// Перевіряє, чи існує користувач з вказаною електронною поштою в базі даних.
         /// </summary>

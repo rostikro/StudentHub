@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using SoftServeProject3.Api.Entities;
+using SoftServeProject3.Core.DTOs;
 
 namespace SoftServeProject3.Api.Configurations
 {
