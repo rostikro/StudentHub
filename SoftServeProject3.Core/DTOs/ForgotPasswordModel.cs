@@ -16,6 +16,7 @@ namespace SoftServeProject3.Core.DTOs
         [BsonElement("email")]
         public string Email { get; set; }
 
+        [BsonRequired]
         [BsonElement("code")]
         public string Code { get; set; }
 

@@ -6,16 +6,23 @@
 @using SoftServeProject3.UI.Data
 @using Microsoft.AspNetCore.WebUtilities;
 
-<h3>Login</h3>
+<head>
+    <PageTitle>Log In</PageTitle>
+</head>
 
-<label>Email:</label>
-<input @bind="email" type="email" />
+<body>
+    <div class="form">
+        <h3>Вхід</h3>
+        <div class="email">
+            <label>Email/UserName:</label>
+            <input @bind="emailOrUsername" type="text" placeholder="Введіть ваш Email/UserName" />
 
-<label>Password:</label>
-<input @bind="password" type="password" />
 
-<button @onclick="AttemptLogin">Login</button>
-<button @onclick="StartGoogleLogin">Login with Google</button> 
+            <label>Password:</label>
+            <input @bind="password" type="password" placeholder="Введіть ваш пароль" />
+
+            <button @onclick="AttemptLogin">Увійти</button>
+            <button @onclick="StartGoogleLogin">Login with Google</button>
 
         </div>
     </div>
@@ -23,50 +30,73 @@
     <p>@errorMessage</p>
 
     <div class="registration-link">
-        <p>Ще не зареєстровані? <a href="/register">Зареєструватися</a></p>
+        <p>Ще не зареєстровані? <a href="/RegistrationPage">Зареєструватися</a></p>
+    </div>
+
+    <div class="forgot-password-link">
+        <p>Забули пароль? <a href="/checking_mail">Скидання паролю</a></p>
     </div>
 </body>
 
 @code {
 
-    private string email = "";
+    private string emailOrUsername = "";
     private string password = "";
-    private string errorMessage = ""; 
+    private string errorMessage = "";
 
+    /// <summary>
+    /// Спроба авторизації користувача з використанням його електронної пошти/імені користувача та пароля.
+    /// </summary>
     private async Task AttemptLogin()
     {
+        var isEmail = emailOrUsername.Contains("@") && emailOrUsername.Contains(".");
+
         var loginRequest = new
         {
-            Email = email,
-            Password = password
+            Username = isEmail ? "" : emailOrUsername,
+            Email = isEmail ? emailOrUsername : "",
+            Password = password,
         };
 
         var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/login", loginRequest);
-
         if (response.IsSuccessStatusCode)
         {
-            errorMessage = "";
-            Navigation.NavigateTo("/");
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            if (result != null && !string.IsNullOrEmpty(result.Token))
+            {
+                await TokenService.StoreToken(result.Token);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Login failed. Please check your email and password.";
+            }
         }
         else
         {
             errorMessage = "Login failed. Please check your email and password.";
         }
+
     }
 
 
-    private void ForgotPassword()
+    public class LoginResponse
     {
-        
+        public string Token { get; set; }
     }
 
-    
+    /// <summary>
+    /// Розпочинає процес входу через Google.
+    /// </summary>
     private void StartGoogleLogin()
-        {
-        
+    {
+
         Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
     }
-    
+
+    /// <summary>
+    /// Викликається під час ініціалізації сторінки.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         var uri = new Uri(Navigation.Uri);
@@ -74,8 +104,7 @@
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
         {
             await TokenService.StoreToken(token.ToString());
-            Navigation.NavigateTo("/", forceLoad: true); 
+            Navigation.NavigateTo("/", forceLoad: true);
         }
     }
-    }
-
+}

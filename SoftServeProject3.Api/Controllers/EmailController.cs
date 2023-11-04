@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Ocsp;
 using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
 using SoftServeProject3.Api.Repositories;
@@ -30,10 +31,12 @@ public class EmailController : ControllerBase
         try
         {
             //check if user exists in user database
-            //if (!await _userRepository.IfUserExistsAsync(emailData.EmailTo))
-            //{
-            //    return BadRequest("User with the email does not exist.");
-            //}
+            if (!await _userRepository.IsUserExistsAsync(emailData.EmailTo))
+            {
+                return BadRequest("User with the email does not exist.");
+            }
+
+            await _verRepository.ClearVerifications();
 
             var code = RandomGenerator.GenerateRandomCode();
 
@@ -44,15 +47,14 @@ public class EmailController : ControllerBase
                 return BadRequest("Failed to send verification code.");
             }
 
-            var user = _userRepository.GetByEmail(emailData.EmailTo);
+
 
             var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
             //setting data for verification -> database
             var setData = new ForgotPasswordModel
             {
                 Email = emailData.EmailTo,
-                Code = code,
-                ExpirationTime = DateTime.UtcNow.AddMinutes(10)
+                Code = code
             };
 
             // check if user can send a code to his email now
@@ -93,13 +95,14 @@ public class EmailController : ControllerBase
     }
 
     [HttpPost]
-    [Route(("VerifyCodeEmail"))]
-    public async Task<IActionResult> VerifyCodeAsync([FromBody] EmailData emailData, [FromQuery] string code)
+    [Route("VerifyCodeEmail")]
+    public async Task<IActionResult> VerifyCodeAsync(ForgotPasswordModel verData)
     {
         try
         {
-            var verification = _verRepository.GetByEmail(emailData.EmailTo);
-            if (code != verification.Code)
+            var verification = _verRepository.GetByEmail(verData.Email);
+
+            if (verData.Code != verification.Code)
             {
                 return BadRequest("Code is not correct.");
             }
@@ -110,13 +113,7 @@ public class EmailController : ControllerBase
             }
 
             //changing user email data to verified and removing user verification
-            await _userRepository.UpdateUserAsync(emailData.EmailTo);
-            var result = _verRepository.RemoveVerification(emailData.EmailTo);
-
-            if (!result)
-            {
-                return BadRequest("Can't delete user verification.");
-            }
+            await _userRepository.UpdateUserAsync(verData.Email);
 
             return Ok("Account verified successfully");
         }

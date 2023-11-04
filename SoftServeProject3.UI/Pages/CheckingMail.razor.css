@@ -56,6 +56,10 @@ input {
     border-radius: 5px;
 }
 
+.codesent {
+    font-size: 16px;
+}
+
 button {
     margin: 10px;
     background-color: #007439;
@@ -70,3 +74,4 @@ button {
     color: red;
     font-weight: bold;
 }
+

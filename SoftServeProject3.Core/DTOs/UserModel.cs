@@ -3,7 +3,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace SoftServeProject3.Api.Entities
+namespace SoftServeProject3.Core.DTOs
 {
     public class UserModel
     {

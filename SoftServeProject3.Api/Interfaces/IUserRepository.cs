@@ -1,4 +1,4 @@
-﻿using SoftServeProject3.Api.Entities;
+﻿using SoftServeProject3.Core.DTOs;
 
 namespace SoftServeProject3.Api.Interfaces
 {

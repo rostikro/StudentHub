@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -7,8 +6,8 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
-
-
+using SoftServeProject3.Core.DTOs;
+using MongoDB.Driver;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -18,12 +17,14 @@ namespace SoftServeProject3.Api.Controllers
     {
 
         private readonly IUserRepository _userRepository;
+        private readonly IVerificationRepository _verRepository;
         private readonly IJwtService _jwtService;
 
-        public UsersController(IUserRepository userRepository, IJwtService jwtService)
+        public UsersController(IUserRepository userRepository, IJwtService jwtService, IVerificationRepository verRepository)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
+            _verRepository = verRepository;
         }
 
         [HttpPost("login")]
@@ -140,10 +141,42 @@ namespace SoftServeProject3.Api.Controllers
 
         }
 
-        [HttpPost("/reset-password")]
-        public IActionResult ResetPassword()
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPassword)
         {
-            return Ok(new { Message = "" });
+            if (resetPassword.Password != resetPassword.ConfirmPassword)
+                return BadRequest("Паролі не співпадають.");
+
+
+            var verification = _verRepository.GetByHashCode(resetPassword.HashCode).Result;
+
+            //перевірки клієнта
+            if (verification == null)
+                return BadRequest("Користувача не знайдено.");
+            
+            if(!BCrypt.Net.BCrypt.Verify(verification.Code, resetPassword.HashCode))
+                return BadRequest("Щось пішло не так : (");
+
+            if (verification.ExpirationTime < DateTime.UtcNow)
+                return BadRequest("Час на зміну пароля сплив. Спробуйте відіслати код ще раз.");
+
+            //зміна паролю
+            var existingUser = _userRepository.GetByEmail(verification.Email);
+
+            var result = _verRepository.RemoveVerification(verification.Email);
+
+            if (!result)
+            {
+                return BadRequest("Can't delete user verification.");
+            }
+
+            if (existingUser == null)
+                return BadRequest("Неможливо знайти користувача : (");
+            else
+            {
+                existingUser.Password = resetPassword.Password;
+                return Ok(new { Message = "Password has been changed successfully." });
+            }
         }
 
         //Playground

@@ -1,6 +1,8 @@
 ﻿@page "/checking_mail"
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@using SoftServeProject3.Core.DTOs;
+
 <link rel="stylesheet" href="CheckingMail.razor.css">
 
 
@@ -13,18 +15,33 @@
 
 <body>
     <div class="form">
-        <h3>Скидання пароля</h3>
+        <h3>Скидання паролю</h3>
+
         <div class="email">
-            <label>E-mail:</label>
-            <input @bind="email" type="email" placeholder="Введіть ваш E-mail" />
-            <button @onclick="SendCode">Відправити код</button>
+            @if (!showCodeInput)
+            {
+                <EditForm Model="@emailData" OnValidSubmit="@SendCode">
+                    <DataAnnotationsValidator />
+                    <label>E-mail:</label>
+                    <InputText @bind-Value="emailData.EmailTo" type="email" placeholder="Введіть ваш E-mail" />
+                    <ValidationMessage For="@(()=>emailData.EmailTo)" />
+                    <button type="submit">Відправити код</button>
+                </EditForm>
+            }
+        </div>
+        <div class="email">
 
-
-            <label>Поле для коду:</label>
-            <input @bind="code" type="text" placeholder="Введіть ваш код" />
-
-            <button @onclick="VerifyCode">Скинути пароль</button>
-            <button @onclick="SendCode">Відправити код знову</button>
+            @if (showCodeInput)
+            {
+                <p class="codesent"><b>Код було відправлено на @emailData.EmailTo.</b></p>
+                <p class="codesent"><b>Будь ласка перевірте пошту.</b></p>
+                <EditForm Model="@forgotPassword" OnValidSubmit="@VerifyCode">
+                    <label>Поле для коду:</label>
+                    <InputText @bind-Value="forgotPassword.Code" placeholder="Введіть ваш код" />
+                    <button type="submit">Скинути пароль</button>
+                    <button @onclick="SendCode">Відправити код знову</button>
+                </EditForm>
+            }
         </div>
     </div>
 
@@ -32,41 +49,44 @@
 
 
 
+
     <p>@errorMessage</p>
     @code {
-        private string email = "";
-        private string code = "";
+        private bool showCodeInput = false;
         private string errorMessage = "";
-       
+
+        EmailDataModel emailData = new EmailDataModel();
+        ForgotPasswordModel forgotPassword = new ForgotPasswordModel();
+
         private async Task SendCode()
         {
-            var emailData = new
-            {
-                EmailTo = email,
-            };
 
-            await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCode", emailData);
-            
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCode", emailData);
+
+            if (!response.IsSuccessStatusCode)
+                errorMessage = await response.Content.ReadAsStringAsync();
+            else
+                showCodeInput = true;
+
         }
         private async Task VerifyCode()
         {
-            var emailData = new
-            {
-                EmailTo = email,
-            };
-
-            var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail?code={code}", emailData);
+            forgotPassword.Email = emailData.EmailTo;
+            var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail", forgotPassword);
 
             if (response.IsSuccessStatusCode)
             {
                 errorMessage = "";
-                Navigation.NavigateTo("/login");
+                Navigation.NavigateTo($"/reset-password?code={BCrypt.Net.BCrypt.HashPassword(forgotPassword.Code)}");
             }
             else
             {
-                errorMessage = "Verification failed.";
+                var content = await response.Content.ReadAsStringAsync();
+                if (!content.Contains("The Code field is required."))
+                    errorMessage = content;
             }
         }
+
 
     }
 </body>

@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
-using SoftServeProject3.Api.Entities;
 using SoftServeProject3.Api.Interfaces;
+using SoftServeProject3.Core.DTOs;
 
 namespace SoftServeProject3.Api.Repositories
 {
