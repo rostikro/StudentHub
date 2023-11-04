@@ -47,7 +47,6 @@ namespace SoftServeProject3.Api.Repositories
             {
                 Console.WriteLine(e);
                 throw;
-                _users = database.GetCollection<UserModel>("users");
             }
         }
 
