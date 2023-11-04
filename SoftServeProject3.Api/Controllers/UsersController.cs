@@ -23,6 +23,9 @@ namespace SoftServeProject3.Api.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
+        private readonly IWebHostEnvironment _env;
+
+        
 
         /// <summary>
         /// Ініціалізує новий екземпляр класу <see cref="UsersController"/>.
@@ -30,10 +33,11 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="userRepository">Репозиторій користувачів.</param>
         /// <param name="jwtService">Служба JWT.</param>
         /// <exception cref="ArgumentNullException">Викидається, коли userRepository або jwtService дорівнює null.</exception>
-        public UsersController(IUserRepository userRepository, IJwtService jwtService)
+        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+            _env = env;
         }
 
         /// <summary>
@@ -105,24 +109,25 @@ namespace SoftServeProject3.Api.Controllers
                 Console.WriteLine(e);
                 return BadRequest("Internal error");
             }
-          }
-          [HttpPost("updateProfile")]
-          public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
-          {
-              try
-              {
-                  string email = _jwtService.DecodeJwtToken(profile.authToken).Email;
+        }
+        
+        [HttpPost("updateProfile")]
+        public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(profile.authToken).Email;
                   
-                  await _userRepository.UpdateProfileAsync(profile, email);
+                await _userRepository.UpdateProfileAsync(profile, email);
 
-                  return Ok("Success");
-              }
-              catch (Exception e)
-              {
-                  Console.WriteLine(e);
-                  return BadRequest("Internal error");
-              }
-          }
+                return Ok("Success");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
 
         /// <summary>
         /// Отримання розкладу для вказаного користувача за його електронною поштою.
@@ -195,11 +200,62 @@ namespace SoftServeProject3.Api.Controllers
             });
         }
 
+        /// <summary>
+        /// Отримує список всіх користувачів.
+        /// </summary>
+        /// <returns>Список користувачів.</returns>
         [HttpGet("list")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userRepository.GetAllUsersAsync();
             return Ok(users);
+        }
+
+        /// <summary>
+        /// Отримує список предметів з JSON-файлу.
+        /// </summary>
+        /// <returns>Список предметів.</returns>
+        [HttpGet("subjects")]
+        public IActionResult Get()
+        {
+            var filePath = Path.Combine(_env.ContentRootPath, "Data", "Subjects.json");
+            var jsonString = System.IO.File.ReadAllText(filePath);
+            var subjects = JsonConvert.DeserializeObject<List<string>>(jsonString);
+
+            return Ok(subjects);
+        }
+
+        /// <summary>
+        /// Пошук користувачів за часовим інтервалом або/та списком предметів.
+        /// </summary>
+        /// <param name="startTime">Початковий час інтервалу.</param>
+        /// <param name="endTime">Кінцевий час інтервалу.</param>
+        /// <param name="subjects">Список предметів для фільтрації.</param>
+        /// <returns>Фільтрований список користувачів.</returns>
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchUsers(TimeSpan? startTime, TimeSpan? endTime, [FromQuery] List<string> subjects)
+        {
+            var allUsers = await _userRepository.GetAllUsersAsync();
+            var filteredUsers = allUsers.AsEnumerable();
+
+            if (startTime.HasValue && endTime.HasValue)
+            {
+                filteredUsers = filteredUsers.Where(u => u.Schedule != null && u.Schedule.Any(day =>
+                        day.Value.Any(timeRange =>
+                            (timeRange.Start.TimeOfDay <= startTime.Value && timeRange.End.TimeOfDay > startTime.Value) ||
+                            (timeRange.Start.TimeOfDay < endTime.Value && timeRange.End.TimeOfDay >= endTime.Value) ||
+                            (startTime.Value <= timeRange.Start.TimeOfDay && endTime.Value >= timeRange.End.TimeOfDay)))).ToList();
+            }
+
+            if (subjects != null && subjects.Any())
+            {
+                filteredUsers = filteredUsers.Where(u => u.Subjects != null && u.Subjects.Intersect(subjects, StringComparer.OrdinalIgnoreCase).Any()).ToList();
+            }
+
+            if (!filteredUsers.Any())
+                return NotFound("No users");
+
+            return Ok(filteredUsers);
         }
 
         /// <summary>
