@@ -55,7 +55,7 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="email">Електронна пошта для пошуку користувача.</param>
         /// <returns>Повертає <c>true</c>, якщо користувач існує; в іншому випадку, <c>false</c>.</returns>
-            public async Task<bool> IsUserExistsAsync(string email)
+        public async Task<bool> IsUserExistsAsync(string email)
         {
             try
             {
