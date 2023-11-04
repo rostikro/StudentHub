@@ -10,7 +10,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using SoftServeProject3.Api.Services;
 
-
 namespace SoftServeProject3.Api
 {
     public class Program
@@ -28,7 +27,7 @@ namespace SoftServeProject3.Api
                                .AllowAnyHeader();
                     });
             });
-            
+
             // Email configuration
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.AddTransient<IEmailService, EmailService>();
@@ -39,10 +38,11 @@ namespace SoftServeProject3.Api
                 client.BaseAddress = new Uri(emailSettings.ApiBaseUrl);
                 client.DefaultRequestHeaders.Add("Api-Token", emailSettings.ApiToken);
             });
-            
+
             var mongoDBConnectionString = builder.Configuration["MongoDBSettings:ConnectionString"] ?? throw new InvalidOperationException("MongoDB connection string is not set in the configuration.");
             
             builder.Services.AddSingleton<IUserRepository>(sp => new UserRepository(mongoDBConnectionString));
+            builder.Services.AddSingleton<IVerificationRepository>(sp => new VerificationRepository(mongoDBConnectionString));
             builder.Services.AddControllers();
             var jwtSettings = new JwtSettings();
             builder.Configuration.GetSection(nameof(JwtSettings)).Bind(jwtSettings);

@@ -4,9 +4,9 @@ using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
-namespace SoftServeProject3.Api.Entities
+namespace SoftServeProject3.Core.DTOs
 {
-    public class User
+    public class UserModel
     {
         [System.Text.Json.Serialization.JsonIgnore]
         public ObjectId _id { get; set; }

@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SoftServeProject3.Api.Configurations;
-using SoftServeProject3.Api.Entities;
+using SoftServeProject3.Core.DTOs;
 
 
 public class JwtService : IJwtService

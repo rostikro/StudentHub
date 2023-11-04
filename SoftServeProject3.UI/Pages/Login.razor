@@ -79,6 +79,7 @@
         
     }
 
+    }
 
     public class LoginResponse
     {
@@ -90,7 +91,7 @@
     /// </summary>
     private void StartGoogleLogin()
     {
-        
+
         Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
     }
     
@@ -104,8 +105,7 @@
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
         {
             await TokenService.StoreToken(token.ToString());
-            Navigation.NavigateTo("/", forceLoad: true); 
+            Navigation.NavigateTo("/", forceLoad: true);
         }
     }
 }
-
