@@ -1,4 +1,4 @@
-﻿namespace SoftServeProject3.Api.Entities
+﻿namespace SoftServeProject3.Core.DTOs
 {
     public class UserInfo
     {
