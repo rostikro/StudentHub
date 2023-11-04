@@ -23,10 +23,41 @@ public class EmailController : ControllerBase
         _userRepository = userRepository;
         _verRepository = verRepository;
     }
-
+    // Можливо об'єднати в одне(реєстрація і пароль)
     [HttpPost]
-    [Route("SendVerificationCode")]
-    public async Task<IActionResult> SendVerificationCodeAsync(EmailData emailData)
+    [Route("SendVerificationCodeRegister")]
+    public async Task<IActionResult> SendVerificationCodeRegister(EmailData emailData)
+    {
+        try
+        {
+            //if (!await _userRepository.IsUserExistsAsync(emailData.EmailTo))
+            //{
+            //    return BadRequest("User is not exists");
+            //}
+            
+            var code = RandomGenerator.GenerateRandomCode();
+
+            var result = await _emailService.SendEmailAsync(emailData, code);
+
+            if (!result)
+            {
+                return BadRequest("Failed to send verification code.");
+            }
+            
+            _codes[emailData.EmailTo] = code;
+            
+            return Ok("Verification code succeeded.");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest("SendVerificationCode | Internal Error:" + e.Message);
+        }
+
+    }
+    [HttpPost]
+    [Route("SendVerificationCodePassword")]
+    public async Task<IActionResult> SendVerificationCodePasswordAsync(EmailData emailData)
     {
         try
         {
@@ -93,7 +124,6 @@ public class EmailController : ControllerBase
         }
 
     }
-
     [HttpPost]
     [Route("VerifyCodeEmail")]
     public async Task<IActionResult> VerifyCodeAsync(ForgotPasswordModel verData)
