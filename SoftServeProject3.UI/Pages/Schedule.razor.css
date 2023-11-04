@@ -1,5 +1,5 @@
 ﻿body {
-    background-color: #fcd19c;
+    background-color: #B4C6D0;
     height: 110vh;
 }
 * {
@@ -61,7 +61,7 @@
     grid-column: 1;
     grid-row: 2;
     color: red;
-    background-color: #fcd19c;
+    background-color: #B4C6D0;
     display: flex;
     align-items: center; /* Центрує елементи по вертикалі */
     justify-content: center; /* Центрує елементи по горизонталі */
@@ -94,7 +94,7 @@
 .four {
 
     grid-column: 1;
-    grid-row: 3\6;
+    grid-row: 3;
     text-align: center;
     background-color: #757575;
 }
@@ -115,11 +115,37 @@
     grid-row: 5;
     background-color: #757575;
 }
+.Subject {
+    grid-column: 2/4;
+    grid-row: 6/8;
+    background-color: #757575;
+}
+.button-content {
+    grid-column: 1;
+    grid-row: 6;
+    background-color: #757575;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    justify-content: center;
+}
+.oval {
+
+    width: auto;
+    height:auto ;
+    background-color: #ffe8a3; /* Колір підпису */
+    display: flex;
+    align-items: center;
+    overflow: hidden; /* Додайте цю властивість для обмеження вмісту в овалі */
+    justify-content: center;
+
+}
 tbody {
     background-color: palegreen;
 }
 tr {
-    background-color: forestgreen;
+    background-color: #DFE1E0;
 }
 .day {
     color: red;
@@ -133,20 +159,19 @@ tr {
     justify-content: center;
 }
 td {
-
-    background-color: powderblue;
+    background-color: #DFE1E0;
 }
 td div  {
-    background-color: yellowgreen;
+    background-color: #DFE1E0;
 }
 td div button {
-    background-color: fuchsia;
+    background-color: white;
 }
-thead {
-    background-color: saddlebrown;
+.thead {
+    background-color: white;
 }
 .start {
-    background-color: khaki;
+    background-color: white;
 }
 /*те що знаходиться всередині плейсхолдеру*/
 placeholder-shown {
@@ -157,6 +182,69 @@ placeholder-shown {
     background-color: khaki;
 }
 button {
-    background-color: khaki;
+    background-color: white;
     border-radius: 20px;
+}
+.social {
+    list-style: none;
+    color: white;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    background-color: #757575;
+    gap: 20px;
+}
+.circle1 {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ffcd29; /* Колір фотографії */
+    margin-right: 20px;
+    background-image: url(https://i.postimg.cc/Fs6kTPBv/1455-1.jpg);
+    background-size: cover;
+}
+.circle2 {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ffcd29; /* Колір фотографії */
+    margin-right: 20px;
+    background-image: url(https://i.postimg.cc/2yvVqmCS/11122212-1.jpg);
+    background-size: cover;
+}
+.circle3 {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ffcd29; /* Колір фотографії */
+    margin-right: 20px;
+    background-image: url(https://i.postimg.cc/vDFxXT0n/121212121.jpg);
+    background-size: cover;
+}
+
+.circle4 {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ffcd29; /* Колір фотографії */
+    margin-right: 20px;
+    background-image: url(https://i.postimg.cc/jSq3hSmm/11212.jpg);
+    background-size: cover;
+}
+.circle5 {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #ffcd29; /* Колір фотографії */
+    margin-right: 20px;
+    background-image: url(https://i.postimg.cc/3NHDFWSv/1212-1.jpg);
+    background-size: cover;
+}
+.circle6 {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #757575; /* Колір фотографії */
+    margin-right: 20px;
+    background-image: url(https://i.postimg.cc/SsND6SsV/1133.jpg);
+    background-size: cover;
 }

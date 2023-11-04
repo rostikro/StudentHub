@@ -9,77 +9,118 @@
     <PageTitle>Розклад</PageTitle>
 </head>
 
-<body>
-    <h1>Мій розклад</h1>
-    @if (errorMessage != null)
-    {
-        <p class="text-danger">@errorMessage</p>
-    }
-    <!-- Код для відображення розкладу -->
-    @if (schedule == null)
-    {
-        <p>Loading...</p>
-    }
-    else if (schedule.Count == 0)
-    {
-        <p>Розклад пустий</p>
-    }
-    else
-    {
-        <!-- Таблиця для відображення розкладу -->
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>День тижня</th>
-                    <th>Час</th>
-                    <th>Дії</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var kvp in schedule)
-                {
-                    var dayOfWeek = kvp.Key;
-                    var tasks = kvp.Value;
-                    <tr>
-                        <td>@dayOfWeek</td>
-                        <td>
-                            @if (tasks != null && tasks.Count > 0)
-                            {
-                                @for (int index = 0; index < tasks.Count; index++)
-                                {
-                                    var task = tasks[index];
-                                    if (task != null)
-                                    {
-                                        <!-- Компонент для редагування часу завдання -->
-                                        <div>
-                                            <input type="text" @bind="task.StartString" placeholder="Початок" />
-                                            -
-                                            <input type="text" @bind="task.EndString" placeholder="Кінець" />
-                                            <button @onclick="() => RemoveTask(tasks, index - 1)">Видалити</button> 
-                                        </div>
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                <!-- Повідомлення, якщо часу немає -->
-                                <div>Немає часу</div>
-                            }
-                            <!-- Кнопка для додавання нового завдання -->
-                            <button @onclick="() => AddNewTask(tasks)">Додати час</button>
-                        </td>
-                        <td>
-                            <!-- Кнопка для збереження змін у розкладі -->
-                            <button @onclick="() => SaveChanges(dayOfWeek, tasks)">Зберегти</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-</body>
 
-   
+<body>
+    <div class="wrapper">
+        <div class="one">
+            <div class="left-links">
+                <a href="#">Home</a>
+                <a href="fetchdata">Пошук студентів</a>
+                <a href="login">Налаштування</a>
+            </div>
+            <div class="right-links">
+                <a href="counter">Чат</a>
+                <a href="checking_mail">Профіль</a>
+            </div>
+        </div>
+        <div class="two">
+            <div class="profile-picture">
+                <img src="https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg" alt="Фото профілю">
+            </div>
+        </div>
+        <div class="three">
+            <h1>Мій розклад</h1>
+            @if (errorMessage != null)
+            {
+                <p class="text-danger">@errorMessage</p>
+            }
+            <!-- Код для відображення розкладу -->
+            @if (schedule == null)
+            {
+                <p>Loading...</p>
+            }
+            else if (schedule.Count == 0)
+            {
+                <p>Розклад пустий</p>
+            }
+            else
+            {
+                <!-- Таблиця для відображення розкладу -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>День тижня</th>
+                            <th>Час</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var kvp in schedule)
+                        {
+                            var dayOfWeek = kvp.Key;
+                            var tasks = kvp.Value;
+                            <tr>
+                                <td>@dayOfWeek</td>
+                                <td>
+                                    @if (tasks != null && tasks.Count > 0)
+                                    {
+                                        @for (int index = 0; index < tasks.Count; index++)
+                                        {
+                                            var task = tasks[index];
+                                            if (task != null)
+                                            {
+                                                <!-- Компонент для редагування часу завдання -->
+                                                <div>
+                                                    <input type="text" @bind="task.StartString" placeholder="Початок" />
+                                                    -
+                                                    <input type="text" @bind="task.EndString" placeholder="Кінець" />
+                                                    <button @onclick="() => RemoveTask(tasks, index - 1)">Видалити</button>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <!-- Повідомлення, якщо часу немає -->
+                                        <div>Немає часу</div>
+                                    }
+                                    <!-- Кнопка для додавання нового завдання -->
+                                    <button @onclick="() => AddNewTask(tasks)">Додати час</button>
+                                </td>
+                                <td>
+                                    <!-- Кнопка для збереження змін у розкладі -->
+                                    <button @onclick="() => SaveChanges(dayOfWeek, tasks)">Зберегти</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+        <div class="four">
+            <div class="username-container">
+                <h3>Нікнейм користувача</h3>
+            </div>
+
+        </div>
+        <div class="five">опис до профілю</div>
+        <div class="social">
+            <a href="https://www.instagram.com/"><div class="circle1"> </div></a>
+            <a href="https://twitter.com/"><div class="circle2"> </div></a>
+            <a href="https://github.com/"><div class="circle3"> </div></a>
+            <a href="https://www.facebook.com/"><div class="circle4"> </div></a>
+            <a href="https://t.me/KaijiAkagii"><div class="circle5"> </div></a>
+            <a href="https://www.instagram.com/"><div class="circle6"> </div></a>
+
+        </div>
+        <div class="button-content">122 інформатика</div>
+        <div class="Subject">122 інформати1111ка</div>
+
+
+    </div>
+
+
+
 </body>
 @* evgeniypoklov@gmail.com *@
 @* 33 *@
