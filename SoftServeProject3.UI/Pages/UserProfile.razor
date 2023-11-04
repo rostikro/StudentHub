@@ -1,0 +1,72 @@
+﻿@page "/UserProfile"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using System.Globalization
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Components.Web
+
+<link rel="stylesheet" href="UserProfile.razor.css">
+<body>
+    <!-- .razor -->
+    <div class="profile-container">
+        <div class="profile-picture">
+            <img src="https://avatars.githubusercontent.com/u/129945281?v=4" alt="Фото профілю">
+        </div>
+        <div class="profile-text">
+            <!-- Поле з нікнеймом -->
+            <div class="username-container">
+                <h2>Нікнейм користувача</h2>
+            </div>
+            <div class="description-container">
+                <!-- Поле з описом профілю -->
+                <p>Опис профілю користувача</p>
+            </div>
+        </div>
+
+
+    </div>
+    <!-- Вікно з днями тижня і плюсиками -->
+    <div class="days-of-week">
+        @foreach (DayOfWeek dayOfWeek in Enum.GetValues(typeof(DayOfWeek)))
+        {
+            <button @onclick="(() => ShowTimePicker(dayOfWeek))">@dayOfWeek</button>
+        }
+    </div>
+
+    <!-- Модальне вікно для вибору часу -->
+    @if (showTimePicker)
+    {
+        <div class="modal">
+            <h3>Вибір часу для @selectedDayOfWeek</h3>
+            <input type="time" @bind="selectedTime" />
+            <button @onclick="SaveSelectedTime">Зберегти</button>
+            <button @onclick="CloseTimePicker">Скасувати</button>
+        </div>
+    }
+
+    @code {
+
+        bool showTimePicker = false;
+        DayOfWeek selectedDayOfWeek;
+        DateTime selectedTime = DateTime.Today; // За замовчуванням встановіть час на сьогодні
+                                                // Dictionary<DayOfWeek, TimeSpan> selectedTimes = new Dictionary<DayOfWeek, TimeSpan>(); // Ця змінна вже не потрібна
+        void ShowTimePicker(DayOfWeek dayOfWeek)
+        {
+            selectedDayOfWeek = dayOfWeek;
+            // Логіка для відображення часу вже включена в `selectedTime`
+            showTimePicker = true;
+        }
+
+        void SaveSelectedTime()
+        {
+            // Збереження часу можна виконати безпосередньо в об'єкт `DateTime`
+            // selectedTimes[selectedDayOfWeek] = selectedTime.TimeOfDay; // Ця лінійка вже не потрібна
+            showTimePicker = false;
+        }
+
+        void CloseTimePicker()
+        {
+            showTimePicker = false;
+        }
+    }
+</body>
