@@ -14,6 +14,7 @@ namespace SoftServeProject3.Api.Interfaces
         Task<UserModel> GetUserByEmailAsync(string email);
         Task<UserModel> GetUserByUsernameAsync(string username);
         Task<IEnumerable<UserModel>> GetAllUsersAsync();
+        Task UpdateUserPasswordAsync(UserModel user, string password);
 
     }
 }
