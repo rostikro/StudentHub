@@ -183,7 +183,7 @@
             EmailTo = email,
         };
 
-        var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCode?code={code}", emailData);
+        var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeRegister?code={code}", emailData);
 
         if (response.IsSuccessStatusCode)
         {

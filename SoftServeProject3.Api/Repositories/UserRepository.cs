@@ -99,6 +99,13 @@ namespace SoftServeProject3.Api.Repositories
             await _users.ReplaceOneAsync(u => u.Email == user.Email, user);
         }
 
+        public async Task UpdateUserPasswordAsync(UserModel user, string p)
+        {
+            var filter = Builders<UserModel>.Filter.Eq(u => u.Email, user.Email);
+            var update = Builders<UserModel>.Update.Set(u => u.Password, p);
+            var result = await _users.UpdateOneAsync(filter, update);
+        }
+
         /// <summary>
         /// Отримує об'єкт користувача за його електронною поштою.
         /// </summary>

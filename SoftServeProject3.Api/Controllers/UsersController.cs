@@ -11,6 +11,7 @@ using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
 using MongoDB.Driver;
+using SoftServeProject3.Api.Repositories;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -425,7 +426,8 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Неможливо знайти користувача : (");
             else
             {
-                existingUser.Password = resetPassword.Password;
+                await _userRepository.UpdateUserPasswordAsync(existingUser, BCrypt.Net.BCrypt.HashPassword(resetPassword.Password));
+                //existingUser.Password = resetPassword.Password;
                 return Ok(new { Message = "Password has been changed successfully." });
             }
         }
