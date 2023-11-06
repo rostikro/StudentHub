@@ -39,8 +39,9 @@
                     <label>Поле для коду:</label>
                     <InputText @bind-Value="forgotPassword.Code" placeholder="Введіть ваш код" />
                     <button type="submit">Скинути пароль</button>
-                    <button @onclick="SendCode">Відправити код знову</button>
                 </EditForm>
+                <button @onclick="SendCode">Відправити код знову</button>
+
             }
         </div>
     </div>
