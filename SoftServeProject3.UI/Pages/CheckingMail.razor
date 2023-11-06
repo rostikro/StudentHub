@@ -54,6 +54,7 @@
     @code {
         private bool showCodeInput = false;
         private string errorMessage = "";
+
         //TODO: В body додати два поля: пароль і повтор пароля, зробити їх активними/неактивними(активне після підтверження коду) як в реєстрації, + логіка 'забули пароль'
 
         /// <summary>
@@ -65,8 +66,9 @@
 
         private async Task SendCode()
         {
-
-            var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
+            var isResetQueryParam = "?isReset=true";
+            var url = "https://localhost:7292/Email/SendVerificationCodePassword" + isResetQueryParam;
+            var response = await Http.PostAsJsonAsync(url, emailData);
 
             if (!response.IsSuccessStatusCode)
                 errorMessage = await response.Content.ReadAsStringAsync();

@@ -6,6 +6,7 @@
 @inject NavigationManager Navigation
 @using SoftServeProject3.UI.Data
 @using Microsoft.AspNetCore.WebUtilities;
+@using SoftServeProject3.Core.DTOs;
 
 <link rel="stylesheet" href="RegistrationPage.razor.css">
 
@@ -105,9 +106,9 @@
             PhotoUrl = "",
             Faculty = "",
             Name = "",
-            Description = "", // Corrected the typo here
-            Subjects = new List<string>(), // Initialized the Subjects list
-            Social = new Dictionary<string, string>() // Added the missing Social dictionary
+            Description = "", 
+            Subjects = new List<string>(),
+            Social = new Dictionary<string, string>() 
         };
 
         try
@@ -145,6 +146,7 @@
         public string Token { get; set; }
     }
 
+
     /// <summary>
     /// Відправляє на електронну пошту користувача код для підтвердження реєстрації.
     /// </summary>
@@ -162,28 +164,28 @@
             return;
         }
 
-        var emailData = new
+        EmailDataModel emailData = new EmailDataModel()
         {
             EmailTo = email,
         };
 
-        await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodeRegister", emailData);
+        await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
         isCodeSent = true;
         isCodeVerified = false;
 
     }
-
-    /// <summary>
-    /// Перевіряє введений користувачем код на відповідність.
-    /// </summary>
     private async Task VerifyCode()
     {
-        var emailData = new
+        EmailDataModel emailData = new EmailDataModel()
         {
             EmailTo = email,
         };
-
-        var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCode?code={code}", emailData);
+        ForgotPasswordModel forgotPassword = new ForgotPasswordModel()
+        {
+            Code = code,
+        };
+        forgotPassword.Email = emailData.EmailTo;
+        var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail", forgotPassword);
 
         if (response.IsSuccessStatusCode)
         {
@@ -196,6 +198,7 @@
             isCodeVerified = false;
         }
     }
+    
 
     /// <summary>
     /// Повертає до введення полів.

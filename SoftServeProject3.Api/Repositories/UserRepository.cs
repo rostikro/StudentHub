@@ -55,7 +55,7 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="email">Електронна пошта для пошуку користувача.</param>
         /// <returns>Повертає <c>true</c>, якщо користувач існує; в іншому випадку, <c>false</c>.</returns>
-            public async Task<bool> IsUserExistsAsync(string email)
+        public async Task<bool> IsUserExistsAsync(string email)
         {
             try
             {
@@ -97,6 +97,13 @@ namespace SoftServeProject3.Api.Repositories
         public async Task UpdateUserAsync(UserModel user)
         {
             await _users.ReplaceOneAsync(u => u.Email == user.Email, user);
+        }
+
+        public async Task UpdateUserPasswordAsync(UserModel user, string p)
+        {
+            var filter = Builders<UserModel>.Filter.Eq(u => u.Email, user.Email);
+            var update = Builders<UserModel>.Update.Set(u => u.Password, p);
+            var result = await _users.UpdateOneAsync(filter, update);
         }
 
         /// <summary>
