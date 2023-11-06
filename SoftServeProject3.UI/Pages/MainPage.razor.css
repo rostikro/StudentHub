@@ -137,7 +137,6 @@
     background-color: #ffe8a3; /* Колір підпису */
     margin-bottom: 10px;
     display: flex;
-    align-items: center;
     margin: 0 45px;
     overflow: hidden; /* Додайте цю властивість для обмеження вмісту в овалі */
     align-items: center;

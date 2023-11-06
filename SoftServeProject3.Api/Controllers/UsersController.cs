@@ -11,6 +11,7 @@ using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
 using MongoDB.Driver;
+using SoftServeProject3.Api.Repositories;
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -139,23 +140,17 @@ namespace SoftServeProject3.Api.Controllers
         [HttpGet("{email}")]
         public async Task<IActionResult> GetSchedule(string email)
         {
-            
-            var user = await _userRepository.GetUserByEmailAsync(email);
-            var user2 = await _userRepository.GetUserByUsernameAsync(email);
-            if (user?.Schedule == null && user2?.Schedule == null)
+
+            var user = await _userRepository.GetUserByEmailAsync(email) ?? await _userRepository.GetUserByUsernameAsync(email);
+
+            if (user?.Schedule == null)
             {
                 return NotFound();
             }
-            if (user ==  null) 
-            { 
-                return Ok(user2.Schedule); 
-            }
-            else
-            {
-                return Ok(user.Schedule);
-            }
-            
-            
+
+            return Ok(user.Schedule);
+
+
         }
 
         /// <summary>
@@ -168,12 +163,13 @@ namespace SoftServeProject3.Api.Controllers
         [HttpPut("{email}/{dayOfWeek}")]
         public async Task<IActionResult> UpdateSchedule(string email, string dayOfWeek, [FromBody] List<TimeRange> updatedSchedule)
         {
-            var user = await _userRepository.GetUserByEmailAsync(email);
-            if (user == null)
+            var user = await _userRepository.GetUserByEmailAsync(email) ?? await _userRepository.GetUserByUsernameAsync(email);
+
+            if (user?.Schedule == null)
             {
-                return NotFound();
+                user.Schedule = new Dictionary<string, List<TimeRange>>();
             }
-            user.Schedule ??= new Dictionary<string, List<TimeRange>>();
+
             user.Schedule[dayOfWeek] = updatedSchedule.Select(tr => new TimeRange
             {
                 Start = DateTime.SpecifyKind(tr.Start, DateTimeKind.Utc),
@@ -378,9 +374,9 @@ namespace SoftServeProject3.Api.Controllers
                     PhotoUrl = "",
                     Faculty = "",
                     Name = "",
-                    Description = "", // Corrected the typo here
-                    Subjects = new List<string>(), // Initialized the Subjects list
-                    Social = new Dictionary<string, string>() // Added the missing Social dictionary
+                    Description = "",
+                    Subjects = new List<string>(), 
+                    Social = new Dictionary<string, string>() 
                 };
 
                 _userRepository.Register(newUser);
@@ -425,7 +421,8 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Неможливо знайти користувача : (");
             else
             {
-                existingUser.Password = resetPassword.Password;
+                await _userRepository.UpdateUserPasswordAsync(existingUser, BCrypt.Net.BCrypt.HashPassword(resetPassword.Password));
+                //existingUser.Password = resetPassword.Password;
                 return Ok(new { Message = "Password has been changed successfully." });
             }
         }

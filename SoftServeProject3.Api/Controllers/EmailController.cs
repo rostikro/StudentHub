@@ -5,6 +5,7 @@ using SoftServeProject3.Api.Interfaces;
 using SoftServeProject3.Api.Repositories;
 using SoftServeProject3.Api.Utils;
 using SoftServeProject3.Core.DTOs;
+using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 
 namespace SoftServeProject3.Api.Controllers;
@@ -17,56 +18,29 @@ public class EmailController : ControllerBase
     private readonly IUserRepository _userRepository;
     private readonly IVerificationRepository _verRepository;
 
+    //private static IDictionary<string, string> _codes = new Dictionary<string, string>();
     public EmailController(IEmailService emailService, IUserRepository userRepository, IVerificationRepository verRepository)
     {
         _emailService = emailService;
         _userRepository = userRepository;
         _verRepository = verRepository;
     }
-    // Можливо об'єднати в одне(реєстрація і пароль)
-    //[HttpPost]
-    //[Route("SendVerificationCodeRegister")]
-    //public async Task<IActionResult> SendVerificationCodeRegister(EmailData emailData)
-    //{
-    //    try
-    //    {
-    //        //if (!await _userRepository.IsUserExistsAsync(emailData.EmailTo))
-    //        //{
-    //        //    return BadRequest("User is not exists");
-    //        //}
-            
-    //        var code = RandomGenerator.GenerateRandomCode();
-
-    //        var result = await _emailService.SendEmailAsync(emailData, code);
-
-    //        if (!result)
-    //        {
-    //            return BadRequest("Failed to send verification code.");
-    //        }
-            
-    //        _codes[emailData.EmailTo] = code;
-            
-    //        return Ok("Verification code succeeded.");
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        Console.WriteLine(e);
-    //        return BadRequest("SendVerificationCode | Internal Error:" + e.Message);
-    //    }
-
-    //}
 
     [HttpPost]
     [Route("SendVerificationCodePassword")]
-    public async Task<IActionResult> SendVerificationCodePasswordAsync(EmailData emailData)
+    public async Task<IActionResult> SendVerificationCodePasswordAsync(EmailData emailData, [FromQuery] bool isReset = false)
     {
         try
         {
             //check if user exists in user database
-            if (!await _userRepository.IsUserExistsAsync(emailData.EmailTo))
+            if (isReset)
             {
-                return BadRequest("User with the email does not exist.");
+                if (!await _userRepository.IsUserExistsAsync(emailData.EmailTo))
+                {
+                    return BadRequest("User with the email does not exist.");
+                }
             }
+            
 
             await _verRepository.ClearVerifications();
 
@@ -154,5 +128,4 @@ public class EmailController : ControllerBase
             return BadRequest("VerifyCode | Internal Error:" + e.Message);
         }
     }
-
 }

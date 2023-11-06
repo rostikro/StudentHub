@@ -1,4 +1,4 @@
-﻿@page "/UserProfile"
+﻿@page "/UserProfile1"
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @using System.Globalization
@@ -7,7 +7,17 @@
 
 <link rel="stylesheet" href="UserProfile.razor.css">
 <body>
-    <!-- .razor -->
+    @*верхній навбар з посиланнями *@
+    <div class="container">
+        <div class="item item_1">
+            <a href="#">Home</a>
+            <a href="fetchdata">Пошук студентів</a>
+            <a href="login">Налаштування</a>
+            <a href="counter">Чат</a>
+            <a href="checking_mail">Профіль</a>
+        </div>
+
+    </div>
     <div class="profile-container">
         <div class="profile-picture">
             <img src="https://avatars.githubusercontent.com/u/129945281?v=4" alt="Фото профілю">
@@ -25,24 +35,8 @@
 
 
     </div>
-    <!-- Вікно з днями тижня і плюсиками -->
-    <div class="days-of-week">
-        @foreach (DayOfWeek dayOfWeek in Enum.GetValues(typeof(DayOfWeek)))
-        {
-            <button @onclick="(() => ShowTimePicker(dayOfWeek))">@dayOfWeek</button>
-        }
-    </div>
+   
 
-    <!-- Модальне вікно для вибору часу -->
-    @if (showTimePicker)
-    {
-        <div class="modal">
-            <h3>Вибір часу для @selectedDayOfWeek</h3>
-            <input type="time" @bind="selectedTime" />
-            <button @onclick="SaveSelectedTime">Зберегти</button>
-            <button @onclick="CloseTimePicker">Скасувати</button>
-        </div>
-    }
 
     @code {
 
