@@ -2,14 +2,12 @@
 @inject HttpClient Http
 @inject TokenService TokenService
 @inject NavigationManager Navigation
+@inject UserProfileService UserProfileService
 @using SoftServeProject3.UI.Services;
 @using System.Globalization
-@inject HttpClient Http
-@inject TokenService TokenService
-@inject NavigationManager Navigation
-
+@using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
-@inject UserProfileService UserProfileService
+
 
 <head>
     <PageTitle>Розклад</PageTitle>
@@ -33,9 +31,18 @@
                     </div>
                 </div>
                 <div class="two">
-                    <div class="profile-picture">
-                        <img src="https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg" alt="Фото профілю">
-                    </div>
+                    @if (isEditMode)
+                    {
+                        <div class="profile-picture-edit">
+                            <input type="text" @bind="userProfile.photoUrl" class="form-control" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="profile-picture">
+                            <img src="@userProfile.photoUrl" alt="Фото профілю">
+                        </div>
+                    }
                 </div>
                 <div class="three">
                     <h1>Мій розклад</h1>
@@ -43,7 +50,6 @@
                     {
                         <p class="text-danger">@errorMessage</p>
                     }
-                    <!-- Код для відображення розкладу -->
                     @if (schedule == null)
                     {
                         <p>Loading...</p>
@@ -54,54 +60,61 @@
                     }
                     else
                     {
-                        <!-- Таблиця для відображення розкладу -->
+                        
                         <table class="table">
                             <thead>
                                 <tr>
                                     <th>День тижня</th>
                                     <th>Час</th>
-                                    <th>Дії</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var kvp in schedule)
+                                @if (isEditMode)
                                 {
-                                    var dayOfWeek = kvp.Key;
-                                    var tasks = kvp.Value;
-                                    <tr>
-                                        <td>@dayOfWeek</td>
-                                        <td>
-                                            @if (tasks != null && tasks.Count > 0)
-                                            {
+                                   
+                                    @foreach (var kvp in schedule)
+                                    {
+                                        var dayOfWeek = kvp.Key;
+                                        var tasks = kvp.Value;
+                                        <tr>
+                                            <td>@dayOfWeek</td>
+                                            <td>
                                                 @for (int index = 0; index < tasks.Count; index++)
                                                 {
                                                     var task = tasks[index];
-                                                    if (task != null)
-                                                    {
-                                                        <!-- Компонент для редагування часу завдання -->
-                                                        <div>
-                                                            <input type="text" @bind="task.StartString" placeholder="Початок" />
-                                                            -
-                                                            <input type="text" @bind="task.EndString" placeholder="Кінець" />
-                                                            <button @onclick="() => RemoveTask(tasks, index - 1)">Видалити</button>
-                                                        </div>
-                                                    }
+                                                    <div>
+                                                        <input type="text" @bind="task.StartString" placeholder="Початок" />
+                                                        -
+                                                        <input type="text" @bind="task.EndString" placeholder="Кінець" />
+                                                        <button @onclick="() => RemoveTask(tasks, index)">Видалити</button>
+                                                    </div>
                                                 }
-                                            }
-                                            else
-                                            {
-                                                <!-- Повідомлення, якщо часу немає -->
-                                                <div>Немає часу</div>
-                                            }
-                                            <!-- Кнопка для додавання нового завдання -->
-                                            <button @onclick="() => AddNewTask(tasks)">Додати час</button>
-                                        </td>
-                                        <td>
-                                            <!-- Кнопка для збереження змін у розкладі -->
-                                            <button @onclick="() => SaveChanges(dayOfWeek, tasks)">Зберегти</button>
-                                        </td>
-                                    </tr>
+                                                <button @onclick="() => AddNewTask(tasks)">Додати час</button>
+                                            </td>
+                                        </tr>
+                                    }
                                 }
+                                else
+                                {
+                                    <!-- Render as plain text for viewing -->
+                                    @foreach (var kvp in schedule)
+                                    {
+                                        var dayOfWeek = kvp.Key;
+                                        var tasks = kvp.Value;
+                                        <tr>
+                                            <td>@dayOfWeek</td>
+                                            <td>
+                                                @foreach (var task in tasks)
+                                                {
+                                                    <div>
+                                                        @task.StartString - @task.EndString
+                                                    </div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+
                             </tbody>
                         </table>
                     }
@@ -112,70 +125,121 @@
         </div>
 
         </div> *@
-                <div class="form-group">
-                    <label for="name">Призвіще Ім'я':</label>
-                    <input type="text" id="name" class="form-control" value="@userProfile.name" @oninput="((ChangeEventArgs e) => userProfile.name = e.Value.ToString())" />
-                </div>
+                @if (isEditMode)
+                {
+                    
+                    <div class="form-group">
+                        <label for="name">Призвіще Ім'я:</label>
+                        <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
+                    </div>
+                }
+                else
+                {
+                    
+                    <div class="form-group">
+                        <label for="name">Призвіще Ім'я:</label>
+                        <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                    </div>
+                }
                 <div class="form-group">
                     <label for="username">Username:</label>
                     <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
                 </div>
 
                 @* <div class="five">опис до профілю</div> *@
-                <div class="five">
-                    <label for="description">Опис:</label>
-                    <textarea id="description" class="form-control" @oninput="((ChangeEventArgs e) => userProfile.description = e.Value.ToString())">@userProfile.description</textarea>
-                </div>
-                <div class="social">
-                    <a href="@userProfile.social["instagram"]"><div class="circle1"> </div></a>
-                    <a href="https://twitter.com/"><div class="circle2"> </div></a>
-                    <a href="https://github.com/"><div class="circle3"> </div></a>
-                    <a href="https://www.facebook.com/"><div class="circle4"> </div></a>
-                    <a href="https://t.me/KaijiAkagii"><div class="circle5"> </div></a>
-                    <a href="https://www.instagram.com/"><div class="circle6"> </div></a>
-
-                </div>
-                <div class="form-group">
-                    <label for="instagram">Instagram:</label>
-                    <input type="text" id="instagram" class="form-control" value="@userProfile.social["instagram"]" @oninput="@(e => UpdateSocialLink("instagram", e.Value.ToString()))" />
-                </div>
+                @if (isEditMode)
+                {
+                    
+                    <div class="five">
+                        <label for="description">Опис:</label>
+                        <textarea id="description" class="form-control" @bind="@userProfile.description"></textarea>
+                    </div>
+                }
+                else
+                {
+                    
+                    <div class="five">
+                        <label for="description">Опис:</label>
+                        <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                    </div>
+                }
+                @if (isEditMode)
+                {
+                    <div class="form-group">
+                        <label for="faculty">Факультет:</label>
+                        <input type="text" id="faculty" class="form-control" @bind="userProfile.faculty" />
+                    </div>
+                }
+                else
+                {
+                    <div class="button-content">
+                        <label for="faculty">Факультет:</label>
+                        <span>@userProfile.faculty</span>
+                    </div>
+                }
+                @foreach (var socialLink in userProfile.social)
+                {
+                    @if (isEditMode)
+                    {
+                        <div class="form-group">
+                            <label for="@socialLink.Key">@socialLink.Key:</label>
+                            <input type="text" id="@socialLink.Key" class="form-control" @bind="userProfile.social[socialLink.Key]" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="social">
+                            <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                        </div>
+                    }
+                }
                 @* <div class="button-content">122 інформатика</div> *@
-                <div class="button-content">
-                    <label for="faculty">Факультет:</label>
-                    <input type="text" id="faculty" class="form-control" value="@userProfile.faculty" @oninput="((ChangeEventArgs e) => userProfile.faculty = e.Value.ToString())" />
-                </div>
+                
                 @* <div class="Subject">122 інформати1111ка</div> *@
                 <div>
                     <label for="subjectSearch">Пошук предмету:</label>
                     <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
                 </div>
-                <div class="form-group">
-                    <label for="subject">Предмет:</label>
-
-                    @if (userProfile.subjects != null && userProfile.subjects.Any())
-                    {
-                        foreach (var subject in userProfile.subjects)
-                        {
-                            <span>@subject </span>
-                        }
-                    }
-                    else
-                    {
-                        <span>Немає предметів.</span>
-                    }
-                </div>
-                <div>
-                    <label>Оберіть предмет(и):</label>
-                    <select @onchange="OnSubjectsSelected" multiple>
-                        @if (filteredSubjects != null)
-                        {
-                            @foreach (var subject in filteredSubjects)
+                @if (isEditMode)
+                {
+                    <!-- Editable multiple select for subjects -->
+                    <div>
+                        <label>Оберіть предмет(и):</label>
+                        <select @onchange="OnSubjectsSelected" multiple>
+                            @if (filteredSubjects != null)
                             {
-                                <option @onclick="() => SelectSubject(subject)">@subject</option>
+                                @foreach (var subject in filteredSubjects)
+                                {
+                                    <option selected=@selectedSubjects.Contains(subject)>@subject</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group">
+                        <label for="subject">Предмети:</label>
+                        @if (userProfile.subjects != null && userProfile.subjects.Any())
+                        {
+                            foreach (var subject in userProfile.subjects)
+                            {
+                                if (subject != userProfile.subjects[^1])
+                                {
+                                    <span>@subject - </span>
+                                }
+                                else
+                                {
+                                    <span>@subject</span>
+                                }
                             }
                         }
-                    </select>
-                </div>
+                        else
+                        {
+                            <span>Немає предметів.</span>
+                        }
+                    </div>
+                }
 
                 <div>
                     <label>Обрані предмети:</label>
@@ -189,12 +253,13 @@
                         </ul>
                     }
                 </div>
-                <button type="button" class="btn btn-success" @onclick="UpdateProfile">Зберегти зміни</button>
+
+                @if (isEditMode)
+                {
+                    <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
+                }
+                <button @onclick="ToggleEditMode">@ButtonText</button>
             </div>
-
-
-
-
         </body>
     }
     else
@@ -207,25 +272,63 @@ else
     <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
 }
     
-
 @* evgeniypoklov@gmail.com *@
-@* 33 *@
-@code {
+@* Myparol2017 *@
 
-    private Dictionary<DayOfWeek, List<TimeRange>> schedule;
-    private string email;
-    private string username;
+@code {
     private string errorMessage;
+
+    private bool isUserAuthenticated;
+
+    private UpdateProfile originalProfile;
+    private UpdateProfile userProfile;
+
     private DayOfWeek? selectedDay;
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
-    private UpdateProfile userProfile;
-    private bool isUserAuthenticated;
+    private Dictionary<DayOfWeek, List<TimeRange>> schedule;
+
     private List<string> selectedSubjects = new List<string>();
     private List<string> allSubjects = new List<string>();
     private string _subjectSearch = string.Empty;
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
-
     
+    private bool isEditMode = false;
+    private string ButtonText => isEditMode ? "Cancel Edit" : "Edit";
+   
+    private void CancelEdit()
+    {
+        if (originalProfile != null)
+        {
+            userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
+            isEditMode = false;
+            StateHasChanged(); 
+            Console.WriteLine("Edits canceled, changes reverted.");
+        }
+    }
+    private void EnterEditMode()
+    {
+        originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
+        isEditMode = true;
+        StateHasChanged(); 
+        Console.WriteLine("Entered edit mode, original profile saved.");
+    }
+    private void ToggleEditMode()
+    {
+        isEditMode = !isEditMode;
+    }
+    private string GetSocialClass(string key)
+    {
+        return key switch
+        {
+            "instagram" => "circle1",
+            "twitter" => "circle2",
+            "github" => "circle3",
+            "facebook" => "circle4",
+            "telegram" => "circle5",
+            _ => string.Empty,
+        };
+    }
+
     /// <summary>
     /// Метод для додавання нового часу на конкретний день.
     /// </summary>
@@ -252,7 +355,6 @@ else
 
         schedule[dayOfWeek].Add(new TimeRange());
     }
-    
 
     /// <summary>
     /// Метод, який викликається під час ініціалізації сторінки.
@@ -262,7 +364,7 @@ else
     {
         try
         {
-            
+
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
             {
@@ -270,7 +372,7 @@ else
                 filteredSubjects = allSubjects;
                 await LoadUserProfile();
                 await LoadSchedule();
-                
+
             }
             else
             {
@@ -290,10 +392,9 @@ else
     {
         try
         {
-            
             if (userProfile != null && userProfile.schedule != null)
             {
-               
+
                 schedule = userProfile.schedule.ToDictionary(
                     kvp => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), kvp.Key),
                     kvp =>
@@ -301,7 +402,7 @@ else
                         var timeRanges = kvp.Value;
                         foreach (var range in timeRanges)
                         {
-                            
+
                             range.StartString = range.Start.ToString("HH:mm");
                             range.EndString = range.End.ToString("HH:mm");
                         }
@@ -320,6 +421,7 @@ else
             errorMessage = "Failed to process schedule";
         }
     }
+
     private void OnSubjectsSelected(ChangeEventArgs e)
     {
         var options = e.Value as IEnumerable<string>;
@@ -328,6 +430,7 @@ else
             selectedSubjects.AddRange(options.Except(selectedSubjects));
         }
     }
+
     private void UpdateSocialLink(string network, string url)
     {
         if (userProfile.social == null)
@@ -335,6 +438,7 @@ else
 
         userProfile.social[network] = url;
     }
+
     /// <summary>
     /// Видаляє вибраний предмет зі списку обраних предметів.
     /// </summary>
@@ -391,86 +495,63 @@ else
                 subject.Contains(subjectSearch, StringComparison.OrdinalIgnoreCase));
         }
     }
+
     private async Task LoadUserProfile()
     {
         try
         {
-            
-
             userProfile = await UserProfileService.GetProfileAsync();
+            originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
         }
         catch (Exception ex)
         {
-            
+            Console.WriteLine($"Error processing user information: {ex.Message}");
+            errorMessage = "Failed to process user information";
         }
     }
 
-    private async Task UpdateProfile()
+    private async Task SaveAllChanges()
     {
         try
         {
+            // Update the schedule in the userProfile with the new times for each day
+            foreach (var daySchedule in schedule)
+            {
+                var dayOfWeek = daySchedule.Key.ToString();
+                var tasks = daySchedule.Value;
+                var dtoTimeRanges = tasks.Select(tr => new SoftServeProject3.Core.DTOs.TimeRange
+                    {
+                        Start = DateTime.Parse(tr.StartString),
+                        End = DateTime.Parse(tr.EndString)
+                    }).ToList();
+
+                userProfile.schedule[dayOfWeek] = dtoTimeRanges;
+            }
             userProfile.social = userProfile.social ?? new Dictionary<string, string>();
             userProfile.subjects = selectedSubjects;
-            
-            bool success = await UserProfileService.UpdateProfileAsync(userProfile);
+            // Now save the userProfile
+            var success = await UserProfileService.UpdateProfileAsync(userProfile);
             if (success)
             {
                 
-                //Navigation.NavigateTo("/");
+                await LoadSchedule();
+                StateHasChanged();
+                
             }
             else
             {
-                errorMessage = "Failed to update profile.";
+                errorMessage = "Failed to save schedule.";
             }
+            originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
+            isEditMode = false;
         }
         catch (Exception ex)
         {
-            errorMessage = $"An error occurred: {ex.Message}";
+            errorMessage = $"An error occurred while saving the schedule: {ex.Message}";
         }
     }
-    /// <summary>
-    /// Метод для оновлення розкладу на сервері.
-    /// </summary>
-    private async Task UpdateSchedule(DayOfWeek dayOfWeek, List<TimeRange> tasks)
-    {
-        try
-        {
-            var response = await Http.PutAsJsonAsync($"https://localhost:7292/Users/{email}/{dayOfWeek}", tasks);
-            if (!response.IsSuccessStatusCode)
-            {
-                errorMessage = "Failed to update schedule";
-            }
-            else
-            {
-                await LoadSchedule(); 
-                StateHasChanged(); 
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"An error occurred: {ex.Message}";
-            Console.WriteLine(ex.ToString());
-        }
-    }
-
-    /// <summary>
-    /// Метод для збереження змін у розкладі.
-    /// </summary>
-    private void SaveChanges(DayOfWeek dayOfWeek, List<SoftServeProject3.Core.DTOs.TimeRange> tasks)
-    {
-        var dtoTimeRanges = tasks.Select(tr => new SoftServeProject3.Core.DTOs.TimeRange
-            {
-
-                Start = DateTime.Parse(tr.StartString),
-                End = DateTime.Parse(tr.EndString)
-            }).ToList();
-
-        
-        userProfile.schedule[dayOfWeek.ToString()] = dtoTimeRanges;
-        StateHasChanged();
-    }
-
+   
     /// <summary>
     /// Метод для видалення проміжку часу.
     /// </summary>

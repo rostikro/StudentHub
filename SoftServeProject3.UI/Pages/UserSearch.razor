@@ -62,9 +62,17 @@ else
                 <a href="UserProfile/@user.Username">@user.Username</a> -
                 @if (user.Subjects != null && user.Subjects.Any())
                 {
+
                     foreach (var subject in user.Subjects)
                     {
-                        <span>@subject -  </span>
+                        if (subject != user.Subjects[^1])
+                        {
+                            <span>@subject - </span>
+                        }
+                        else
+                        {
+                            <span>@subject</span>
+                        }
                     }
                 }
                 else
