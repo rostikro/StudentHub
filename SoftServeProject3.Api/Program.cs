@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using SoftServeProject3.Api.Services;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using Newtonsoft.Json;
 
 namespace SoftServeProject3.Api
 {
@@ -79,8 +82,13 @@ namespace SoftServeProject3.Api
                 googleOptions.ClientId = builder.Configuration["GoogleOAuth:ClientId"];
                 googleOptions.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
                 googleOptions.CallbackPath = "/signin-google"; // /signin-google
-            }); 
+            });
+            var jsonSerializerSettings = new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Unspecified 
+            };
 
+            BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local));
 
             var configuration = builder.Configuration;
 

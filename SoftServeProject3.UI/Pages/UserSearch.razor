@@ -59,7 +59,18 @@ else
         @foreach (var user in users)
         {
             <li>
-                <a href="UserProfile/@user.Username">@user.Username</a> - @user.Email
+                <a href="UserProfile/@user.Username">@user.Username</a> -
+                @if (user.Subjects != null && user.Subjects.Any())
+                {
+                    foreach (var subject in user.Subjects)
+                    {
+                        <span>@subject -  </span>
+                    }
+                }
+                else
+                {
+                    <span>Немає предметів.</span>
+                }
             </li>
         }
     </ul>
@@ -216,6 +227,6 @@ else
     public class User
     {
         public string Username { get; set; }
-        public string Email { get; set; }
+        public List<string> Subjects { get; set; } = new List<string>();
     }
 }
