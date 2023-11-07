@@ -22,7 +22,7 @@ namespace SoftServeProject3.UI.Services
             var token = await _tokenService.GetToken();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.GetAsync("https://localhost:7292/Users/profile"); // Видалено параметр шляху {email}
+            var response = await _httpClient.GetAsync("https://localhost:7292/Users/profile"); 
             response.EnsureSuccessStatusCode();
 
             var user = await response.Content.ReadFromJsonAsync<UpdateProfile>();

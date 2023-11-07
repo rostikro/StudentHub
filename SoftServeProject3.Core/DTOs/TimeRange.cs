@@ -16,7 +16,7 @@ namespace SoftServeProject3.Core.DTOs
         [BsonElement("End")]
         public DateTime End { get; set; }
 
-        // These properties are not stored in the database, but used for UI binding.
+        
         [BsonIgnore]
         public string StartString
         {

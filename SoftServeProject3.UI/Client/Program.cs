@@ -16,18 +16,18 @@ namespace SoftServeProject3.UI
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            // Реєстрація HttpClient для використання по всьому додатку
+            
             builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-            // Реєстрація TokenService
+            
             builder.Services.AddScoped<TokenService>();
 
-            // Реєстрація UserProfileService
+            
             builder.Services.AddScoped<UserProfileService>();
 
             var host = builder.Build();
 
-            // Ініціалізація HttpClient з токеном аутентифікації
+            
             var tokenService = host.Services.GetRequiredService<TokenService>();
             var httpClient = host.Services.GetRequiredService<HttpClient>();
             var token = await tokenService.GetToken();
@@ -41,7 +41,7 @@ namespace SoftServeProject3.UI
                 Console.WriteLine("Unable to find Token");
             }
 
-            // Запуск додатку
+            
             await host.RunAsync();
         }
     }
