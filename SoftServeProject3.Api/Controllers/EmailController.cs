@@ -46,6 +46,26 @@ public class EmailController : ControllerBase
 
             var code = RandomGenerator.GenerateRandomCode();
 
+            bool result;
+
+            if (isReset)
+            {
+                result = await _emailService.SendResetPasswordEmailAsync(emailData, code);
+            }
+            else
+            {
+                result = await _emailService.SendVerificationEmailAsync(emailData, code);
+            }
+            
+
+            if (!result)
+            {
+                return BadRequest("Failed to send verification code.");
+            }
+
+
+
+            var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
             //setting data for verification -> database
             var setData = new ForgotPasswordModel
             {

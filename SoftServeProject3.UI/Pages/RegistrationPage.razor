@@ -7,6 +7,7 @@
 @using SoftServeProject3.UI.Data
 @using Microsoft.AspNetCore.WebUtilities;
 @using SoftServeProject3.Core.DTOs;
+@using SoftServeProject3.UI.Services;
 
 <link rel="stylesheet" href="RegistrationPage.razor.css">
 
@@ -128,6 +129,70 @@
 
     private void HandleFieldChanged(object sender, FieldChangedEventArgs e)
     {
+
+        var registerRequest = new
+        {
+            Username = username,
+            Email = email,
+            Password = password,
+            Schedule = new Dictionary<string, List<TimeRange>>
+            {
+                { "Monday", new List<TimeRange>() },
+                { "Tuesday", new List<TimeRange>() },
+                { "Wednesday", new List<TimeRange>() },
+                { "Thursday", new List<TimeRange>() },
+                { "Friday", new List<TimeRange>() },
+                { "Saturday", new List<TimeRange>() },
+                { "Sunday", new List<TimeRange>() },
+            },
+            PhotoUrl = "",
+            Faculty = "",
+            Name = "",
+            Description = "", 
+            Subjects = new List<string>(),
+            Social = new Dictionary<string, string>
+            {
+                { "instagram", "" },
+                { "twitter", "" },
+                { "github", "" },
+                { "facebook", "" },
+                { "telegram", "" }
+            }
+        };
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<RegistrationResponse>();
+                if (result != null && !string.IsNullOrEmpty(result.Token))
+                {
+
+                    await TokenService.StoreToken(result.Token);
+                    Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
+
+                }
+                else
+                {
+                    errorMessage = "Registration failed. Please try again.";
+                }
+            }
+            else
+            {
+                errorMessage = "Registration failed. Please try again.";
+            }
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    public class RegistrationResponse
+    {
+        public string Token { get; set; }
         isRegDisabled = string.IsNullOrWhiteSpace(regModel.Username) ||
                    string.IsNullOrWhiteSpace(regModel.Email) ||
                    string.IsNullOrWhiteSpace(regModel.Password) ||

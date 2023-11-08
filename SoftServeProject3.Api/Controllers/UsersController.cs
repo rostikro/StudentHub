@@ -87,11 +87,14 @@ namespace SoftServeProject3.Api.Controllers
         /// Returns a json representation of user profile
         /// </summary>
         /// <param name="email">user email</param>
-        [HttpGet("profile/{email}")]
-        public async Task<IActionResult> GetProfileAsync(string email)
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetProfileAsync()
         {
             try
             {
+                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+
                 var user = await _userRepository.GetUserByEmailAsync(email);
                 if (user == null)
                 {
@@ -113,14 +116,14 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-        
         [HttpPost("updateProfile")]
+        [Authorize]
         public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(profile.authToken).Email;
-                  
+                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+
                 await _userRepository.UpdateProfileAsync(profile, email);
 
                 return Ok("Success");
@@ -131,55 +134,6 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-
-        /// <summary>
-        /// Отримання розкладу для вказаного користувача за його електронною поштою.
-        /// </summary>
-        /// <param name="email">Електронна пошта користувача.</param>
-        /// <returns>Розклад, якщо він знайдений; в іншому випадку, NotFound.</returns>
-        [HttpGet("{email}")]
-        public async Task<IActionResult> GetSchedule(string email)
-        {
-
-            var user = await _userRepository.GetUserByEmailAsync(email) ?? await _userRepository.GetUserByUsernameAsync(email);
-
-            if (user?.Schedule == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(user.Schedule);
-
-
-        }
-
-        /// <summary>
-        /// Оновлення розкладу для вказаного користувача в певний день тижня.
-        /// </summary>
-        /// <param name="email">Електронна пошта користувача.</param>
-        /// <param name="dayOfWeek">День тижня.</param>
-        /// <param name="updatedSchedule">Оновлений розклад.</param>
-        /// <returns>NoContent, якщо розклад оновлено; в іншому випадку, NotFound.</returns>
-        [HttpPut("{email}/{dayOfWeek}")]
-        public async Task<IActionResult> UpdateSchedule(string email, string dayOfWeek, [FromBody] List<TimeRange> updatedSchedule)
-        {
-            var user = await _userRepository.GetUserByEmailAsync(email) ?? await _userRepository.GetUserByUsernameAsync(email);
-
-            if (user?.Schedule == null)
-            {
-                user.Schedule = new Dictionary<string, List<TimeRange>>();
-            }
-
-            user.Schedule[dayOfWeek] = updatedSchedule.Select(tr => new TimeRange
-            {
-                Start = DateTime.SpecifyKind(tr.Start, DateTimeKind.Utc),
-                End = DateTime.SpecifyKind(tr.End, DateTimeKind.Utc)
-            }).ToList();
-
-            await _userRepository.UpdateUserAsync(user);
-            return NoContent();
-        }
-
         [HttpGet("username/{username}")]
         public async Task<IActionResult> GetUserByUsername(string username)
         {
@@ -197,6 +151,11 @@ namespace SoftServeProject3.Api.Controllers
                 Schedule = user.Schedule
             });
         }
+        
+        
+
+        
+        
 
         /// <summary>
         /// Отримує список всіх користувачів.
@@ -256,24 +215,7 @@ namespace SoftServeProject3.Api.Controllers
             return Ok(filteredUsers);
         }
 
-        /// <summary>
-        /// Отримання інформації про користувача з наданого токена JWT.
-        /// </summary>
-        /// <param name="token">Токен JWT.</param>
-        /// <returns>Інформація про користувача, якщо токен дійсний; в іншому випадку, повідомлення про помилку.</returns>
-        [HttpPost("get-user-info")]
-        public ActionResult<UserInfo> GetUserInfo([FromBody] string token)
-        {
-            try
-            {
-                var userInfo = _jwtService.DecodeJwtToken(token);
-                return Ok(userInfo);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        
 
         /// <summary>
         /// Реєстрація нового користувача.
@@ -377,8 +319,15 @@ namespace SoftServeProject3.Api.Controllers
                     Faculty = "",
                     Name = "",
                     Description = "",
-                    Subjects = new List<string>(), 
-                    Social = new Dictionary<string, string>() 
+                    Subjects = new List<string>(),
+                    Social = new Dictionary<string, string>
+                    {
+                        { "instagram", "" },
+                        { "twitter", "" },
+                        { "github", "" },
+                        { "facebook", "" },
+                        { "telegram", "" }
+                    }
                 };
 
                 _userRepository.Register(newUser);
@@ -428,8 +377,5 @@ namespace SoftServeProject3.Api.Controllers
                 return Ok(new { Message = "Password has been changed successfully." });
             }
         }
-
-        //Playground
-
     }
 }

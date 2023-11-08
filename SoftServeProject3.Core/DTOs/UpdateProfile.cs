@@ -2,7 +2,7 @@
 {
     public class UpdateProfile
     {
-        public string authToken { get; set; }
+        
 
         public string username { get; set; }
 
@@ -19,5 +19,6 @@
         public Dictionary<string, string> social { get; set; }
 
         public Dictionary<string, List<TimeRange>> schedule { get; set; }
+
     }
 }
