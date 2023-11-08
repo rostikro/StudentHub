@@ -3,6 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace SoftServeProject3.Core.DTOs
 {
@@ -60,12 +61,5 @@ namespace SoftServeProject3.Core.DTOs
         public string DayOfWeek { get; set; }
         public List<TimeRange> TimeSlots { get; set; }
     }
-    public class TimeRange
-    {
-        [BsonElement("Start")]
-        public DateTime Start { get; set; }
-
-        [BsonElement("End")]
-        public DateTime End { get; set; }
-    }
+    
 }

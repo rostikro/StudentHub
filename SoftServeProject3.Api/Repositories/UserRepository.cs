@@ -33,7 +33,7 @@ namespace SoftServeProject3.Api.Repositories
             {
                 await _users.UpdateOneAsync(user => user.Email == email,
                     Builders<UserModel>.Update
-                        .Set(u => u.Username, profile.username)
+                        
                         .Set(u => u.PhotoUrl, profile.photoUrl)
                         .Set(u => u.Faculty, profile.faculty)
                         .Set(u => u.Name, profile.name)
