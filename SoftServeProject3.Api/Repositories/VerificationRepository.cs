@@ -46,7 +46,7 @@ namespace SoftServeProject3.Api.Repositories
                                     Builders<ForgotPasswordModel>.Update.Set(verification =>
                                     verification.Code, resetData.Code));
                 Debug.WriteLine(resetData.Code);
-
+                
                 //add 1 minute to wait
                 await _verifications.UpdateOneAsync(verification => verification.Email == resetData.Email,
                     Builders<ForgotPasswordModel>.Update.Set(verification =>

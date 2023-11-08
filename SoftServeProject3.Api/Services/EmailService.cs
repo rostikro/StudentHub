@@ -20,7 +20,18 @@ public class EmailService : IEmailService
         _httpClient = httpClientFactory.CreateClient("EmailClient");
     }
 
-    public async Task<bool> SendEmailAsync(EmailData emailData, string verificationCode)
+    public async Task<bool> SendVerificationEmailAsync(EmailData emailData, string verificationCode)
+    {
+        return await SendEmailAsync(emailData, verificationCode, "8131879a-6a70-42eb-9ba3-c35a43236733");
+    }
+    
+    
+    public async Task<bool> SendResetPasswordEmailAsync(EmailData emailData, string verificationCode)
+    {
+        return await SendEmailAsync(emailData, verificationCode, "2b807789-0755-4c96-a6b5-d291bb23ea25");
+    }
+
+    private async Task<bool> SendEmailAsync(EmailData emailData, string verificationCode, string template_uuid)
     {
         try
         {
@@ -28,7 +39,7 @@ public class EmailService : IEmailService
             {
                 From = new { Email = _emailSettings.SenderEmail, Name = _emailSettings.SenderName },
                 To = new[] { new { Email = emailData.EmailTo, Name = emailData.EmailTo } },
-                Template_uuid = "8131879a-6a70-42eb-9ba3-c35a43236733",
+                Template_uuid = template_uuid,
                 Template_variables = new { verification_code = verificationCode }
             };
 

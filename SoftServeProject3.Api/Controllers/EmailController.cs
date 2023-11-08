@@ -46,7 +46,17 @@ public class EmailController : ControllerBase
 
             var code = RandomGenerator.GenerateRandomCode();
 
-            var result = await _emailService.SendEmailAsync(emailData, code);
+            bool result;
+
+            if (isReset)
+            {
+                result = await _emailService.SendResetPasswordEmailAsync(emailData, code);
+            }
+            else
+            {
+                result = await _emailService.SendVerificationEmailAsync(emailData, code);
+            }
+            
 
             if (!result)
             {
