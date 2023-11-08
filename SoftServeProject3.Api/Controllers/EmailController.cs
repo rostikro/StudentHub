@@ -46,16 +46,6 @@ public class EmailController : ControllerBase
 
             var code = RandomGenerator.GenerateRandomCode();
 
-            var result = await _emailService.SendEmailAsync(emailData, code);
-
-            if (!result)
-            {
-                return BadRequest("Failed to send verification code.");
-            }
-
-
-
-            var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
             //setting data for verification -> database
             var setData = new ForgotPasswordModel
             {
@@ -63,13 +53,23 @@ public class EmailController : ControllerBase
                 Code = code
             };
 
-            // check if user can send a code to his email now
-
             //changing user code if they exist in verification database + adding resend time 
+            var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
+
             if (existingVerification != null)
             {
+                // check if user can send a code to his email now
                 if (_verRepository.GetByEmail(emailData.EmailTo).ResendCode < DateTime.UtcNow)
                 {
+
+                    var result = await _emailService.SendEmailAsync(emailData, code);
+
+                    if (!result)
+                    {
+                        return BadRequest("Failed to send verification code.");
+                    }
+
+                    
 
                     await _verRepository.UpdateCodeAsync(setData);
 

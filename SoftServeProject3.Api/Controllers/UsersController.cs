@@ -283,7 +283,9 @@ namespace SoftServeProject3.Api.Controllers
         [HttpPost("register")]
         public IActionResult Register([FromBody] UserModel registerRequest)
         {
-            if (string.IsNullOrWhiteSpace(registerRequest.Email) || string.IsNullOrWhiteSpace(registerRequest.Password) || string.IsNullOrWhiteSpace(registerRequest.Username))
+            if (string.IsNullOrWhiteSpace(registerRequest.Email) 
+                || string.IsNullOrWhiteSpace(registerRequest.Password) 
+                || string.IsNullOrWhiteSpace(registerRequest.Username))
             {
                 return BadRequest("Email, UserName and Password are required.");
             }
