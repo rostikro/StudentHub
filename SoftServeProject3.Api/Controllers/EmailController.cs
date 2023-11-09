@@ -40,7 +40,7 @@ public class EmailController : ControllerBase
                     return BadRequest("User with the email does not exist.");
                 }
             }
-            
+
 
             await _verRepository.ClearVerifications();
 
@@ -56,7 +56,7 @@ public class EmailController : ControllerBase
             {
                 result = await _emailService.SendVerificationEmailAsync(emailData, code);
             }
-            
+
 
             if (!result)
             {

@@ -27,7 +27,7 @@ namespace SoftServeProject3.Api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IWebHostEnvironment _env;
 
-        
+
 
         /// <summary>
         /// Ініціалізує новий екземпляр класу <see cref="UsersController"/>.
@@ -87,20 +87,30 @@ namespace SoftServeProject3.Api.Controllers
         /// Returns a json representation of user profile
         /// </summary>
         /// <param name="email">user email</param>
-        [HttpGet("profile")]
+        [HttpGet("profile/{username?}")]
         [Authorize]
-        public async Task<IActionResult> GetProfileAsync()
+        public async Task<IActionResult> GetProfileAsync(string username = null)
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                UserModel user;
 
-                var user = await _userRepository.GetUserByEmailAsync(email);
-                if (user == null)
+                if (username == null)
                 {
-                    return BadRequest("Invalid email/username");
+                    string emailToken = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                    string userToken = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
+
+                    user = await _userRepository.GetUserByEmailAsync(emailToken) ?? await _userRepository.GetUserByUsernameAsync(userToken);
+                    if (user == null)
+                    {
+                        return BadRequest("Invalid email/username");
+                    }
                 }
-                
+                else
+                {
+                    user = await _userRepository.GetUserByUsernameAsync(username);
+                }
+
                 var serializeOptions = new JsonSerializerSettings
                 {
                     ContractResolver = new GetUserContractResolver(),
@@ -116,6 +126,8 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
+
+
         [HttpPost("updateProfile")]
         [Authorize]
         public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
@@ -134,28 +146,6 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-        [HttpGet("username/{username}")]
-        public async Task<IActionResult> GetUserByUsername(string username)
-        {
-            var user = await _userRepository.GetUserByUsernameAsync(username);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return Ok(new
-            {
-                Id = user._id.ToString(),
-                Username = user.Username,
-                Email = user.Email,
-                IsEmailConfirmed = user.IsEmailConfirmed,
-                Schedule = user.Schedule
-            });
-        }
-        
-        
-
-        
-        
 
         /// <summary>
         /// Отримує список всіх користувачів.
@@ -215,7 +205,7 @@ namespace SoftServeProject3.Api.Controllers
             return Ok(filteredUsers);
         }
 
-        
+
 
         /// <summary>
         /// Реєстрація нового користувача.
@@ -225,31 +215,43 @@ namespace SoftServeProject3.Api.Controllers
         [HttpPost("register")]
         public IActionResult Register([FromBody] UserModel registerRequest)
         {
-            if (string.IsNullOrWhiteSpace(registerRequest.Email) || string.IsNullOrWhiteSpace(registerRequest.Password) || string.IsNullOrWhiteSpace(registerRequest.Username))
+            if (!registerRequest.IsEmailConfirmed)
             {
-                return BadRequest("Email, UserName and Password are required.");
+                if (string.IsNullOrWhiteSpace(registerRequest.Email)
+                                || string.IsNullOrWhiteSpace(registerRequest.Password)
+                                || string.IsNullOrWhiteSpace(registerRequest.Username))
+                {
+                    return BadRequest("Будь ласка, введіть нікнейм, пошту та пароль.");
+                }
+                else if (_userRepository.GetByEmail(registerRequest.Email) != null)
+                {
+                    return BadRequest("Користувач з такою поштою вже існує. Спробуйте іншу.");
+                }
+                else if (_userRepository.GetByUsername(registerRequest.Username) != null)
+                {
+                    return BadRequest("Користувач з таким юзернеймом вже існує. Спробуйте інший.");
+                }
+                else
+                {
+                    return Ok("");
+                }
             }
-
-            if (_userRepository.GetByEmail(registerRequest.Email) != null)
+            else
             {
-                return BadRequest("Email already exists.");
-            }
+                _userRepository.Register(registerRequest);
 
-            if (_userRepository.GetByUsername(registerRequest.Username) != null)
-            {
-                return BadRequest("Username already exists.");
-            }
-
-            _userRepository.Register(registerRequest);
-
-            var claims = new List<Claim>
+                var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, registerRequest.Email),
                 new Claim(ClaimTypes.Name, registerRequest.Username)
             };
 
-            var token = _jwtService.GenerateJwtToken(claims);
-            return Ok(new { Token = token });
+                var token = _jwtService.GenerateJwtToken(claims);
+                return Ok(new { Token = token });
+            }
+
+
+
         }
 
         /// <summary>
@@ -349,8 +351,8 @@ namespace SoftServeProject3.Api.Controllers
             //перевірки клієнта
             if (verification == null)
                 return BadRequest("Користувача не знайдено.");
-            
-            if(!BCrypt.Net.BCrypt.Verify(verification.Code, resetPassword.HashCode))
+
+            if (!BCrypt.Net.BCrypt.Verify(verification.Code, resetPassword.HashCode))
                 return BadRequest("Щось пішло не так : (");
 
             if (verification.ExpirationTime < DateTime.UtcNow)
