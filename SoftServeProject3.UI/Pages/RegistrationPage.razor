@@ -13,33 +13,71 @@
 
 <head>
     <PageTitle>Registration Page</PageTitle>
+    <meta name="google-signin-client_id" content="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com">
 </head>
 
 
 <body>
     <div class="container">
-        <h1>Register</h1>
-        <p>Please fill in this form to create an account.</p>
+        <h1>Реєстрація</h1>
+        <p>Будь ласка, заповніть цю форму, щоб увійти на сайт.</p>
         <hr>
 
         @if (!isCodeSent)
         {
-            <button @onclick="StartGoogleLogin">Register with Google</button>
+            <EditForm OnValidSubmit="@Register" EditContext="@editContext">
+                <DataAnnotationsValidator />
+                <label for="username"><b>Ім'я користувача</b></label>
+                <StyledInputText placeholder="Введіть нікнейм" maxLength="20" @bind-Value="regModel.Username" />
+                <p><ValidationMessage For="@(()=>regModel.Username)" /></p>
 
-            <label for="username"><b>Username</b></label>
-            <input type="text" placeholder="Enter Username" maxLength="20" @bind="username" required>
+                <label for="email"><b>Пошта</b></label>
+                <StyledInputText placeholder="Введіть пошту" type="email" @bind-Value="regModel.Email" />
+                <p><ValidationMessage For="@(()=>regModel.Email)" /></p>
 
-            <label for="email"><b>Email</b></label>
-            <input type="text" placeholder="Enter Email" @bind="email" required>
+                <label for="password"><b>Пароль</b></label>
+                <StyledInputText placeholder="Введіть пароль" type="password" @bind-Value="regModel.Password" />
+                <p><ValidationMessage For="@(()=>regModel.Password)" /></p>
 
-            <label for="password"><b>Password</b></label>
-            <input type="password" placeholder="Enter Password" @bind="password" required>
+                <label for="repeatPassword"><b>Повторіть пароль</b></label>
+                <StyledInputText placeholder="Повторіть ваш пароль" type="password" @bind-Value="regModel.ConfirmPassword" />
+                <p><ValidationMessage For="@(()=>regModel.ConfirmPassword)" /></p>
+                <hr>
+                @* error field *@
+                <p id=@errorMessageId> @errorMessage</p>
 
-            <label for="repeatPassword"><b>Repeat Password</b></label>
-            <input type="password" placeholder="Repeat Password" @bind="repeatPassword" required>
+                <button type="submit" disabled="@isRegDisabled" class="@registerButtonClass">Зареєструватися</button>
+            </EditForm>
 
+                //login-in google button
             <hr>
-            <button @onclick="SendCode">Далі</button>
+            <div @onclick="StartGoogleLogin" style="cursor: pointer; width: 240px; margin: auto;">
+                <div id="my-signin2" style="pointer-events: none;"></div>
+            </div>
+            <hr>
+
+            <script>
+                function onSuccess(googleUser) {
+                    console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+                }
+
+                function onFailure(error) {
+                    console.log(error);
+                }
+                function renderButton() {
+                    gapi.signin2.render('my-signin2', {
+                        'scope': 'profile email',
+                        'width': 240,
+                        'height': 50,
+                        'longtitle': true,
+                        'theme': 'dark',
+                        'onsuccess': onSuccess,
+                        'onfailure': onFailure
+                    });
+                }
+            </script>
+
+            <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
         }
         else
         {
@@ -54,144 +92,72 @@
         @if (isCodeVerified)
         {
             <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
-            <button @onclick="Register" class="@registerButtonClass">Register</button>
+            <button @onclick="Register" class="registerbtn-enabled">Завершити реєстрацію</button>
         }
     </div>
 
     <div class="container signin">
-        <p>Already have an account? <a href="/login">Sign in</a>.</p>
+        <p>Вже зареєстровані? <a href="/login">Увійти</a></p>
     </div>
-    <p>@errorMessage</p>
 </body>
 
 @code {
 
-    private string username = "";
-    private string email = "";
-    private string password = "";
-    private string repeatPassword = "";
-    private string errorMessage = "";
-    private bool isCodeSent = false;
 
-    public class TimeRange
-    {
-        public DateTime Start { get; set; }
-        public DateTime End { get; set; }
-    }
+    private string errorMessage = "";
+
+    private bool isCodeSent = false;
+    private bool isCodeVerified = false;
+
+    EditContext editContext;
+
+    UserRegistrationModel regModel = new UserRegistrationModel();
+
+    private bool isRegDisabled = true;
 
     private string code = "";
-    private bool isCodeVerified = false;
-    private string registerButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
+    private string errorMessageId = "error-message-nondisplay";
+    private string registerButtonClass => isRegDisabled ? "registerbtn-disabled" : "registerbtn-enabled";
+    private string confirmRegisterButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
 
-    /// <summary>
-    /// Виконує реєстрацію користувача.
-    /// </summary>
-    private async Task Register()
+    private void HandleFieldChanged(object sender, FieldChangedEventArgs e)
     {
-
-        var registerRequest = new
-        {
-            Username = username,
-            Email = email,
-            Password = password,
-            Schedule = new Dictionary<string, List<TimeRange>>
-            {
-                { "Monday", new List<TimeRange>() },
-                { "Tuesday", new List<TimeRange>() },
-                { "Wednesday", new List<TimeRange>() },
-                { "Thursday", new List<TimeRange>() },
-                { "Friday", new List<TimeRange>() },
-                { "Saturday", new List<TimeRange>() },
-                { "Sunday", new List<TimeRange>() },
-            },
-            PhotoUrl = "",
-            Faculty = "",
-            Name = "",
-            Description = "", 
-            Subjects = new List<string>(),
-            Social = new Dictionary<string, string>
-            {
-                { "instagram", "" },
-                { "twitter", "" },
-                { "github", "" },
-                { "facebook", "" },
-                { "telegram", "" }
-            }
-        };
-
-        try
-        {
-            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<RegistrationResponse>();
-                if (result != null && !string.IsNullOrEmpty(result.Token))
-                {
-
-                    await TokenService.StoreToken(result.Token);
-                    Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
-
-                }
-                else
-                {
-                    errorMessage = "Registration failed. Please try again.";
-                }
-            }
-            else
-            {
-                errorMessage = "Registration failed. Please try again.";
-            }
-
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"An error occurred: {ex.Message}";
-        }
+        isRegDisabled = string.IsNullOrWhiteSpace(regModel.Username) ||
+                   string.IsNullOrWhiteSpace(regModel.Email) ||
+                   string.IsNullOrWhiteSpace(regModel.Password) ||
+                   string.IsNullOrWhiteSpace(regModel.ConfirmPassword);
+        StateHasChanged();
     }
-
-    public class RegistrationResponse
-    {
-        public string Token { get; set; }
-    }
-
 
     /// <summary>
     /// Відправляє на електронну пошту користувача код для підтвердження реєстрації.
     /// </summary>
     private async Task SendCode()
     {
-        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
-            string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(repeatPassword))
-        {
-            errorMessage = "All fields are required";
-            return;
-        }
-        if (password != repeatPassword)
-        {
-            errorMessage = "Passwords do not match";
-            return;
-        }
+        //deattaching HandleFieldChanged
+        Dispose();
 
         EmailDataModel emailData = new EmailDataModel()
-        {
-            EmailTo = email,
-        };
+            {
+                EmailTo = regModel.Email,
+            };
 
         await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
         isCodeSent = true;
         isCodeVerified = false;
 
     }
+
     private async Task VerifyCode()
     {
         EmailDataModel emailData = new EmailDataModel()
-        {
-            EmailTo = email,
-        };
+            {
+                EmailTo = regModel.Email
+            };
         ForgotPasswordModel forgotPassword = new ForgotPasswordModel()
-        {
-            Code = code,
-        };
+            {
+                Code = code,
+            };
         forgotPassword.Email = emailData.EmailTo;
         var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail", forgotPassword);
 
@@ -206,7 +172,7 @@
             isCodeVerified = false;
         }
     }
-    
+
 
     /// <summary>
     /// Повертає до введення полів.
@@ -229,11 +195,97 @@
     }
 
     /// <summary>
-    /// Метод, який викликається при ініціалізації компоненту.
+    /// Виконує реєстрацію користувача.
+    /// </summary>
+    private async Task Register()
+    {
+
+        var registerRequest = new UserModel
+            {
+                Username = regModel.Username,
+                Email = regModel.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(regModel.Password),
+                IsEmailConfirmed = false,
+                PhotoUrl = "",
+                Faculty = "",
+                Name = "",
+                Description = "",
+                Subjects = new List<string>(),
+                Social = new Dictionary<string, string>
+            {
+                { "instagram", "" },
+                { "twitter", "" },
+                { "github", "" },
+                { "facebook", "" },
+                { "telegram", "" }
+            },
+                Schedule = new Dictionary<string, List<TimeRange>>
+            {
+                { "Monday", new List<TimeRange>() },
+                { "Tuesday", new List<TimeRange>() },
+                { "Wednesday", new List<TimeRange>() },
+                { "Thursday", new List<TimeRange>() },
+                { "Friday", new List<TimeRange>() },
+                { "Saturday", new List<TimeRange>() },
+                { "Sunday", new List<TimeRange>() },
+            }
+            };
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
+            if (response.IsSuccessStatusCode)
+            {
+                if (isCodeSent)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<RegistrationResponse>();
+                    if (result != null && !string.IsNullOrEmpty(result.Token))
+                    {
+
+                        await TokenService.StoreToken(result.Token);
+                        Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
+
+                    }
+                    else
+                    {
+                        errorMessage = await response.Content.ReadAsStringAsync();
+                    }
+                }
+                else
+                {
+                    await SendCode();
+                }
+            }
+            else
+            {
+                errorMessage = await response.Content.ReadAsStringAsync();
+            }
+            errorMessageId = !string.IsNullOrEmpty(errorMessage) ? "error-message-display" : "error-message-nondisplay";
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Виникла помилка: {ex.Message}";
+        }
+    }
+
+    public class RegistrationResponse
+    {
+        public string Token { get; set; }
+    }
+
+
+    /// <summary>
+    /// Метод, я    кий викликається при ініціалізації компоненту.
     /// Перевіряє URL на наявність токену та обробляє його.
     /// </summary>
+
     protected override async Task OnInitializedAsync()
     {
+        editContext = new EditContext(regModel);
+        editContext.OnFieldChanged += HandleFieldChanged;
+        base.OnInitialized();
+
         var uri = new Uri(Navigation.Uri);
 
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
@@ -242,5 +294,11 @@
             Navigation.NavigateTo("/", forceLoad: true);
         }
     }
+
+    public void Dispose()
+    {
+        editContext.OnFieldChanged -= HandleFieldChanged;
+    }
+
 }
 

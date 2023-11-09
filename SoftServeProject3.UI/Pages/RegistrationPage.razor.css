@@ -6,7 +6,7 @@
     padding: 16px;
 }
 
-input[type=text], input[type=password] {
+.inputfld {
     width: 100%;
     padding: 15px;
     margin: 5px 0 22px 0;
@@ -15,10 +15,10 @@ input[type=text], input[type=password] {
     background: #f1f1f1;
 }
 
-input[type=text]:focus, input[type=password]:focus {
-    background-color: #ddd;
-    outline: none;
-}
+    .inputfld:focus {
+        background-color: #ddd;
+        outline: none;
+    }
 
 hr {
     border: 1px solid #f1f1f1;
@@ -47,9 +47,9 @@ hr {
     opacity: 0.9;
 }
 
-.registerbtn-enabled:hover {
-    opacity: 1;
-}
+    .registerbtn-enabled:hover {
+        opacity: 1;
+    }
 
 a {
     color: dodgerblue;
@@ -58,4 +58,26 @@ a {
 .signin {
     background-color: #f1f1f1;
     text-align: center;
+}
+
+#error-message-display {
+    display: block;
+    background-color: #fce4e4;
+    border: 1px solid #fcc2c3;
+    color: #B22222;
+    padding: 20px 30px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+#error-message-nondisplay {
+    display: none;
+    background-color: #fce4e4;
+    border: 1px solid #fcc2c3;
+    color: #B22222;
+    padding: 20px 30px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    margin: 10px 0;
 }
