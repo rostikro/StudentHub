@@ -12,11 +12,20 @@
 <head>
     <PageTitle>Розклад</PageTitle>
 </head>
-
+@* R Від Романа, постараюсь розписати код так як я його розумію.
+HTML-розмітка сторінки розташована всередині if-блоку.
+Цей блок перевіряє, чи користувач аутентифікований (isUserAuthenticated).
+Якщо так, то відображається розмітка профілю користувача.
+Інакше воно виводить: Будь ласка, ввійдіть для доступу до цієї сторінки. *@
 @if (isUserAuthenticated)
 {
+    @* R даному випадку, код використовує @if (userProfile != null) для перевірки,
+    чи існує об'єкт userProfile. Якщо він існує (тобто не є null), то відображається відповідна частина HTML розмітки.
+    Це допомагає уникнути помилок, які можуть виникнути при спробі отримати доступ до властивостей чи методів об'єкта,
+    який не існує (має значення null). При null воно виводить: Завантаження...*@
     @if (userProfile != null)
     {
+        @* R верхній навбар з посиланнями на інші сторінки *@
         <body>
             <div class="wrapper">
                 <div class="one">
@@ -30,38 +39,53 @@
                         <a href="checking_mail">Профіль</a>
                     </div>
                 </div>
+                @* R область з фотографією *@
                 <div class="two">
+                    @* R Якщо isEditMode має значення true,
+                    тобто користувач перебуває у режимі редагування,
+                    то відображається блок редагування фото профілю: де input type="text" створює текстове поле вводу + type="text" дозволяє  вводити будь-який текст у відповідне поле (не тільки цифри).
+                    @bind робить так, що значення властивості photoUrl об'єкта userProfile буде автоматично оновлено на сервері, якщо користувач введе текст у текстове поле.
+                    На додаток, якщо значення photoUrl буде змінено в коді на сервері, зміни також автоматично відобразяться в текстовому полі на веб-сторінці.*@
                     @if (isEditMode)
                     {
                         <div class="profile-picture-edit">
                             <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                         </div>
                     }
+                    @* Якщо isEditMode має значення false, тобто користувач не перебуває у режимі редагування, то відображається блок зображення фото профілю:
+                        де <img> відображає фотографію профілю з URL, збереженого в userProfile.photoUrl.
+                        Якщо userProfile.photoUrl не містить URL фотографії, то відображається текстовий атрибут alt (в даному випадку "Немає Фото профілю").
+                    *@
                     else
                     {
                         <div class="profile-picture">
-                            <img src="@userProfile.photoUrl" alt="Фото профілю">
+                            <img src="@userProfile.photoUrl" alt="Немає фото профілю">
                         </div>
                     }
                 </div>
                 <div class="three">
                     <h1>Мій розклад</h1>
+                    @* R Якщо змінна errorMessage не є null, то відображається текст помилки червоним кольором.*@
                     @if (errorMessage != null)
                     {
                         <p class="text-danger">@errorMessage</p>
                     }
+                    @* R Якщо розклад (schedule) є null, то відображається текст "Loading...", який вказує на те, що дані розкладу завантажуються.*@
                     @if (schedule == null)
                     {
                         <p>Loading...</p>
                     }
+                    @* R Якщо розклад існує, але не має жодних записів (його розмір рівний нулю), відображається повідомлення "Розклад пустий".*@
                     else if (schedule.Count == 0)
                     {
                         <p>Розклад пустий</p>
                     }
+                    @* R Якщо розклад не є null і має записи, то відображається таблиця розкладу з вказаною структурою.*@
                     else
                     {
                         
                         <table class="table">
+                            @* <thead> вказує на заголовок таблиці з назвами стовпців ("День тижня" та "Час"). *@
                             <thead>
                                 <tr>
                                     <th>День тижня</th>
@@ -69,16 +93,20 @@
                                 </tr>
                             </thead>
                             <tbody>
+
+                               
+
                                 @if (isEditMode)
                                 {
-                                   
+                                    @* R Якщо isEditMode має значення true, то використовується цикл foreach для перебору записів у словнику schedule.
+                                    У словнику schedule ключами є дні тижня (наприклад, понеділок, вівторок тощо), а значеннями є списки завдань (tasks), які пов'язані з кожним конкретним днем тижня. *@
                                     @foreach (var kvp in schedule)
                                     {
-                                        var dayOfWeek = kvp.Key;
-                                        var tasks = kvp.Value;
-                                        <tr>
-                                            <td>@dayOfWeek</td>
-                                            <td>
+                                        var dayOfWeek = kvp.Key; @* Отримує день тижня, який є ключем у словнику schedule. *@
+                                        var tasks = kvp.Value; @* Отримує список завдань, пов'язаних із поточним днем тижня. *@
+                                        <tr> @* R html штучка яка створює рядок у таблиці*@
+                                            <td>@dayOfWeek</td> @* R html штучка яка створює стандартну-комірку у таблиці і у неї записується день тижня *@
+                                            <td>@* друга стандартна-комірка у таблиці і у неї записується день тижня *@
                                                 @for (int index = 0; index < tasks.Count; index++)
                                                 {
                                                     var task = tasks[index];
@@ -86,7 +114,7 @@
                                                         <input type="text" @bind="task.StartString" placeholder="Початок" />
                                                         -
                                                         <input type="text" @bind="task.EndString" placeholder="Кінець" />
-                                                        <button @onclick="() => RemoveTask(tasks, index)">Видалити</button>
+                                                        <button @onclick="() => RemoveTask(tasks, index -1 )">Видалити</button>
                                                     </div>
                                                 }
                                                 <button @onclick="() => AddNewTask(tasks)">Додати час</button>
@@ -95,6 +123,8 @@
                                     }
                                 }
                                 else
+                                @* Якщо isEditMode false, цикл foreach у else рендерить кожний день тижня у текстовому форматі, де часові проміжки відображаються як звичайний текст без можливості редагування.
+                                Це відбувається тому, що у режимі перегляду не потрібно надавати можливість редагування розкладу, отже, вводити текстові поля і кнопки не потрібно. Вміст часових проміжків виводиться як текстова рядок без зміни. *@
                                 {
                                     <!-- Render as plain text for viewing -->
                                     @foreach (var kvp in schedule)
@@ -125,6 +155,13 @@
         </div>
 
         </div> *@
+
+                @* R частина коду з юзернеймом(можна лише читати)*@
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
+                </div>
+            @* R частина коду у якій юзер може редагувати ім'я' *@
                 @if (isEditMode)
                 {
                     
@@ -141,16 +178,18 @@
                         <p id="name" class="form-control-plaintext">@userProfile.name</p>
                     </div>
                 }
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
-                </div>
+
 
                 @* <div class="five">опис до профілю</div> *@
+                @* R факультет*@
                 @if (isEditMode)
                 {
                     
                     <div class="five">
+                        <div class="form-group">
+                            <label for="faculty">Факультет:</label>
+                            <input type="text" id="faculty" class="form-control" @bind="userProfile.faculty" />
+                        </div>
                         <label for="description">Опис:</label>
                         <textarea id="description" class="form-control" @bind="@userProfile.description"></textarea>
                     </div>
@@ -159,51 +198,69 @@
                 {
                     
                     <div class="five">
+                        <div class="button-content">
+                            <label for="faculty">Факультет:</label>
+                            <span>@userProfile.faculty</span>
+                        </div>
                         <label for="description">Опис:</label>
                         <p id="description" class="form-control-plaintext">@userProfile.description</p>
                     </div>
                 }
+
+                <div class="soc">
+                    @foreach (var socialLink in userProfile.social)
+                    {
+                        @if (isEditMode)
+                        {
+                            <div class="form-group">
+                                <label for="@socialLink.Key">@socialLink.Key:</label>
+                                <input type="text" id="@socialLink.Key" class="form-control" @bind="userProfile.social[socialLink.Key]" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="social">
+                                <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                            </div>
+                        }
+                    }
+
+
+                </div>
+
+                @* <div class="button-content">122 інформатика</div> *@
+                
+                @* <div class="Subject">122 інформати1111ка</div> *@
+
                 @if (isEditMode)
                 {
-                    <div class="form-group">
-                        <label for="faculty">Факультет:</label>
-                        <input type="text" id="faculty" class="form-control" @bind="userProfile.faculty" />
+                    <div class="subjectSearch">
+                        <label for="subjectSearch">Пошук предмету:</label>
+                        <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+
+                        <label>Обрані предмети:</label>
+                        @if (selectedSubjects.Any())
+                        {
+                            <ul>
+                                @foreach (var subject in selectedSubjects)
+                                {
+                                    <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
+                                }
+                            </ul>
+                        }
                     </div>
                 }
                 else
                 {
-                    <div class="button-content">
-                        <label for="faculty">Факультет:</label>
-                        <span>@userProfile.faculty</span>
-                    </div>
+
                 }
-                @foreach (var socialLink in userProfile.social)
-                {
-                    @if (isEditMode)
-                    {
-                        <div class="form-group">
-                            <label for="@socialLink.Key">@socialLink.Key:</label>
-                            <input type="text" id="@socialLink.Key" class="form-control" @bind="userProfile.social[socialLink.Key]" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="social">
-                            <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
-                        </div>
-                    }
-                }
-                @* <div class="button-content">122 інформатика</div> *@
                 
-                @* <div class="Subject">122 інформати1111ка</div> *@
-                <div>
-                    <label for="subjectSearch">Пошук предмету:</label>
-                    <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
-                </div>
                 @if (isEditMode)
                 {
+
                     <!-- Editable multiple select for subjects -->
-                    <div>
+                    <div class="searchSubject">
+
                         <label>Оберіть предмет(и):</label>
                         <select @onchange="OnSubjectsSelected" multiple>
                             @if (filteredSubjects != null)
@@ -218,7 +275,7 @@
                 }
                 else
                 {
-                    <div class="form-group">
+                    <div class="subject-group">
                         <label for="subject">Предмети:</label>
                         @if (userProfile.subjects != null && userProfile.subjects.Any())
                         {
@@ -241,24 +298,20 @@
                     </div>
                 }
 
-                <div>
-                    <label>Обрані предмети:</label>
-                    @if (selectedSubjects.Any())
-                    {
-                        <ul>
-                            @foreach (var subject in selectedSubjects)
-                            {
-                                <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
-                            }
-                        </ul>
-                    }
-                </div>
-
+                <div class="edit">
                 @if (isEditMode)
                 {
                     <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
+                    <button  type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
                 }
-                <button @onclick="ToggleEditMode">@ButtonText</button>
+                else
+                {
+
+                    <div class="blueButton">
+                        <button class="btn btn-primary" type="button"  @onclick="ToggleEditMode">Edit</button>
+                    </div>
+                }
+                </div>
             </div>
         </body>
     }
@@ -274,8 +327,6 @@ else
     
 @* evgeniypoklov@gmail.com *@
 @* Myparol2017 *@
-
-</body>
 @* evgeniypoklov@gmail.com *@
 @* 33 *@
 @code {
@@ -572,6 +623,7 @@ else
             return;
         }
 
+        
         tasks.RemoveAt(index);
         StateHasChanged();
     }
