@@ -27,7 +27,7 @@ namespace SoftServeProject3.Api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IWebHostEnvironment _env;
 
-        
+
 
         /// <summary>
         /// Ініціалізує новий екземпляр класу <see cref="UsersController"/>.
@@ -205,7 +205,7 @@ namespace SoftServeProject3.Api.Controllers
             return Ok(filteredUsers);
         }
 
-        
+
 
         /// <summary>
         /// Реєстрація нового користувача.
@@ -215,31 +215,43 @@ namespace SoftServeProject3.Api.Controllers
         [HttpPost("register")]
         public IActionResult Register([FromBody] UserModel registerRequest)
         {
-            if (string.IsNullOrWhiteSpace(registerRequest.Email) || string.IsNullOrWhiteSpace(registerRequest.Password) || string.IsNullOrWhiteSpace(registerRequest.Username))
+            if (!registerRequest.IsEmailConfirmed)
             {
-                return BadRequest("Email, UserName and Password are required.");
+                if (string.IsNullOrWhiteSpace(registerRequest.Email)
+                                || string.IsNullOrWhiteSpace(registerRequest.Password)
+                                || string.IsNullOrWhiteSpace(registerRequest.Username))
+                {
+                    return BadRequest("Будь ласка, введіть нікнейм, пошту та пароль.");
+                }
+                else if (_userRepository.GetByEmail(registerRequest.Email) != null)
+                {
+                    return BadRequest("Користувач з такою поштою вже існує. Спробуйте іншу.");
+                }
+                else if (_userRepository.GetByUsername(registerRequest.Username) != null)
+                {
+                    return BadRequest("Користувач з таким юзернеймом вже існує. Спробуйте інший.");
+                }
+                else
+                {
+                    return Ok("");
+                }
             }
-
-            if (_userRepository.GetByEmail(registerRequest.Email) != null)
+            else
             {
-                return BadRequest("Email already exists.");
-            }
+                _userRepository.Register(registerRequest);
 
-            if (_userRepository.GetByUsername(registerRequest.Username) != null)
-            {
-                return BadRequest("Username already exists.");
-            }
-
-            _userRepository.Register(registerRequest);
-
-            var claims = new List<Claim>
+                var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, registerRequest.Email),
                 new Claim(ClaimTypes.Name, registerRequest.Username)
             };
 
-            var token = _jwtService.GenerateJwtToken(claims);
-            return Ok(new { Token = token });
+                var token = _jwtService.GenerateJwtToken(claims);
+                return Ok(new { Token = token });
+            }
+
+
+
         }
 
         /// <summary>
@@ -339,8 +351,8 @@ namespace SoftServeProject3.Api.Controllers
             //перевірки клієнта
             if (verification == null)
                 return BadRequest("Користувача не знайдено.");
-            
-            if(!BCrypt.Net.BCrypt.Verify(verification.Code, resetPassword.HashCode))
+
+            if (!BCrypt.Net.BCrypt.Verify(verification.Code, resetPassword.HashCode))
                 return BadRequest("Щось пішло не так : (");
 
             if (verification.ExpirationTime < DateTime.UtcNow)
