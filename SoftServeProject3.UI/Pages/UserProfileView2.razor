@@ -1,0 +1,344 @@
+﻿@page "/UserProfile/{Username}"
+@inject HttpClient Http
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Globalization
+@using System.Net.Http.Headers;
+@using System.Net.Http.Json;
+
+<head>
+    <PageTitle>Розклад</PageTitle>
+</head>
+@* R Від Романа, постараюсь розписати код так як я його розумію.
+HTML-розмітка сторінки розташована всередині if-блоку.
+Цей блок перевіряє, чи користувач аутентифікований (isUserAuthenticated).
+Якщо так, то відображається розмітка профілю користувача.
+Інакше воно виводить: Будь ласка, ввійдіть для доступу до цієї сторінки. *@
+
+
+    @* R даному випадку, код використовує @if (userProfile != null) для перевірки,
+    чи існує об'єкт userProfile. Якщо він існує (тобто не є null), то відображається відповідна частина HTML розмітки.
+    Це допомагає уникнути помилок, які можуть виникнути при спробі отримати доступ до властивостей чи методів об'єкта,
+    який не існує (має значення null). При null воно виводить: Завантаження...*@
+    @if (userProfile != null)
+    {
+        @* R верхній навбар з посиланнями на інші сторінки *@
+        <body>
+            <div class="wrapper">
+                <div class="one">
+                    <div class="left-links">
+                        <a href="#">Home</a>
+                        <a href="fetchdata">Пошук студентів</a>
+                        <a href="login">Налаштування</a>
+                    </div>
+                    <div class="right-links">
+                        <a href="counter">Чат</a>
+                        <a href="checking_mail">Профіль</a>
+                    </div>
+                </div>
+                @* R область з фотографією *@
+                <div class="two">
+                    @* R Якщо isEditMode має значення true,
+            тобто користувач перебуває у режимі редагування,
+            то відображається блок редагування фото профілю: де input type="text" створює текстове поле вводу + type="text" дозволяє  вводити будь-який текст у відповідне поле (не тільки цифри).
+            @bind робить так, що значення властивості photoUrl об'єкта userProfile буде автоматично оновлено на сервері, якщо користувач введе текст у текстове поле.
+            На додаток, якщо значення photoUrl буде змінено в коді на сервері, зміни також автоматично відобразяться в текстовому полі на веб-сторінці.*@
+                    
+                    @* Якщо isEditMode має значення false, тобто користувач не перебуває у режимі редагування, то відображається блок зображення фото профілю:
+            де <img> відображає фотографію профілю з URL, збереженого в userProfile.photoUrl.
+            Якщо userProfile.photoUrl не містить URL фотографії, то відображається текстовий атрибут alt (в даному випадку "Немає Фото профілю").
+            *@
+                    
+                    
+                        <div class="profile-picture">
+                            <img src="@userProfile.photoUrl" alt="Немає фото профілю">
+                        </div>
+                    
+                </div>
+                <div class="three">
+                    <h1>Мій розклад</h1>
+                    @* R Якщо змінна errorMessage не є null, то відображається текст помилки червоним кольором.*@
+                    @if (errorMessage != null)
+                    {
+                        <p class="text-danger">@errorMessage</p>
+                    }
+                    @* R Якщо розклад (schedule) є null, то відображається текст "Loading...", який вказує на те, що дані розкладу завантажуються.*@
+                    @if (schedule == null)
+                    {
+                        <p>Loading...</p>
+                    }
+                    @* R Якщо розклад існує, але не має жодних записів (його розмір рівний нулю), відображається повідомлення "Розклад пустий".*@
+                    else if (schedule.Count == 0)
+                    {
+                        <p>Розклад пустий</p>
+                    }
+                    @* R Якщо розклад не є null і має записи, то відображається таблиця розкладу з вказаною структурою.*@
+                    else
+                    {
+
+                        <table class="table">
+                            @* <thead> вказує на заголовок таблиці з назвами стовпців ("День тижня" та "Час"). *@
+                            <thead>
+                                <tr>
+                                    <th>День тижня</th>
+                                    <th>Час</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+
+
+                                
+                                @* Якщо isEditMode false, цикл foreach у else рендерить кожний день тижня у текстовому форматі, де часові проміжки відображаються як звичайний текст без можливості редагування.
+                    Це відбувається тому, що у режимі перегляду не потрібно надавати можливість редагування розкладу, отже, вводити текстові поля і кнопки не потрібно. Вміст часових проміжків виводиться як текстова рядок без зміни. *@
+                                
+                                    <!-- Render as plain text for viewing -->
+                                    @foreach (var kvp in schedule)
+                                    {
+                                        var dayOfWeek = kvp.Key;
+                                        var tasks = kvp.Value;
+                                        <tr>
+                                            <td>@dayOfWeek</td>
+                                            <td>
+                                                @foreach (var task in tasks)
+                                                {
+                                                    <div>
+                                                        @task.StartString - @task.EndString
+                                                    </div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                
+
+                            </tbody>
+                        </table>
+                    }
+                </div>
+                @* <div class="four">
+        <div class="username-container">
+        <h3>Нікнейм користувача</h3>
+        </div>
+
+        </div> *@
+
+                @* R частина коду з юзернеймом(можна лише читати)*@
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
+                </div>
+                @* R частина коду у якій юзер може редагувати ім'я' *@
+                
+                    <div class="form-group">
+                        <label for="name">Призвіще Ім'я:</label>
+                        <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                    </div>
+                
+
+
+                @* <div class="five">опис до профілю</div> *@
+                @* R факультет*@
+                
+
+                    <div class="five">
+                        <div class="button-content">
+                            <label for="faculty">Факультет:</label>
+                            <span>@userProfile.faculty</span>
+                        </div>
+                        <label for="description">Опис:</label>
+                        <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                    </div>
+                
+
+                <div class="soc">
+                    @foreach (var socialLink in userProfile.social)
+                    {
+                       
+                        
+                            <div class="social">
+                                <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                            </div>
+                        
+                    }
+
+
+                </div>
+
+                @* <div class="button-content">122 інформатика</div> *@
+
+                @* <div class="Subject">122 інформати1111ка</div> *@
+
+       
+
+                    <div class="subject-group">
+                        <label for="subject">Предмети:</label>
+                        @if (userProfile.subjects != null && userProfile.subjects.Any())
+                        {
+                            foreach (var subject in userProfile.subjects)
+                            {
+                                if (subject != userProfile.subjects[^1])
+                                {
+                                    <span>@subject - </span>
+                                }
+                                else
+                                {
+                                    <span>@subject</span>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <span>Немає предметів.</span>
+                        }
+                    </div>
+                
+
+               
+            </div>
+        </body>
+    }
+    else
+    {
+        <p><em>Завантаження...</em></p>
+    }
+
+
+@* evgeniypoklov@gmail.com *@
+@* Myparol2017 *@
+@* evgeniypoklov@gmail.com *@
+@* 33 *@
+@code {
+    private string errorMessage;
+
+    private bool isUserAuthenticated;
+
+    private UpdateProfile originalProfile;
+    private UpdateProfile userProfile;
+
+    private DayOfWeek? selectedDay;
+    public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
+    private Dictionary<DayOfWeek, List<TimeRange>> schedule;
+
+    private List<string> selectedSubjects = new List<string>();
+    private List<string> allSubjects = new List<string>();
+    private string _subjectSearch = string.Empty;
+    private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
+
+    
+    
+   
+    [Parameter]
+
+
+    public string Username { get; set; }
+    private UpdateProfile user;
+
+
+    
+    
+   
+    
+
+    private string GetSocialClass(string key)
+    {
+        return key switch
+        {
+            "instagram" => "circle1",
+            "twitter" => "circle2",
+            "github" => "circle3",
+            "facebook" => "circle4",
+            "telegram" => "circle5",
+            _ => string.Empty,
+        };
+    }
+
+    /// <summary>
+    /// Метод для часу до розкладу на конкретний день.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            
+           
+            allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
+            filteredSubjects = allSubjects;
+            await LoadUserProfile();
+            await LoadSchedule();
+
+           
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Метод для завантаження розкладу з сервера.
+    /// </summary>
+    private async Task LoadSchedule()
+    {
+        try
+        {
+            if (userProfile != null && userProfile.schedule != null)
+            {
+
+                schedule = userProfile.schedule.ToDictionary(
+                    kvp => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), kvp.Key),
+                    kvp =>
+                    {
+                        var timeRanges = kvp.Value;
+                        foreach (var range in timeRanges)
+                        {
+
+                            range.StartString = range.Start.ToString("HH:mm");
+                            range.EndString = range.End.ToString("HH:mm");
+                        }
+                        return timeRanges;
+                    }
+                );
+            }
+            else
+            {
+                errorMessage = "User profile schedule is not available";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing schedule: {ex.Message}");
+            errorMessage = "Failed to process schedule";
+        }
+    }
+
+    private async Task LoadUserProfile()
+    {
+        try
+        {
+            var token = await TokenService.GetToken();
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            
+            //email = user.Email; // Зверніть увагу, що це має бути email, а не Username, якщо ви хочете відображати email користувача
+            
+            userProfile = await Http.GetFromJsonAsync<UpdateProfile>($"https://localhost:7292/Users/profile/{Username}");
+            originalProfile = userProfile;
+            selectedSubjects = userProfile.subjects;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing user information: {ex.Message}");
+            errorMessage = "Failed to process user information";
+        }
+    }
+}
+
+
+

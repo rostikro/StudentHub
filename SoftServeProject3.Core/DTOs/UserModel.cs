@@ -55,6 +55,10 @@ namespace SoftServeProject3.Core.DTOs
         [JsonProperty("schedule")]
         [BsonElement("schedule")]
         public Dictionary<string, List<TimeRange>> Schedule { get; set; }
+
+        [JsonProperty("friends")]
+        [BsonElement("friends")]
+        public List<ObjectId> Friends { get; set; }
     }
     public class ScheduleDay
     {

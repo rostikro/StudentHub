@@ -87,20 +87,30 @@ namespace SoftServeProject3.Api.Controllers
         /// Returns a json representation of user profile
         /// </summary>
         /// <param name="email">user email</param>
-        [HttpGet("profile")]
+        [HttpGet("profile/{username?}")]
         [Authorize]
-        public async Task<IActionResult> GetProfileAsync()
+        public async Task<IActionResult> GetProfileAsync(string username = null)
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                UserModel user;
 
-                var user = await _userRepository.GetUserByEmailAsync(email);
-                if (user == null)
+                if (username == null)
                 {
-                    return BadRequest("Invalid email/username");
+                    string emailToken = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                    string userToken = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
+
+                    user = await _userRepository.GetUserByEmailAsync(emailToken) ?? await _userRepository.GetUserByUsernameAsync(userToken);
+                    if (user == null)
+                    {
+                        return BadRequest("Invalid email/username");
+                    }
                 }
-                
+                else
+                {
+                    user = await _userRepository.GetUserByUsernameAsync(username);
+                }
+
                 var serializeOptions = new JsonSerializerSettings
                 {
                     ContractResolver = new GetUserContractResolver(),
@@ -116,6 +126,8 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
+
+
         [HttpPost("updateProfile")]
         [Authorize]
         public async Task<IActionResult> UpdateProfileAsync([FromBody] UpdateProfile profile)
@@ -134,28 +146,6 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-        [HttpGet("username/{username}")]
-        public async Task<IActionResult> GetUserByUsername(string username)
-        {
-            var user = await _userRepository.GetUserByUsernameAsync(username);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return Ok(new
-            {
-                Id = user._id.ToString(),
-                Username = user.Username,
-                Email = user.Email,
-                IsEmailConfirmed = user.IsEmailConfirmed,
-                Schedule = user.Schedule
-            });
-        }
-        
-        
-
-        
-        
 
         /// <summary>
         /// Отримує список всіх користувачів.
