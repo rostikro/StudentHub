@@ -355,6 +355,7 @@ else
         {
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
+            LoadSchedule();
             StateHasChanged(); 
             Console.WriteLine("Edits canceled, changes reverted.");
         }
