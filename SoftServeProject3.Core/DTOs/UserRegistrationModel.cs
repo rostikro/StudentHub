@@ -13,7 +13,7 @@ namespace SoftServeProject3.Core.DTOs
     public class UserRegistrationModel
     {
         [Required(ErrorMessage = "Необхідно ввести нікнейм.")]
-        [CustomValidation(4, 100, @"^[a-zA-Z0-9@#$%^&+=]+$")]
+        [CustomValidation(4, 100, @"^[a-zA-Z0-9._~-]+$")]
         public string Username { get; set; }
 
         [Required(ErrorMessage = "Необхідно ввести пошту.")]

@@ -40,7 +40,7 @@ public class EmailController : ControllerBase
                     return BadRequest("User with the email does not exist.");
                 }
             }
-            
+
 
             await _verRepository.ClearVerifications();
 
@@ -56,7 +56,7 @@ public class EmailController : ControllerBase
             {
                 result = await _emailService.SendVerificationEmailAsync(emailData, code);
             }
-            
+
 
             if (!result)
             {
@@ -73,23 +73,13 @@ public class EmailController : ControllerBase
                 Code = code
             };
 
-            //changing user code if they exist in verification database + adding resend time 
-            var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
+            // check if user can send a code to his email now
 
+            //changing user code if they exist in verification database + adding resend time 
             if (existingVerification != null)
             {
-                // check if user can send a code to his email now
                 if (_verRepository.GetByEmail(emailData.EmailTo).ResendCode < DateTime.UtcNow)
                 {
-
-                    var result = await _emailService.SendEmailAsync(emailData, code);
-
-                    if (!result)
-                    {
-                        return BadRequest("Failed to send verification code.");
-                    }
-
-                    
 
                     await _verRepository.UpdateCodeAsync(setData);
 
