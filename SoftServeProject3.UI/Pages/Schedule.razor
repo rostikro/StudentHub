@@ -9,6 +9,7 @@
 @using SoftServeProject3.Core.DTOs;
 
 
+
 <head>
     <PageTitle>Розклад</PageTitle>
 </head>
@@ -41,11 +42,35 @@ HTML-розмітка сторінки розташована всередині
                 </div>
                 @* R область з фотографією *@
                 <div class="two">
+                    @if (isEditMode)
+                    {
+                        if (!isUsernameEdit)
+                        {
+                            <div style="display: flex;">
+                                <h2 style="margin-right: 0;">@userProfile.username</h2>
+                                <button @onclick="ToggleUsernameEdit">&#x270E</button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="display: flex;">
+                                <input type="text" @bind="userProfile.username" />
+                                <button @onclick="CheckUsername">&#x2713</button>
+                            </div>
+                        }
+
+                    }
+                    else
+                    {
+                        <h2 style="color:black">@userProfile.username</h2>
+
+                    }
+
                     @* R Якщо isEditMode має значення true,
-                    тобто користувач перебуває у режимі редагування,
-                    то відображається блок редагування фото профілю: де input type="text" створює текстове поле вводу + type="text" дозволяє  вводити будь-який текст у відповідне поле (не тільки цифри).
-                    @bind робить так, що значення властивості photoUrl об'єкта userProfile буде автоматично оновлено на сервері, якщо користувач введе текст у текстове поле.
-                    На додаток, якщо значення photoUrl буде змінено в коді на сервері, зміни також автоматично відобразяться в текстовому полі на веб-сторінці.*@
+            тобто користувач перебуває у режимі редагування,
+            то відображається блок редагування фото профілю: де input type="text" створює текстове поле вводу + type="text" дозволяє  вводити будь-який текст у відповідне поле (не тільки цифри).
+            @bind робить так, що значення властивості photoUrl об'єкта userProfile буде автоматично оновлено на сервері, якщо користувач введе текст у текстове поле.
+            На додаток, якщо значення photoUrl буде змінено в коді на сервері, зміни також автоматично відобразяться в текстовому полі на веб-сторінці.*@
                     @if (isEditMode)
                     {
                         <div class="profile-picture-edit">
@@ -53,9 +78,9 @@ HTML-розмітка сторінки розташована всередині
                         </div>
                     }
                     @* Якщо isEditMode має значення false, тобто користувач не перебуває у режимі редагування, то відображається блок зображення фото профілю:
-                        де <img> відображає фотографію профілю з URL, збереженого в userProfile.photoUrl.
-                        Якщо userProfile.photoUrl не містить URL фотографії, то відображається текстовий атрибут alt (в даному випадку "Немає Фото профілю").
-                    *@
+            де <img> відображає фотографію профілю з URL, збереженого в userProfile.photoUrl.
+            Якщо userProfile.photoUrl не містить URL фотографії, то відображається текстовий атрибут alt (в даному випадку "Немає Фото профілю").
+            *@
                     else
                     {
                         <div class="profile-picture">
@@ -83,7 +108,7 @@ HTML-розмітка сторінки розташована всередині
                     @* R Якщо розклад не є null і має записи, то відображається таблиця розкладу з вказаною структурою.*@
                     else
                     {
-                        
+
                         <table class="table">
                             @* <thead> вказує на заголовок таблиці з назвами стовпців ("День тижня" та "Час"). *@
                             <thead>
@@ -94,19 +119,21 @@ HTML-розмітка сторінки розташована всередині
                             </thead>
                             <tbody>
 
-                               
+
 
                                 @if (isEditMode)
                                 {
                                     @* R Якщо isEditMode має значення true, то використовується цикл foreach для перебору записів у словнику schedule.
-                                    У словнику schedule ключами є дні тижня (наприклад, понеділок, вівторок тощо), а значеннями є списки завдань (tasks), які пов'язані з кожним конкретним днем тижня. *@
+                    У словнику schedule ключами є дні тижня (наприклад, понеділок, вівторок тощо), а значеннями є списки завдань (tasks), які пов'язані з кожним конкретним днем тижня. *@
                                     @foreach (var kvp in schedule)
                                     {
-                                        var dayOfWeek = kvp.Key; @* Отримує день тижня, який є ключем у словнику schedule. *@
+                                        var dayOfWeek = DayOfWeekLocal[(int)kvp.Key]; @* Отримує день тижня, який є ключем у словнику schedule. *@
                                         var tasks = kvp.Value; @* Отримує список завдань, пов'язаних із поточним днем тижня. *@
-                                        <tr> @* R html штучка яка створює рядок у таблиці*@
+                                        <tr>
+                                            @* R html штучка яка створює рядок у таблиці*@
                                             <td>@dayOfWeek</td> @* R html штучка яка створює стандартну-комірку у таблиці і у неї записується день тижня *@
-                                            <td>@* друга стандартна-комірка у таблиці і у неї записується день тижня *@
+                                            <td>
+                                                @* друга стандартна-комірка у таблиці і у неї записується день тижня *@
                                                 @for (int index = 0; index < tasks.Count; index++)
                                                 {
                                                     var task = tasks[index];
@@ -124,12 +151,12 @@ HTML-розмітка сторінки розташована всередині
                                 }
                                 else
                                 @* Якщо isEditMode false, цикл foreach у else рендерить кожний день тижня у текстовому форматі, де часові проміжки відображаються як звичайний текст без можливості редагування.
-                                Це відбувається тому, що у режимі перегляду не потрібно надавати можливість редагування розкладу, отже, вводити текстові поля і кнопки не потрібно. Вміст часових проміжків виводиться як текстова рядок без зміни. *@
+                    Це відбувається тому, що у режимі перегляду не потрібно надавати можливість редагування розкладу, отже, вводити текстові поля і кнопки не потрібно. Вміст часових проміжків виводиться як текстова рядок без зміни. *@
                                 {
                                     <!-- Render as plain text for viewing -->
                                     @foreach (var kvp in schedule)
                                     {
-                                        var dayOfWeek = kvp.Key;
+                                        var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
                                         var tasks = kvp.Value;
                                         <tr>
                                             <td>@dayOfWeek</td>
@@ -157,24 +184,23 @@ HTML-розмітка сторінки розташована всередині
         </div> *@
 
                 @* R частина коду з юзернеймом(можна лише читати)*@
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
-                </div>
-            @* R частина коду у якій юзер може редагувати ім'я' *@
+                @* <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
+        </div> *@
+                @* R частина коду у якій юзер може редагувати ім'я' *@
                 @if (isEditMode)
                 {
-                    
+
                     <div class="form-group">
-                        <label for="name">Призвіще Ім'я:</label>
+                        <label for="name">Ініціали:</label>
                         <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
                     </div>
                 }
                 else
                 {
-                    
                     <div class="form-group">
-                        <label for="name">Призвіще Ім'я:</label>
+                        <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
                         <p id="name" class="form-control-plaintext">@userProfile.name</p>
                     </div>
                 }
@@ -184,7 +210,7 @@ HTML-розмітка сторінки розташована всередині
                 @* R факультет*@
                 @if (isEditMode)
                 {
-                    
+
                     <div class="five">
                         <div class="form-group">
                             <label for="faculty">Факультет:</label>
@@ -196,7 +222,7 @@ HTML-розмітка сторінки розташована всередині
                 }
                 else
                 {
-                    
+
                     <div class="five">
                         <div class="button-content">
                             <label for="faculty">Факультет:</label>
@@ -229,7 +255,7 @@ HTML-розмітка сторінки розташована всередині
                 </div>
 
                 @* <div class="button-content">122 інформатика</div> *@
-                
+
                 @* <div class="Subject">122 інформати1111ка</div> *@
 
                 @if (isEditMode)
@@ -254,7 +280,7 @@ HTML-розмітка сторінки розташована всередині
                 {
 
                 }
-                
+
                 @if (isEditMode)
                 {
 
@@ -299,18 +325,21 @@ HTML-розмітка сторінки розташована всередині
                 }
 
                 <div class="edit">
-                @if (isEditMode)
-                {
-                    <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
-                    <button  type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
-                }
-                else
-                {
+                    @if (isEditMode)
+                    {
+                        <div class="editButtons">
+                        <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
+                        <button type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
+                        </div>
 
-                    <div class="blueButton">
-                        <button class="btn btn-primary" type="button"  @onclick="ToggleEditMode">Edit</button>
-                    </div>
-                }
+                    }
+                    else
+                    {
+
+                        <div class="blueButton">
+                            <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
+                        </div>
+                    }
                 </div>
             </div>
         </body>
@@ -324,7 +353,7 @@ else
 {
     <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
 }
-    
+
 @* evgeniypoklov@gmail.com *@
 @* Myparol2017 *@
 @* evgeniypoklov@gmail.com *@
@@ -336,27 +365,53 @@ else
 
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
+    private string originalUsername;
 
     private DayOfWeek? selectedDay;
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
+    private List<string> DayOfWeekLocal = new List<string> {
+        "Неділя",
+        "Понеділок",
+        "Вівторок",
+        "Середа",
+        "Четвер",
+        "П'ятниця",
+        "Субота"
+    };
 
     private List<string> selectedSubjects = new List<string>();
     private List<string> allSubjects = new List<string>();
     private string _subjectSearch = string.Empty;
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
-    
+
     private bool isEditMode = false;
+    private bool isUsernameEdit = false;
     private string ButtonText => isEditMode ? "Cancel Edit" : "Edit";
-   
-    private void CancelEdit()
+
+    private void ToggleUsernameEdit()
+    {
+        isUsernameEdit = !isUsernameEdit;
+    }
+
+    private async Task CheckUsername()
+    {
+        if (userProfile.username == originalUsername)
+            ToggleUsernameEdit();
+        else
+        {
+            await SaveAllChanges();
+            ToggleUsernameEdit();
+        }
+    }
+    private async void CancelEdit()
     {
         if (originalProfile != null)
         {
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
-            LoadSchedule();
-            StateHasChanged(); 
+            await LoadSchedule();
+            StateHasChanged();
             Console.WriteLine("Edits canceled, changes reverted.");
         }
     }
@@ -364,7 +419,7 @@ else
     {
         originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
         isEditMode = true;
-        StateHasChanged(); 
+        StateHasChanged();
         Console.WriteLine("Entered edit mode, original profile saved.");
     }
     private void ToggleEditMode()
@@ -395,7 +450,7 @@ else
         }
 
         tasks.Add(new TimeRange());
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
     /// <summary>
@@ -426,6 +481,7 @@ else
                 allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
                 filteredSubjects = allSubjects;
                 await LoadUserProfile();
+                originalUsername = userProfile.username;
                 await LoadSchedule();
 
             }
@@ -589,14 +645,14 @@ else
             var success = await UserProfileService.UpdateProfileAsync(userProfile);
             if (success)
             {
-                
+
                 await LoadSchedule();
                 StateHasChanged();
-                
+
             }
             else
             {
-                errorMessage = "Failed to save schedule.";
+                errorMessage = "Користувач з таким нікнеймом вже існує. Спробуйте інший.";
             }
             originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
             isEditMode = false;
@@ -606,14 +662,14 @@ else
             errorMessage = $"An error occurred while saving the schedule: {ex.Message}";
         }
     }
-   
+
     /// <summary>
     /// Метод для видалення проміжку часу.
     /// </summary>
     private void RemoveTask(List<TimeRange> tasks, int index)
     {
         Console.WriteLine($"Removing {index}");
-        
+
         if (tasks == null)
         {
             return;
@@ -624,12 +680,12 @@ else
             return;
         }
 
-        
+
         tasks.RemoveAt(index);
         StateHasChanged();
     }
-    
+
 }
-    
+
 
 

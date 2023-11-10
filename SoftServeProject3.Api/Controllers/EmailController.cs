@@ -78,7 +78,7 @@ public class EmailController : ControllerBase
             //changing user code if they exist in verification database + adding resend time 
             if (existingVerification != null)
             {
-                if (_verRepository.GetByEmail(emailData.EmailTo).ResendCode < DateTime.UtcNow)
+                if (_verRepository.GetByEmail(emailData.EmailTo).ResendCode < DateTime.Now)
                 {
 
                     await _verRepository.UpdateCodeAsync(setData);
@@ -90,7 +90,7 @@ public class EmailController : ControllerBase
                 {
                     //telling user to wait to resend a code
                     return BadRequest($"You can resend code in " +
-                        $"{Math.Round((_verRepository.GetByEmail(emailData.EmailTo).ResendCode - DateTime.UtcNow).TotalSeconds)} seconds.");
+                        $"{Math.Round((_verRepository.GetByEmail(emailData.EmailTo).ResendCode - DateTime.Now).TotalSeconds)} seconds.");
                 }
             }
             else

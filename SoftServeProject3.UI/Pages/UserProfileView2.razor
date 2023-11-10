@@ -100,7 +100,7 @@ HTML-розмітка сторінки розташована всередині
                                     <!-- Render as plain text for viewing -->
                                     @foreach (var kvp in schedule)
                                     {
-                                        var dayOfWeek = kvp.Key;
+                                var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
                                         var tasks = kvp.Value;
                                         <tr>
                                             <td>@dayOfWeek</td>
@@ -223,6 +223,15 @@ HTML-розмітка сторінки розташована всередині
     private DayOfWeek? selectedDay;
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
+    private List<string> DayOfWeekLocal = new List<string> {
+        "Неділя",
+        "Понеділок",
+        "Вівторок",
+        "Середа",
+        "Четвер",
+        "П'ятниця",
+        "Субота"
+    };
 
     private List<string> selectedSubjects = new List<string>();
     private List<string> allSubjects = new List<string>();
