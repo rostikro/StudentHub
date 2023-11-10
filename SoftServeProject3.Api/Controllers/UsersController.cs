@@ -136,6 +136,11 @@ namespace SoftServeProject3.Api.Controllers
             {
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
+                if(_userRepository.GetByUsername(profile.username) != null)
+                {
+                    return BadRequest("");
+                }
+
                 await _userRepository.UpdateProfileAsync(profile, email);
 
                 return Ok("Success");
@@ -377,5 +382,17 @@ namespace SoftServeProject3.Api.Controllers
                 return Ok(new { Message = "Password has been changed successfully." });
             }
         }
+/*        [HttpPost("change-username")]
+        public async Task<IActionResult> ChangeUsername([FromBody]UserInfo userinfo)
+        {
+            if (_userRepository.GetByUsername(userinfo) != null)
+                return BadRequest("Користувач з таким нікнеймом вже існує. Спробуйте інший.");
+            else
+            {
+                await _userRepository.UpdateUsernameAsync(username);
+                return Ok();
+            }
+        }*/
+
     }
 }
