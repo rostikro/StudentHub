@@ -652,7 +652,9 @@ else
             }
             else
             {
-                errorMessage = "Користувач з таким нікнеймом вже існує. Спробуйте інший.";
+                errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
+                userProfile.username = originalUsername;
+                StateHasChanged();
             }
             originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
             isEditMode = false;
