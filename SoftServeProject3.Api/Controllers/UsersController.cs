@@ -136,10 +136,9 @@ namespace SoftServeProject3.Api.Controllers
             {
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
-                var existingUser = _userRepository.GetByUsername(profile.username);
-                if (existingUser != null && existingUser.Email != email)
+                if(_userRepository.GetByUsername(profile.username) != null)
                 {
-                    return BadRequest("Username is already taken.");
+                    return BadRequest("");
                 }
 
                 await _userRepository.UpdateProfileAsync(profile, email);

@@ -680,9 +680,11 @@ else
             else
             {
 
+
                 errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
                 userProfile.username = originalUsername;
                 StateHasChanged();
+
 
             }
             // Update the schedule in the userProfile with the new times for each day
