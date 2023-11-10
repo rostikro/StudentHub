@@ -665,6 +665,7 @@ else
                 userProfile.subjects = selectedSubjects;
                 // Now save the userProfile
                 var success = await UserProfileService.UpdateProfileAsync(userProfile);
+                errorMessage = "";
                 if (success)
                 {
 
@@ -674,7 +675,11 @@ else
                 }
                 else
                 {
-                    errorMessage = "Користувач з таким нікнеймом вже існує. Спробуйте інший.";
+                    
+                    errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
+                    userProfile.username = originalUsername;
+                    StateHasChanged();
+                    
                 }
                 originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
                 isEditMode = false;
@@ -683,9 +688,8 @@ else
             {
 
 
-                errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
-                userProfile.username = originalUsername;
-                StateHasChanged();
+                errorMessage = $"Час завершення повинен бути пізніше часу початку.";
+                
 
 
             }
