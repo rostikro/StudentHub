@@ -139,7 +139,7 @@ namespace SoftServeProject3.Api.Controllers
                 var existingUser = _userRepository.GetByUsername(profile.username);
                 if (existingUser != null && existingUser.Email != email)
                 {
-                    return BadRequest("Username is already takenn.");
+                    return BadRequest("Username is already takennn.");
                 }
 
                 await _userRepository.UpdateProfileAsync(profile, email);
