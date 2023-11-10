@@ -152,7 +152,6 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-
         /// <summary>
         /// Отримує список всіх користувачів.
         /// </summary>
