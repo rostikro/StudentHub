@@ -12,7 +12,7 @@
 @using System.Net.Http.Json;
 
 <head>
-    <PageTitle>Розклад</PageTitle>
+    <PageTitle>Перегляд профілю</PageTitle>
 </head>
 @* R Від Романа, постараюсь розписати код так як я його розумію.
 HTML-розмітка сторінки розташована всередині if-блоку.
@@ -28,17 +28,15 @@ HTML-розмітка сторінки розташована всередині
     @if (userProfile != null)
     {
         @* R верхній навбар з посиланнями на інші сторінки *@
-        <body>
+         <body>
             <div class="wrapper">
                 <div class="one">
                     <div class="left-links">
                         <a href="#">Home</a>
-                        <a href="fetchdata">Пошук студентів</a>
-                        <a href="login">Налаштування</a>
+                        <a href="UserSearch">Пошук студентів</a>
                     </div>
                     <div class="right-links">
-                        <a href="counter">Чат</a>
-                        <a href="checking_mail">Профіль</a>
+                        <a href="UserProfile">Профіль</a>
                     </div>
                 </div>
                 @* R область з фотографією *@
@@ -158,11 +156,14 @@ HTML-розмітка сторінки розташована всередині
                 <div class="soc">
                     @foreach (var socialLink in userProfile.social)
                     {
-                       
-                        
+
+                        @if (!string.IsNullOrEmpty(socialLink.Value))
+                        {
                             <div class="social">
                                 <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
                             </div>
+                        }
+                           
                         
                     }
 

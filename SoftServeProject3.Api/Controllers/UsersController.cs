@@ -333,7 +333,8 @@ namespace SoftServeProject3.Api.Controllers
                         { "github", "" },
                         { "facebook", "" },
                         { "telegram", "" }
-                    }
+                    },
+                    Friends = new List<MongoDB.Bson.ObjectId>()
                 };
 
                 _userRepository.Register(newUser);
