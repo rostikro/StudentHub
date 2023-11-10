@@ -388,7 +388,25 @@ else
     private bool isEditMode = false;
     private bool isUsernameEdit = false;
     private string ButtonText => isEditMode ? "Cancel Edit" : "Edit";
+    private string timeValidationError;
 
+    private void CheckTimeValidity()
+    {
+        foreach (var daySchedule in schedule)
+        {
+            foreach (var timeRange in daySchedule.Value)
+            {
+                if (!timeRange.IsEndTimeAfterStartTime(timeRange.StartString, timeRange.EndString))
+                {
+                    timeValidationError = "Час завершення повинен бути пізніше часу початку.";
+                    return; // Зупиняємо перевірку, як тільки знаходимо помилку
+                }
+            }
+        }
+
+        // Якщо ми дійшли до цього місця, значить всі часи валідні
+        timeValidationError = null;
+    }
     private void ToggleUsernameEdit()
     {
         isUsernameEdit = !isUsernameEdit;
@@ -626,36 +644,51 @@ else
     {
         try
         {
-            // Update the schedule in the userProfile with the new times for each day
-            foreach (var daySchedule in schedule)
+            CheckTimeValidity();
+            if (timeValidationError == null)
             {
-                var dayOfWeek = daySchedule.Key.ToString();
-                var tasks = daySchedule.Value;
-                var dtoTimeRanges = tasks.Select(tr => new SoftServeProject3.Core.DTOs.TimeRange
-                    {
-                        Start = DateTime.Parse(tr.StartString),
-                        End = DateTime.Parse(tr.EndString)
-                    }).ToList();
+                foreach (var daySchedule in schedule)
+                {
+                    var dayOfWeek = daySchedule.Key.ToString();
+                    var tasks = daySchedule.Value;
+                    var dtoTimeRanges = tasks.Select(tr => new SoftServeProject3.Core.DTOs.TimeRange
+                        {
+                            Start = DateTime.Parse(tr.StartString),
+                            End = DateTime.Parse(tr.EndString)
+                        }).ToList();
 
-                userProfile.schedule[dayOfWeek] = dtoTimeRanges;
-            }
-            userProfile.social = userProfile.social ?? new Dictionary<string, string>();
-            userProfile.subjects = selectedSubjects;
-            // Now save the userProfile
-            var success = await UserProfileService.UpdateProfileAsync(userProfile);
-            if (success)
-            {
+                    userProfile.schedule[dayOfWeek] = dtoTimeRanges;
+                }
+                userProfile.social = userProfile.social ?? new Dictionary<string, string>();
+                userProfile.subjects = selectedSubjects;
+                // Now save the userProfile
+                var success = await UserProfileService.UpdateProfileAsync(userProfile);
+                if (success)
+                {
 
-                await LoadSchedule();
-                StateHasChanged();
+                    await LoadSchedule();
+                    StateHasChanged();
 
+                }
+                else
+                {
+                    errorMessage = "Користувач з таким нікнеймом вже існує. Спробуйте інший.";
+                }
+                originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
+                isEditMode = false;
             }
             else
             {
-                errorMessage = "Користувач з таким нікнеймом вже існує. Спробуйте інший.";
+
+
+                errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
+                userProfile.username = originalUsername;
+                StateHasChanged();
+
+
             }
-            originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
-            isEditMode = false;
+            // Update the schedule in the userProfile with the new times for each day
+            
         }
         catch (Exception ex)
         {
