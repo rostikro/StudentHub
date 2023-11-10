@@ -157,6 +157,7 @@ namespace SoftServeProject3.Api.Controllers
         /// </summary>
         /// <returns>Список користувачів.</returns>
         [HttpGet("list")]
+        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userRepository.GetAllUsersAsync();
