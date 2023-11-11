@@ -1,0 +1,171 @@
+﻿/* Задній фон тіла */
+body {
+    background-color: #B4C6D0;
+    height: 110vh; /* Зробити висоту більше одиниці видимої висоти екрану */
+}
+
+/* Усі елементи включно з padding і border враховуються в ширині та висоті */
+* {
+    box-sizing: border-box;
+}
+
+/* Огортка контенту з максимальною шириною і вирівнюванням по центру */
+.wrapper {
+    max-width: 940px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Три колонки з рівною шириною */
+    gap: 10px; /* Відступи між елементами в grid */
+    grid-auto-rows: minmax(100px, auto); /* Автоматична висота рядків від 100px до авто */
+}
+
+/* Стилізація верхньої панелі */
+.one {
+    grid-column: 1 / 4; /* Розтягується на три колонки */
+    grid-row: 1;
+    list-style: none;
+    background-color: #b3b3b3;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 40px 20px;
+}
+
+    /* Стилізація посилань в верхній панелі */
+    .one a {
+        background-color: #757575;
+        display: inline-block;
+        border: 10px solid #757575;
+        border-radius: 5px;
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+        padding: 0px 5px;
+    }
+
+        /* Ефект при наведенні на посилання в верхній панелі */
+        .one a:hover {
+            background-color: peru;
+            border: 10px solid peru;
+        }
+
+/* Позначення заголовку з відступом від лівого краю */
+.title {
+    padding-left: 42%;
+}
+
+/* Виправлення відступу для першого посилання зліва */
+.left-links a:first-child {
+    margin-left: 0;
+}
+
+/* Виправлення відступу для останнього посилання справа */
+.right-links a:last-child {
+    margin-right: 0;
+}
+
+/* Стилізація контейнера для центрування вмісту */
+.wrapper2 {
+    padding: 40px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+/* Стилізація правого сайдбару з пошуком користувачів */
+.right-sidebar {
+    grid-column: 2/4; /* Займає дві праві колонки */
+    grid-row: 2 / 6; /* Займає чотири рядки */
+    background-color: #757575;
+    padding: 1em;
+    border-radius: 5px;
+}
+
+/* Стилізація елементів форми пошуку користувачів */
+label, input, select, button, ul {
+    margin: 10px 0;
+}
+
+    input[type="time"],
+    input[type="text"],
+    select {
+        width: 90%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        display: flex;
+    }
+
+select {
+    height: auto;
+    overflow: auto;
+}
+
+/* Стилізація кнопок */
+button {
+    background-color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+/* Стилізація списку обраних предметів */
+ul li button {
+    background-color: #757575;
+    color: white;
+}
+
+/* Стилізація повідомлень про завантаження та відсутність користувачів */
+.right-sidebar p {
+    text-align: center;
+    color: white;
+    font-style: italic;
+}
+
+/* Стилізація списку користувачів */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+    ul li a {
+        text-decoration: none;
+        color: white;
+    }
+
+        /* Ефект при наведенні на посилання користувача */
+        ul li a:hover {
+            background-color: peru;
+            border: 10px solid peru;
+        }
+
+/* Стилізація лівого сайдбару з фільтрами */
+.left-sidebar {
+    grid-column: 1;
+    grid-row: 2 / 6;
+    background-color: #757575;
+    padding: 1em;
+    border-radius: 5px;
+}
+
+    .left-sidebar ul {
+        list-style: none;
+        padding: 0;
+    }
+
+        .left-sidebar ul li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+/* Розділення лівої і правої частин сайдбару на 50% ширини */
+.left-side {
+    width: 50%;
+    float: left;
+}
+
+.right-side {
+    width: 50%;
+    float: right;
+}

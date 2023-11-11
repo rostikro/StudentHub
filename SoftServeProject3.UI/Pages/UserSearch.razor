@@ -1,221 +1,255 @@
 ﻿@page "/UserSearch"
 @inject HttpClient Http
+@inject TokenService TokenService
+@inject NavigationManager Navigation
 
-<h3>Список користувачів</h3>
+<head>
+    <PageTitle>Пошук студента</PageTitle>
+</head>
 
-<div>
-    <label for="startTime">Час початку:</label>
-    <input type="time" id="startTime" @bind="startTimeInput" />
+<body>
+    <div class="wrapper">
+        <div class="one">
+            <div class="left-links">
+                <a href="#">Home</a>
+                <a href="UserSearch">Пошук студентів</a>
+                <a href="login">Налаштування</a>
+            </div>
+            <div class="right-links">
+                <a href="counter">Чат</a>
+                <a href="schedule">Профіль</a>
+            </div>
+        </div>
+</div>
 
-    <label for="endTime">Час завершення:</label>
-    <input type="time" id="endTime" @bind="endTimeInput" />
 
+
+<div class="wrapper2">
     <div>
-        <label for="subjectSearch">Пошук предмету:</label>
-        <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
-    </div>
+    <div class="left-side">
+            <div>
+                <label for="subjectSearch">Пошук предмету:</label>
+                <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+            </div>
 
-    <div>
-        <label>Оберіть предмет(и):</label>
-        <select @onchange="OnSubjectsSelected" multiple>
-            @if (filteredSubjects != null)
-            {
-                @foreach (var subject in filteredSubjects)
+            <div>
+                <label>Оберіть предмет(и):</label>
+                <select @onchange="OnSubjectsSelected" multiple>
+                    @if (filteredSubjects != null)
+                    {
+                        @foreach (var subject in filteredSubjects)
+                        {
+                            <option @onclick="() => SelectSubject(subject)">@subject</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div>
+                <label>Обрані предмети:</label>
+                @if (selectedSubjects.Any())
                 {
-                    <option @onclick="() => SelectSubject(subject)">@subject</option>
+                    <ul>
+                        @foreach (var subject in selectedSubjects)
+                        {
+                            <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
+                        }
+                    </ul>
                 }
-            }
-        </select>
+            </div>
     </div>
+    <div class="right-side">
+            <label for="startTime">Час початку:</label>
+            <input type="time" id="startTime" @bind="startTimeInput" />
 
-    <div>
-        <label>Обрані предмети:</label>
-        @if (selectedSubjects.Any())
-        {
-            <ul>
-                @foreach (var subject in selectedSubjects)
-                {
-                    <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
-                }
-            </ul>
-        }
+            <label for="endTime">Час завершення:</label>
+            <input type="time" id="endTime" @bind="endTimeInput" />
     </div>
+</div>
 
     <button @onclick="ApplyFilters">Фільтрувати</button>
     <button @onclick="ResetFilters">Скинути фільтри</button>
 </div>
 
-@if (users == null)
-{
-    <p><em>Завантаження...</em></p>
-}
-else if (users.Length == 0)
-{
-    <p>Користувачів не знайдено.</p>
-}
-else
-{
-    <ul>
-        @foreach (var user in users)
-        {
-            <li>
-                <a href="UserProfile/@user.Username">@user.Username</a> - @user.Email
-            </li>
-        }
-    </ul>
-}
+<h3 class="title">Список користувачів</h3>
 
-@code {
-    private User[] users;
-    private TimeOnly? startTimeInput;
-    private TimeOnly? endTimeInput;
-    private List<string> selectedSubjects = new List<string>();
-    private List<string> allSubjects = new List<string>();
-    private string _subjectSearch = string.Empty;
-    private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
-
-    private string subjectSearch
+<div class="right-sidebar">
+    @if (users == null)
     {
-        get => _subjectSearch;
-        set
-        {
-            if (_subjectSearch != value)
+        <p><em>Завантаження...</em></p>
+    }
+    else if (users.Length == 0)
+    {
+        <p>Користувачів не знайдено.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var user in users)
             {
-                _subjectSearch = value;
-                FilterSubjects();
+                <li>
+                    <a href="UserProfile/@user.Username">@user.Username</a> - @user.Email
+                </li>
             }
-        }
+        </ul>
     }
+</div>
 
-    /// <summary>
-    /// Обробляє вибір користувача зі списку предметів.
-    /// </summary>
-    /// <param name="subject">Предмет, який вибрано зі списку.</param>
-    private void SelectSubject(string subject)
-    {
-        if (!selectedSubjects.Contains(subject))
+<div class="left-sidebar">
+    @code {
+        private User[] users;
+        private TimeOnly? startTimeInput;
+        private TimeOnly? endTimeInput;
+        private List<string> selectedSubjects = new List<string>();
+        private List<string> allSubjects = new List<string>();
+        private string _subjectSearch = string.Empty;
+        private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
+
+        private string subjectSearch
         {
-            selectedSubjects.Add(subject);
-        }
-    }
-
-    /// <summary>
-    /// Фільтрує список предметів в залежності від того що ввів користувач у пошуку.
-    /// </summary>
-    private void FilterSubjects()
-    {
-        if (string.IsNullOrWhiteSpace(subjectSearch))
-        {
-            filteredSubjects = allSubjects;
-        }
-        else
-        {
-            filteredSubjects = allSubjects.Where(subject =>
-                subject.Contains(subjectSearch, StringComparison.OrdinalIgnoreCase));
-        }
-    }
-
-    /// <summary>
-    /// Ініціалізується при завантаженні сторінки, завантажуючи дані про предмети та користувачів.
-    /// </summary>
-    protected override async Task OnInitializedAsync()
-    {
-        allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
-        filteredSubjects = allSubjects;
-        users = await Http.GetFromJsonAsync<User[]>("https://localhost:7292/Users/list");
-    }
-
-    /// <summary>
-    /// Обробник події, який викликається, коли користувач змінює вибір предметів у випадаючому списку.
-    /// Додає вибрані предмети до списку обраних, видаляючи дублікати.
-    /// </summary>
-    /// <param name="e">Параметри події, що містять значення, вибрані користувачем.</param>
-    private void OnSubjectsSelected(ChangeEventArgs e)
-    {
-        var options = e.Value as IEnumerable<string>;
-        if (options is not null)
-        {
-            selectedSubjects.AddRange(options.Except(selectedSubjects));
-        }
-    }
-
-    /// <summary>
-    /// Видаляє вибраний предмет зі списку обраних предметів.
-    /// </summary>
-    /// <param name="subject">Предмет, який потрібно видалити.</param>
-    private void RemoveSubject(string subject)
-    {
-        selectedSubjects.Remove(subject);
-    }
-
-    /// <summary>
-    /// Застосовує встановлені фільтри до списку користувачів.
-    /// </summary>
-    private async Task ApplyFilters()
-    {
-        var queryParameters = new List<string>();
-        try
-        {
-            if (startTimeInput.HasValue && endTimeInput.HasValue)
+            get => _subjectSearch;
+            set
             {
-                if (startTimeInput.Value >= endTimeInput.Value)
+                if (_subjectSearch != value)
                 {
-                    throw new ArgumentException("Час початку повинен бути меншим за час завершення.");
+                    _subjectSearch = value;
+                    FilterSubjects();
                 }
-
-                TimeSpan startTime = startTimeInput.Value.ToTimeSpan();
-                TimeSpan endTime = endTimeInput.Value.ToTimeSpan();
-                queryParameters.Add($"startTime={startTime:hh\\:mm\\:ss}");
-                queryParameters.Add($"endTime={endTime:hh\\:mm\\:ss}");
             }
         }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-        }
-        catch (HttpRequestException ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-            users = Array.Empty<User>();
-        }
 
-        if (selectedSubjects.Any())
+        /// <summary>
+        /// Обробляє вибір користувача зі списку предметів.
+        /// </summary>
+        /// <param name="subject">Предмет, який вибрано зі списку.</param>
+        private void SelectSubject(string subject)
         {
-            queryParameters.AddRange(selectedSubjects.Select(subject => $"subjects={Uri.EscapeDataString(subject)}"));
+            if (!selectedSubjects.Contains(subject))
+            {
+                selectedSubjects.Add(subject);
+            }
         }
 
-        var queryString = queryParameters.Any() ? $"?{string.Join("&", queryParameters)}" : "";
-        var url = $"https://localhost:7292/Users/search{queryString}";
-
-        var response = await Http.GetAsync(url);
-
-        if (response.IsSuccessStatusCode)
+        /// <summary>
+        /// Фільтрує список предметів в залежності від того що ввів користувач у пошуку.
+        /// </summary>
+        private void FilterSubjects()
         {
-            users = await response.Content.ReadFromJsonAsync<User[]>();
+            if (string.IsNullOrWhiteSpace(subjectSearch))
+            {
+                filteredSubjects = allSubjects;
+            }
+            else
+            {
+                filteredSubjects = allSubjects.Where(subject =>
+                subject.Contains(subjectSearch, StringComparison.OrdinalIgnoreCase));
+            }
         }
-        else
+
+        /// <summary>
+        /// Ініціалізується при завантаженні сторінки, завантажуючи дані про предмети та користувачів.
+        /// </summary>
+        protected override async Task OnInitializedAsync()
         {
-            users = Array.Empty<User>();
+            allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
+            filteredSubjects = allSubjects;
+            users = await Http.GetFromJsonAsync<User[]>("https://localhost:7292/Users/list");
+        }
+
+        /// <summary>
+        /// Обробник події, який викликається, коли користувач змінює вибір предметів у випадаючому списку.
+        /// Додає вибрані предмети до списку обраних, видаляючи дублікати.
+        /// </summary>
+        /// <param name="e">Параметри події, що містять значення, вибрані користувачем.</param>
+        private void OnSubjectsSelected(ChangeEventArgs e)
+        {
+            var options = e.Value as IEnumerable<string>;
+            if (options is not null)
+            {
+                selectedSubjects.AddRange(options.Except(selectedSubjects));
+            }
+        }
+
+        /// <summary>
+        /// Видаляє вибраний предмет зі списку обраних предметів.
+        /// </summary>
+        /// <param name="subject">Предмет, який потрібно видалити.</param>
+        private void RemoveSubject(string subject)
+        {
+            selectedSubjects.Remove(subject);
+        }
+
+        /// <summary>
+        /// Застосовує встановлені фільтри до списку користувачів.
+        /// </summary>
+        private async Task ApplyFilters()
+        {
+            var queryParameters = new List<string>();
+            try
+            {
+                if (startTimeInput.HasValue && endTimeInput.HasValue)
+                {
+                    if (startTimeInput.Value >= endTimeInput.Value)
+                    {
+                        throw new ArgumentException("Час початку повинен бути меншим за час завершення.");
+                    }
+
+                    TimeSpan startTime = startTimeInput.Value.ToTimeSpan();
+                    TimeSpan endTime = endTimeInput.Value.ToTimeSpan();
+                    queryParameters.Add($"startTime={startTime:hh\\:mm\\:ss}");
+                    queryParameters.Add($"endTime={endTime:hh\\:mm\\:ss}");
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                users = Array.Empty<User>();
+            }
+
+            if (selectedSubjects.Any())
+            {
+                queryParameters.AddRange(selectedSubjects.Select(subject => $"subjects={Uri.EscapeDataString(subject)}"));
+            }
+
+            var queryString = queryParameters.Any() ? $"?{string.Join("&", queryParameters)}" : "";
+            var url = $"https://localhost:7292/Users/search{queryString}";
+
+            var response = await Http.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                users = await response.Content.ReadFromJsonAsync<User[]>();
+            }
+            else
+            {
+                users = Array.Empty<User>();
+            }
+        }
+
+        /// <summary>
+        /// Скидає всі встановлені фільтри та віднавлює початковий список користувачів.
+        /// </summary>
+        private async Task ResetFilters()
+        {
+            startTimeInput = null;
+            endTimeInput = null;
+            selectedSubjects.Clear();
+            subjectSearch = string.Empty;
+            filteredSubjects = allSubjects;
+            await ApplyFilters();
+        }
+
+
+        public class User
+        {
+            public string Username { get; set; }
+            public string Email { get; set; }
         }
     }
 
-    /// <summary>
-    /// Скидає всі встановлені фільтри та віднавлює початковий список користувачів.
-    /// </summary>
-    private async Task ResetFilters()
-    {
-        startTimeInput = null;
-        endTimeInput = null;
-        selectedSubjects.Clear();
-        subjectSearch = string.Empty;
-        filteredSubjects = allSubjects;
-        await ApplyFilters();
-    }
-
-
-    public class User
-    {
-        public string Username { get; set; }
-        public string Email { get; set; }
-    }
+</div>
+</body>
 }
