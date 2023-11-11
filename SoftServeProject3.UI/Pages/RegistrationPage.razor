@@ -132,7 +132,7 @@
     private string registerButtonClass => isRegDisabled ? "registerbtn-disabled" : "registerbtn-enabled";
     private string confirmRegisterButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
 
-    private void HandleFieldChanged(object sender, FieldChangedEventArgs e)
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
     {
         isRegDisabled = string.IsNullOrWhiteSpace(regModel.Username) ||
                    string.IsNullOrWhiteSpace(regModel.Email) ||
@@ -244,7 +244,9 @@
                     { "Saturday", new List<TimeRange>() },
                     { "Sunday", new List<TimeRange>() },
                 },
-                Friends = new List<MongoDB.Bson.ObjectId>()
+                Friends = new List<MongoDB.Bson.ObjectId>(),
+                OutFriends = new List<MongoDB.Bson.ObjectId>(),
+                InFriends = new List<MongoDB.Bson.ObjectId>()
             };
 
         try

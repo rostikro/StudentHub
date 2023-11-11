@@ -44,7 +44,7 @@ namespace SoftServeProject3.Core.DTOs
             _regex = regex;
         }
 
-        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
         {
             var str = value as string;
             if (str != null)

@@ -136,9 +136,9 @@ HTML-розмітка сторінки розташована всередині
                                                 {
                                                     var task = tasks[index];
                                                     <div>
-                                                        <input type="text" @bind="task.StartString" placeholder="Початок" />
+                                                        <input type="time" @bind-value="task.StartTime" @bind-value:event="oninput" />
                                                         -
-                                                        <input type="text" @bind="task.EndString" placeholder="Кінець" />
+                                                        <input type="time" @bind-value="task.EndTime" @bind-value:event="oninput" />
                                                         <button @onclick="() => RemoveTask(tasks, index -1 )">Видалити</button>
                                                     </div>
                                                 }
@@ -208,12 +208,27 @@ HTML-розмітка сторінки розташована всередині
                 @* R факультет*@
                 @if (isEditMode)
                 {
+                    <div class="form-group">
+                        <label for="faculty">Факультет:</label>
+                        <select id="faculty" class="form-control" @onchange="SelectFaculty">
+                            @if (allFaculties != null)
+                            {
+                                @foreach (var faculty in allFaculties)
+                                {
+                                    @if (userProfile.faculty == faculty)
+                                    {
+                                        <option value="@faculty" selected>@faculty</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@faculty">@faculty</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
 
                     <div class="five">
-                        <div class="form-group">
-                            <label for="faculty">Факультет:</label>
-                            <input type="text" id="faculty" class="form-control" @bind="userProfile.faculty" />
-                        </div>
                         <label for="description">Опис:</label>
                         <textarea id="description" class="form-control" @bind="@userProfile.description"></textarea>
                     </div>
@@ -368,6 +383,9 @@ else
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
     private string originalUsername;
+    private string facultySearch;
+    private List<string> allFaculties; 
+    private IEnumerable<string> filteredFaculties; 
 
     private DayOfWeek? selectedDay;
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
@@ -424,13 +442,13 @@ else
             ToggleUsernameEdit();
         }
     }
-    private async void CancelEdit()
+    private void CancelEdit()
     {
         if (originalProfile != null)
         {
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
-            await LoadSchedule();
+            LoadSchedule();
             StateHasChanged();
             Console.WriteLine("Edits canceled, changes reverted.");
         }
@@ -499,10 +517,11 @@ else
             if (isUserAuthenticated)
             {
                 allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
+                allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties");
                 filteredSubjects = allSubjects;
                 await LoadUserProfile();
                 originalUsername = userProfile.username;
-                await LoadSchedule();
+                LoadSchedule();
 
             }
             else
@@ -515,11 +534,22 @@ else
             errorMessage = $"An error occurred: {ex.Message}";
         }
     }
-
+    private void FilterFaculties()
+    {
+        if (string.IsNullOrWhiteSpace(facultySearch))
+        {
+            filteredFaculties = allFaculties;
+        }
+        else
+        {
+            filteredFaculties = allFaculties.Where(faculty =>
+                faculty.Contains(facultySearch, StringComparison.OrdinalIgnoreCase));
+        }
+    }
     /// <summary>
     /// Метод для завантаження розкладу з сервера.
     /// </summary>
-    private async Task LoadSchedule()
+    private void LoadSchedule()
     {
         try
         {
@@ -560,6 +590,11 @@ else
         {
             selectedSubjects.AddRange(options.Except(selectedSubjects));
         }
+    }
+
+    private void SelectFaculty(ChangeEventArgs e)
+    {
+        userProfile.faculty = e.Value?.ToString();
     }
 
     private void UpdateSocialLink(string network, string url)
@@ -669,7 +704,7 @@ else
                 if (success)
                 {
 
-                    await LoadSchedule();
+                    LoadSchedule();
                     StateHasChanged();
 
                 }
