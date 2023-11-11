@@ -7,7 +7,6 @@
 @using System.Globalization
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
-@using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
 
@@ -26,6 +25,20 @@
 
         <label for="endTime">Час завершення:</label>
         <input type="time" id="endTime" @bind="endTimeInput" />
+        <div class="form-group">
+            <label for="faculty">Факультет:</label>
+            <select id="faculty" class="form-control" @onchange="SelectFaculty">
+                
+                @if (allFaculties != null)
+                {
+                    @foreach (var faculty in allFaculties)
+                    {
+                        <option value="@faculty">@faculty</option>
+                    }
+                }
+            </select>
+        </div>
+
 
         <div>
             <label for="subjectSearch">Пошук предмету:</label>
@@ -117,6 +130,8 @@ else
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
     private bool isUserAuthenticated;
     private string errorMessage;
+    private string selectedFaculty = "Пусто";
+    private List<string> allFaculties; 
 
     private string subjectSearch
     {
@@ -146,7 +161,10 @@ else
             selectedSubjects.Add(subject);
         }
     }
-
+    private void SelectFaculty(ChangeEventArgs e)
+    {
+        selectedFaculty = e.Value?.ToString();
+    }
     /// <summary>
     /// Фільтрує список предметів в залежності від того що ввів користувач у пошуку.
     /// </summary>
@@ -175,6 +193,7 @@ else
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
+            allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties"); 
             filteredSubjects = allSubjects;
             users = await Http.GetFromJsonAsync<User[]>("https://localhost:7292/Users/list");
         }
@@ -242,7 +261,7 @@ else
         {
             queryParameters.AddRange(selectedSubjects.Select(subject => $"subjects={Uri.EscapeDataString(subject)}"));
         }
-
+        queryParameters.Add($"faculty={Uri.EscapeDataString(selectedFaculty)}");
         var queryString = queryParameters.Any() ? $"?{string.Join("&", queryParameters)}" : "";
         var url = $"https://localhost:7292/Users/search{queryString}";
 
@@ -266,8 +285,10 @@ else
         startTimeInput = null;
         endTimeInput = null;
         selectedSubjects.Clear();
+        selectedFaculty = "Пусто";
         subjectSearch = string.Empty;
         filteredSubjects = allSubjects;
+        StateHasChanged();
         await ApplyFilters();
     }
 
@@ -276,5 +297,6 @@ else
     {
         public string Username { get; set; }
         public List<string> Subjects { get; set; } = new List<string>();
+        public string Faculty { get; set; }
     }
 }

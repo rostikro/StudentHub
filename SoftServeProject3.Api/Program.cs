@@ -1,17 +1,16 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using SoftServeProject3.Api.Interfaces;
-using SoftServeProject3.Api.Repositories;
 using System.Text;
-using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Configuration;
-using SoftServeProject3.Api.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization;
-using Newtonsoft.Json;
+using SoftServeProject3.Api.Interfaces;
+using SoftServeProject3.Api.Repositories;
+using SoftServeProject3.Api.Services;
+using SoftServeProject3.Api.Configurations;
+
 
 namespace SoftServeProject3.Api
 {
@@ -20,18 +19,49 @@ namespace SoftServeProject3.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            ConfigureServices(builder);
+
+            var app = builder.Build();
+
+            ConfigureHttpPipeline(app);
+
+            app.Run();
+        }
+
+        private static void ConfigureServices(WebApplicationBuilder builder)
+        {
+            // CORS
+            ConfigureCors(builder);
+
+            // Конфігурація пошти
+            ConfigureEmailService(builder);
+
+            // MongoDB
+            ConfigureMongoDB(builder);
+
+            //Токін і автентифікація
+            ConfigureAuthentication(builder);
+
+            // Свагер
+            ConfigureSwagger(builder);
+        }
+
+        #region Service Configuration Methods
+
+        private static void ConfigureCors(WebApplicationBuilder builder)
+        {
             builder.Services.AddCors(options =>
             {
-                options.AddDefaultPolicy(
-                    builder =>
-                    {
-                        builder.AllowAnyOrigin()
-                               .AllowAnyMethod()
-                               .AllowAnyHeader();
-                    });
+                options.AddDefaultPolicy(policyBuilder =>
+                {
+                    policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                });
             });
+        }
 
-            // Email configuration
+        private static void ConfigureEmailService(WebApplicationBuilder builder)
+        {
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.AddTransient<IEmailService, EmailService>();
 
@@ -41,29 +71,46 @@ namespace SoftServeProject3.Api
                 client.BaseAddress = new Uri(emailSettings.ApiBaseUrl);
                 client.DefaultRequestHeaders.Add("Api-Token", emailSettings.ApiToken);
             });
+        }
 
-            var mongoDBConnectionString = builder.Configuration["MongoDBSettings:ConnectionString"] ?? throw new InvalidOperationException("MongoDB connection string is not set in the configuration.");
-            
+        private static void ConfigureMongoDB(WebApplicationBuilder builder)
+        {
+            var mongoDBConnectionString = builder.Configuration["MongoDBSettings:ConnectionString"]
+                ?? throw new InvalidOperationException("MongoDB connection string is not set in the configuration.");
+
             builder.Services.AddSingleton<IUserRepository>(sp => new UserRepository(mongoDBConnectionString));
             builder.Services.AddSingleton<IVerificationRepository>(sp => new VerificationRepository(mongoDBConnectionString));
             builder.Services.AddControllers();
+
+            BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local));
+        }
+
+        private static void ConfigureAuthentication(WebApplicationBuilder builder)
+        {
             var jwtSettings = new JwtSettings();
             builder.Configuration.GetSection(nameof(JwtSettings)).Bind(jwtSettings);
             builder.Services.AddSingleton(jwtSettings);
 
-            string secretKey = KeyGenerator.GenerateRandomKey(64); // Adjust the key length as needed
+            var secretKey = builder.Configuration["JwtSettings:SecretKey"];
+            if (string.IsNullOrEmpty(secretKey))
+            {
+                throw new InvalidOperationException("JWT Secret key is not set in the configuration.");
+            }
+
             builder.Services.AddTransient<IJwtService>(sp => new JwtService(secretKey, jwtSettings));
 
+            ConfigureAuthServices(builder, secretKey);
+        }
+
+        private static void ConfigureAuthServices(WebApplicationBuilder builder, string secretKey)
+        {
             builder.Services.AddAuthentication(options =>
             {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; 
-                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme; 
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; 
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddCookie(options =>
-            {
-                options.LoginPath = "/signin-google";
-            })
+            .AddCookie(options => { options.LoginPath = "/signin-google"; })
             .AddJwtBearer(x =>
             {
                 x.SaveToken = true;
@@ -79,26 +126,34 @@ namespace SoftServeProject3.Api
             })
             .AddGoogle(googleOptions =>
             {
-                googleOptions.ClientId = builder.Configuration["GoogleOAuth:ClientId"];
-                googleOptions.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
-                googleOptions.CallbackPath = "/signin-google"; // /signin-google
+                var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
+                if (string.IsNullOrEmpty(googleClientId))
+                {
+                    throw new InvalidOperationException("Google OAuth ClientId is not set in the configuration.");
+                }
+                googleOptions.ClientId = googleClientId;
+
+                var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
+                if (string.IsNullOrEmpty(googleClientSecret))
+                {
+                    throw new InvalidOperationException("Google OAuth ClientSecret is not set in the configuration.");
+                }
+                googleOptions.ClientSecret = googleClientSecret;
+
+                googleOptions.CallbackPath = "/signin-google";
             });
-            var jsonSerializerSettings = new JsonSerializerSettings
-            {
-                DateTimeZoneHandling = DateTimeZoneHandling.Unspecified 
-            };
+        }
 
-            BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local));
-
-            var configuration = builder.Configuration;
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        private static void ConfigureSwagger(WebApplicationBuilder builder)
+        {
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+        }
 
-            var app = builder.Build();
+        #endregion
 
-            // Configure the HTTP request pipeline.
+        private static void ConfigureHttpPipeline(WebApplication app)
+        {
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -107,10 +162,9 @@ namespace SoftServeProject3.Api
 
             app.UseHttpsRedirection();
             app.UseCors();
-            app.UseAuthentication();  
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
-            app.Run();
         }
     }
 }
