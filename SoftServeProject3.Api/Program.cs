@@ -64,7 +64,6 @@ namespace SoftServeProject3.Api
         {
             builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.AddTransient<IEmailService, EmailService>();
-            builder.Services.AddTransient<IVerificationRepository, VerificationRepository>();
 
             builder.Services.AddHttpClient("EmailClient", (services, client) =>
             {
@@ -80,6 +79,7 @@ namespace SoftServeProject3.Api
                 ?? throw new InvalidOperationException("MongoDB connection string is not set in the configuration.");
 
             builder.Services.AddSingleton<IUserRepository>(sp => new UserRepository(mongoDBConnectionString));
+            builder.Services.AddSingleton<IVerificationRepository>(sp => new VerificationRepository(mongoDBConnectionString));
             builder.Services.AddControllers();
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local));
