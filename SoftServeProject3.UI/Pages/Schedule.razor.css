@@ -256,7 +256,8 @@ button {
 
 
 .blueButton button {
-
+    color: black;
+    font-weight: bold;
     width: 100%;
 }
 .subjectSearch {
@@ -274,4 +275,8 @@ button {
 .searchSubject select {
     cursor: pointer;
     width: 100%;
+}
+.editButtons button {
+    color: black;
+    font-weight: bold;
 }

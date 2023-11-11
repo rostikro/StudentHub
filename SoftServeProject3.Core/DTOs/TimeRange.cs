@@ -15,8 +15,20 @@ namespace SoftServeProject3.Core.DTOs
 
         [BsonElement("End")]
         public DateTime End { get; set; }
+        [BsonIgnore]
+        public TimeOnly StartTime
+        {
+            get => TimeOnly.Parse(StartString);
+            set => StartString = value.ToString("HH:mm");
+        }
 
-        
+        [BsonIgnore]
+        public TimeOnly EndTime
+        {
+            get => TimeOnly.Parse(EndString);
+            set => EndString = value.ToString("HH:mm");
+        }
+
         [BsonIgnore]
         public string StartString
         {
@@ -29,6 +41,19 @@ namespace SoftServeProject3.Core.DTOs
         {
             get { return End.ToString("HH:mm"); }
             set { End = DateTime.ParseExact(value, "HH:mm", CultureInfo.InvariantCulture); }
+        }
+        public bool ValidateTimeFormat(string time, out DateTime parsedTime)
+        {
+            return DateTime.TryParseExact(time, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedTime);
+        }
+
+        public bool IsEndTimeAfterStartTime(string startTimeString, string endTimeString)
+        {
+            if (ValidateTimeFormat(startTimeString, out var startTime) && ValidateTimeFormat(endTimeString, out var endTime))
+            {
+                return endTime > startTime;
+            }
+            return false;
         }
     }
 }

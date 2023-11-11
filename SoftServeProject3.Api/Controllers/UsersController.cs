@@ -1,17 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using SoftServeProject3.Api.Interfaces;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
 using MongoDB.Driver;
-using SoftServeProject3.Api.Repositories;
+
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -59,9 +56,9 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="loginRequest">Запит на вхід.</param>
         /// <returns>Токен JWT, якщо автентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            var userInDb = _userRepository.GetByEmail(loginRequest.Email) ?? _userRepository.GetByUsername(loginRequest.Username);
+            var userInDb = await _userRepository.GetUserByEmailAsync(loginRequest.Email) ?? await _userRepository.GetUserByUsernameAsync(loginRequest.Username);
 
             if (userInDb == null)
             {
@@ -75,8 +72,8 @@ namespace SoftServeProject3.Api.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, loginRequest.Email),
-                new Claim(ClaimTypes.Name, loginRequest.Username)
+                new Claim(ClaimTypes.Email, userInDb.Email),
+                new Claim(ClaimTypes.Name, userInDb.Username)
             };
 
             var token = _jwtService.GenerateJwtToken(claims);
@@ -136,6 +133,12 @@ namespace SoftServeProject3.Api.Controllers
             {
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
+                var existingUser = await _userRepository.GetUserByUsernameAsync(profile.username);
+                if (existingUser != null && existingUser.Email != email)
+                {
+                    return BadRequest("Username is already takennn.");
+                }
+
                 await _userRepository.UpdateProfileAsync(profile, email);
 
                 return Ok("Success");
@@ -146,12 +149,12 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-
         /// <summary>
         /// Отримує список всіх користувачів.
         /// </summary>
         /// <returns>Список користувачів.</returns>
         [HttpGet("list")]
+        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userRepository.GetAllUsersAsync();
@@ -171,7 +174,15 @@ namespace SoftServeProject3.Api.Controllers
 
             return Ok(subjects);
         }
+        [HttpGet("faculties")]
+        public IActionResult GetFaculties()
+        {
+            var filePath = Path.Combine(_env.ContentRootPath, "Data", "Faculties.json");
+            var jsonString = System.IO.File.ReadAllText(filePath);
+            var faculties = JsonConvert.DeserializeObject<List<string>>(jsonString);
 
+            return Ok(faculties);
+        }
         /// <summary>
         /// Пошук користувачів за часовим інтервалом або/та списком предметів.
         /// </summary>
@@ -180,27 +191,42 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="subjects">Список предметів для фільтрації.</param>
         /// <returns>Фільтрований список користувачів.</returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchUsers(TimeSpan? startTime, TimeSpan? endTime, [FromQuery] List<string> subjects)
+        public async Task<IActionResult> SearchUsers(
+        TimeSpan? startTime,
+        TimeSpan? endTime,
+        [FromQuery] List<string> subjects,
+        [FromQuery] string faculty)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
             var filteredUsers = allUsers.AsEnumerable();
 
-            if (startTime.HasValue && endTime.HasValue)
-            {
-                filteredUsers = filteredUsers.Where(u => u.Schedule != null && u.Schedule.Any(day =>
-                        day.Value.Any(timeRange =>
-                            (timeRange.Start.TimeOfDay <= startTime.Value && timeRange.End.TimeOfDay > startTime.Value) ||
-                            (timeRange.Start.TimeOfDay < endTime.Value && timeRange.End.TimeOfDay >= endTime.Value) ||
-                            (startTime.Value <= timeRange.Start.TimeOfDay && endTime.Value >= timeRange.End.TimeOfDay)))).ToList();
-            }
-
             if (subjects != null && subjects.Any())
             {
-                filteredUsers = filteredUsers.Where(u => u.Subjects != null && u.Subjects.Intersect(subjects, StringComparer.OrdinalIgnoreCase).Any()).ToList();
+                filteredUsers = filteredUsers.Where(u => u.Subjects != null && u.Subjects.Intersect(subjects, StringComparer.OrdinalIgnoreCase).Any());
+            }
+            if (!string.IsNullOrEmpty(faculty) && faculty != "Пусто")
+            {
+                filteredUsers = filteredUsers.Where(u => u.Faculty != null && u.Faculty.Equals(faculty, StringComparison.OrdinalIgnoreCase));
+            }
+            if (startTime.HasValue && endTime.HasValue)
+            {
+                filteredUsers = filteredUsers
+                    .Select(u => new
+                    {
+                        User = u,
+                        MatchingTimeRanges = u.Schedule
+                            .SelectMany(d => d.Value)
+                            .Count(tr => (tr.Start.TimeOfDay <= startTime.Value && tr.End.TimeOfDay > startTime.Value) ||
+                                         (tr.Start.TimeOfDay < endTime.Value && tr.End.TimeOfDay >= endTime.Value) ||
+                                         (startTime.Value <= tr.Start.TimeOfDay && endTime.Value >= tr.End.TimeOfDay))
+                    })
+                    .Where(x => x.MatchingTimeRanges > 0)
+                    .OrderByDescending(x => x.MatchingTimeRanges)
+                    .Select(x => x.User);
             }
 
             if (!filteredUsers.Any())
-                return NotFound("No users");
+                return NotFound("No users found matching the criteria.");
 
             return Ok(filteredUsers);
         }
@@ -213,7 +239,7 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="registerRequest">Запит на реєстрацію.</param>
         /// <returns>Токен JWT, якщо реєстрація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("register")]
-        public IActionResult Register([FromBody] UserModel registerRequest)
+        public async Task<IActionResult> Register([FromBody] UserModel registerRequest)
         {
             if (!registerRequest.IsEmailConfirmed)
             {
@@ -223,11 +249,11 @@ namespace SoftServeProject3.Api.Controllers
                 {
                     return BadRequest("Будь ласка, введіть нікнейм, пошту та пароль.");
                 }
-                else if (_userRepository.GetByEmail(registerRequest.Email) != null)
+                else if (await _userRepository.GetUserByEmailAsync(registerRequest.Email) != null)
                 {
                     return BadRequest("Користувач з такою поштою вже існує. Спробуйте іншу.");
                 }
-                else if (_userRepository.GetByUsername(registerRequest.Username) != null)
+                else if (await _userRepository.GetUserByUsernameAsync(registerRequest.Username) != null)
                 {
                     return BadRequest("Користувач з таким юзернеймом вже існує. Спробуйте інший.");
                 }
@@ -241,10 +267,10 @@ namespace SoftServeProject3.Api.Controllers
                 _userRepository.Register(registerRequest);
 
                 var claims = new List<Claim>
-            {
+                {
                 new Claim(ClaimTypes.Email, registerRequest.Email),
                 new Claim(ClaimTypes.Name, registerRequest.Username)
-            };
+                };
 
                 var token = _jwtService.GenerateJwtToken(claims);
                 return Ok(new { Token = token });
@@ -289,7 +315,7 @@ namespace SoftServeProject3.Api.Controllers
             }
 
             var userEmail = emailClaim.Value;
-            var userInDb = _userRepository.GetByEmail(userEmail);
+            var userInDb = await _userRepository.GetUserByEmailAsync(userEmail);
 
             var claims = new List<Claim>
             {
@@ -303,7 +329,7 @@ namespace SoftServeProject3.Api.Controllers
                 {
                     Username = $"user-{RandomGenerator.GenerateRandomCode()}",
                     Email = userEmail,
-                    Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey(64)),
+                    Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey()),
                     IsEmailConfirmed = true,
                     Schedule = new Dictionary<string, List<TimeRange>>
                     {
@@ -327,7 +353,10 @@ namespace SoftServeProject3.Api.Controllers
                         { "github", "" },
                         { "facebook", "" },
                         { "telegram", "" }
-                    }
+                    },
+                    Friends = new List<MongoDB.Bson.ObjectId>(),
+                    OutFriends = new List<MongoDB.Bson.ObjectId>(),
+                    InFriends = new List<MongoDB.Bson.ObjectId>()
                 };
 
                 _userRepository.Register(newUser);
@@ -359,7 +388,7 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Час на зміну пароля сплив. Спробуйте відіслати код ще раз.");
 
             //зміна паролю
-            var existingUser = _userRepository.GetByEmail(verification.Email);
+            var existingUser = await _userRepository.GetUserByEmailAsync(verification.Email);
 
             var result = _verRepository.RemoveVerification(verification.Email);
 

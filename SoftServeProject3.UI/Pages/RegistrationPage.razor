@@ -19,12 +19,12 @@
 
 <body>
     <div class="container">
-        <h1>Реєстрація</h1>
-        <p>Будь ласка, заповніть цю форму, щоб увійти на сайт.</p>
-        <hr>
 
         @if (!isCodeSent)
         {
+            <h1>Реєстрація</h1>
+            <p>Будь ласка, заповніть цю форму, щоб увійти на сайт.</p>
+            <hr>
             <EditForm OnValidSubmit="@Register" EditContext="@editContext">
                 <DataAnnotationsValidator />
                 <label for="username"><b>Ім'я користувача</b></label>
@@ -44,8 +44,10 @@
                 <p><ValidationMessage For="@(()=>regModel.ConfirmPassword)" /></p>
                 <hr>
                 @* error field *@
-                <p id=@errorMessageId> @errorMessage</p>
-
+                @if(!(errorMessage == ""))
+                {
+                    <p id=@errorMessageId> @errorMessage</p>
+                }
                 <button type="submit" disabled="@isRegDisabled" class="@registerButtonClass">Зареєструватися</button>
             </EditForm>
 
@@ -78,15 +80,28 @@
             </script>
 
             <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+
+            <div class="container signin">
+                <p>Вже зареєстровані? <a href="/login">Увійти</a></p>
+            </div>
         }
         else
         {
+            <h1>Підтвердження пошти</h1>
+            <p>Будь ласка підтвердіть свою пошту.</p>
+            <hr>
             <label>Поле для коду:</label>
-            <input @bind="code" type="text" placeholder="Введіть ваш код" />
-
-            <button @onclick="VerifyCode">Підтвердити</button>
-            <button @onclick="SendCode">Відправити код знову</button>
-            <button @onclick="ResetForm">Повернутися</button>
+            <input @bind="code" type="text" class="inputfld" placeholder="Введіть ваш код" />
+            <div style="display: flex;">
+                <button @onclick="VerifyCode">Підтвердити</button>
+                <button @onclick="SendCode">Відправити код знову</button>
+                <button @onclick="ResetForm">Повернутися</button>
+            </div>
+            
+            @if (!(errorMessage == ""))
+            {
+                <p id=@errorMessageId> @errorMessage</p>
+            }
         }
 
         @if (isCodeVerified)
@@ -94,10 +109,6 @@
             <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
             <button @onclick="Register" class="registerbtn-enabled">Завершити реєстрацію</button>
         }
-    </div>
-
-    <div class="container signin">
-        <p>Вже зареєстровані? <a href="/login">Увійти</a></p>
     </div>
 </body>
 
@@ -108,6 +119,7 @@
 
     private bool isCodeSent = false;
     private bool isCodeVerified = false;
+    private bool isEmailConfirmed = false;
 
     EditContext editContext;
 
@@ -120,7 +132,7 @@
     private string registerButtonClass => isRegDisabled ? "registerbtn-disabled" : "registerbtn-enabled";
     private string confirmRegisterButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
 
-    private void HandleFieldChanged(object sender, FieldChangedEventArgs e)
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
     {
         isRegDisabled = string.IsNullOrWhiteSpace(regModel.Username) ||
                    string.IsNullOrWhiteSpace(regModel.Email) ||
@@ -142,7 +154,9 @@
                 EmailTo = regModel.Email,
             };
 
-        await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
+        var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
+        if (!response.IsSuccessStatusCode)
+            errorMessage = await response.Content.ReadAsStringAsync();
         isCodeSent = true;
         isCodeVerified = false;
 
@@ -165,6 +179,7 @@
         {
             errorMessage = "";
             isCodeVerified = true;
+            isEmailConfirmed = true;
         }
         else
         {
@@ -205,30 +220,33 @@
                 Username = regModel.Username,
                 Email = regModel.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(regModel.Password),
-                IsEmailConfirmed = false,
+                IsEmailConfirmed = isEmailConfirmed,
                 PhotoUrl = "",
                 Faculty = "",
                 Name = "",
                 Description = "",
                 Subjects = new List<string>(),
                 Social = new Dictionary<string, string>
-            {
-                { "instagram", "" },
-                { "twitter", "" },
-                { "github", "" },
-                { "facebook", "" },
-                { "telegram", "" }
-            },
+                {
+                    { "instagram", "" },
+                    { "twitter", "" },
+                    { "github", "" },
+                    { "facebook", "" },
+                    { "telegram", "" }
+                },
                 Schedule = new Dictionary<string, List<TimeRange>>
-            {
-                { "Monday", new List<TimeRange>() },
-                { "Tuesday", new List<TimeRange>() },
-                { "Wednesday", new List<TimeRange>() },
-                { "Thursday", new List<TimeRange>() },
-                { "Friday", new List<TimeRange>() },
-                { "Saturday", new List<TimeRange>() },
-                { "Sunday", new List<TimeRange>() },
-            }
+                {
+                    { "Monday", new List<TimeRange>() },
+                    { "Tuesday", new List<TimeRange>() },
+                    { "Wednesday", new List<TimeRange>() },
+                    { "Thursday", new List<TimeRange>() },
+                    { "Friday", new List<TimeRange>() },
+                    { "Saturday", new List<TimeRange>() },
+                    { "Sunday", new List<TimeRange>() },
+                },
+                Friends = new List<MongoDB.Bson.ObjectId>(),
+                OutFriends = new List<MongoDB.Bson.ObjectId>(),
+                InFriends = new List<MongoDB.Bson.ObjectId>()
             };
 
         try
@@ -243,7 +261,7 @@
                     {
 
                         await TokenService.StoreToken(result.Token);
-                        Navigation.NavigateTo("/"); //TODO: Змінити на профіль коли профіль буде готовим
+                        Navigation.NavigateTo("/UserProfile"); //TODO: Змінити на профіль коли профіль буде готовим
 
                     }
                     else

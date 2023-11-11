@@ -41,6 +41,7 @@ namespace SoftServeProject3.Api.Repositories
                         .Set(u => u.Subjects, profile.subjects)
                         .Set(u => u.Social, profile.social)
                         .Set(u => u.Schedule, profile.schedule)
+                        .Set(u => u.Username, profile.username)
                     );
             }
             catch (Exception e)
@@ -88,6 +89,20 @@ namespace SoftServeProject3.Api.Repositories
                 throw;
             }
         }
+/*
+        public async Task UpdateUsernameAsync(UserInfo userInfo)
+        {
+            try
+            {
+                await _users.UpdateOneAsync(user =>  user.Email == userInfo.Email,
+                    Builders<UserModel>.Update.Set(user => user.Username, userInfo.Username));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }*/
 
         /// <summary>
         /// Замінює існуючий об'єкт користувача в базі даних на новий.
