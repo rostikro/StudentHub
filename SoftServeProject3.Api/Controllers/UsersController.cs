@@ -1,17 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using SoftServeProject3.Api.Interfaces;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using SoftServeProject3.Api.Configurations;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
 using MongoDB.Driver;
-using SoftServeProject3.Api.Repositories;
+
 
 namespace SoftServeProject3.Api.Controllers
 {
@@ -59,9 +56,9 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="loginRequest">Запит на вхід.</param>
         /// <returns>Токен JWT, якщо автентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            var userInDb = _userRepository.GetByEmail(loginRequest.Email) ?? _userRepository.GetByUsername(loginRequest.Username);
+            var userInDb = await _userRepository.GetUserByEmailAsync(loginRequest.Email) ?? await _userRepository.GetUserByUsernameAsync(loginRequest.Username);
 
             if (userInDb == null)
             {
@@ -136,7 +133,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
-                var existingUser = _userRepository.GetByUsername(profile.username);
+                var existingUser = await _userRepository.GetUserByUsernameAsync(profile.username);
                 if (existingUser != null && existingUser.Email != email)
                 {
                     return BadRequest("Username is already takennn.");
@@ -242,7 +239,7 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="registerRequest">Запит на реєстрацію.</param>
         /// <returns>Токен JWT, якщо реєстрація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("register")]
-        public IActionResult Register([FromBody] UserModel registerRequest)
+        public async Task<IActionResult> Register([FromBody] UserModel registerRequest)
         {
             if (!registerRequest.IsEmailConfirmed)
             {
@@ -252,11 +249,11 @@ namespace SoftServeProject3.Api.Controllers
                 {
                     return BadRequest("Будь ласка, введіть нікнейм, пошту та пароль.");
                 }
-                else if (_userRepository.GetByEmail(registerRequest.Email) != null)
+                else if (await _userRepository.GetUserByEmailAsync(registerRequest.Email) != null)
                 {
                     return BadRequest("Користувач з такою поштою вже існує. Спробуйте іншу.");
                 }
-                else if (_userRepository.GetByUsername(registerRequest.Username) != null)
+                else if (await _userRepository.GetUserByUsernameAsync(registerRequest.Username) != null)
                 {
                     return BadRequest("Користувач з таким юзернеймом вже існує. Спробуйте інший.");
                 }
@@ -270,10 +267,10 @@ namespace SoftServeProject3.Api.Controllers
                 _userRepository.Register(registerRequest);
 
                 var claims = new List<Claim>
-            {
+                {
                 new Claim(ClaimTypes.Email, registerRequest.Email),
                 new Claim(ClaimTypes.Name, registerRequest.Username)
-            };
+                };
 
                 var token = _jwtService.GenerateJwtToken(claims);
                 return Ok(new { Token = token });
@@ -318,7 +315,7 @@ namespace SoftServeProject3.Api.Controllers
             }
 
             var userEmail = emailClaim.Value;
-            var userInDb = _userRepository.GetByEmail(userEmail);
+            var userInDb = await _userRepository.GetUserByEmailAsync(userEmail);
 
             var claims = new List<Claim>
             {
@@ -332,7 +329,7 @@ namespace SoftServeProject3.Api.Controllers
                 {
                     Username = $"user-{RandomGenerator.GenerateRandomCode()}",
                     Email = userEmail,
-                    Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey(64)),
+                    Password = BCrypt.Net.BCrypt.HashPassword(KeyGenerator.GenerateRandomKey()),
                     IsEmailConfirmed = true,
                     Schedule = new Dictionary<string, List<TimeRange>>
                     {
@@ -357,7 +354,9 @@ namespace SoftServeProject3.Api.Controllers
                         { "facebook", "" },
                         { "telegram", "" }
                     },
-                    Friends = new List<MongoDB.Bson.ObjectId>()
+                    Friends = new List<MongoDB.Bson.ObjectId>(),
+                    OutFriends = new List<MongoDB.Bson.ObjectId>(),
+                    InFriends = new List<MongoDB.Bson.ObjectId>()
                 };
 
                 _userRepository.Register(newUser);
@@ -389,7 +388,7 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Час на зміну пароля сплив. Спробуйте відіслати код ще раз.");
 
             //зміна паролю
-            var existingUser = _userRepository.GetByEmail(verification.Email);
+            var existingUser = await _userRepository.GetUserByEmailAsync(verification.Email);
 
             var result = _verRepository.RemoveVerification(verification.Email);
 
@@ -407,17 +406,5 @@ namespace SoftServeProject3.Api.Controllers
                 return Ok(new { Message = "Password has been changed successfully." });
             }
         }
-/*        [HttpPost("change-username")]
-        public async Task<IActionResult> ChangeUsername([FromBody]UserInfo userinfo)
-        {
-            if (_userRepository.GetByUsername(userinfo) != null)
-                return BadRequest("Користувач з таким нікнеймом вже існує. Спробуйте інший.");
-            else
-            {
-                await _userRepository.UpdateUsernameAsync(username);
-                return Ok();
-            }
-        }*/
-
     }
 }

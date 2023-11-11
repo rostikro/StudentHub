@@ -65,7 +65,7 @@ public class EmailController : ControllerBase
 
 
 
-            var existingVerification = _verRepository.GetByEmail(emailData.EmailTo);
+            var existingVerification = await _verRepository.GetByEmail(emailData.EmailTo);
             //setting data for verification -> database
             var setData = new ForgotPasswordModel
             {
@@ -78,7 +78,7 @@ public class EmailController : ControllerBase
             //changing user code if they exist in verification database + adding resend time 
             if (existingVerification != null)
             {
-                if (_verRepository.GetByEmail(emailData.EmailTo).ResendCode < DateTime.Now)
+                if ((await _verRepository.GetByEmail(emailData.EmailTo)).ResendCode < DateTime.Now)
                 {
 
                     await _verRepository.UpdateCodeAsync(setData);
@@ -90,7 +90,7 @@ public class EmailController : ControllerBase
                 {
                     //telling user to wait to resend a code
                     return BadRequest($"You can resend code in " +
-                        $"{Math.Round((_verRepository.GetByEmail(emailData.EmailTo).ResendCode - DateTime.Now).TotalSeconds)} seconds.");
+                        $"{Math.Round(((await _verRepository.GetByEmail(emailData.EmailTo)).ResendCode - DateTime.Now).TotalSeconds)} seconds.");
                 }
             }
             else
@@ -115,7 +115,7 @@ public class EmailController : ControllerBase
     {
         try
         {
-            var verification = _verRepository.GetByEmail(verData.Email);
+            var verification = await _verRepository.GetByEmail(verData.Email);
 
             if (verData.Code != verification.Code)
             {

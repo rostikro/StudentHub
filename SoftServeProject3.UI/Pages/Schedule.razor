@@ -136,9 +136,9 @@ HTML-розмітка сторінки розташована всередині
                                                 {
                                                     var task = tasks[index];
                                                     <div>
-                                                        <input type="text" @bind="task.StartString" placeholder="Початок" />
+                                                        <input type="time" @bind-value="task.StartTime" @bind-value:event="oninput" />
                                                         -
-                                                        <input type="text" @bind="task.EndString" placeholder="Кінець" />
+                                                        <input type="time" @bind-value="task.EndTime" @bind-value:event="oninput" />
                                                         <button @onclick="() => RemoveTask(tasks, index -1 )">Видалити</button>
                                                     </div>
                                                 }
@@ -442,13 +442,13 @@ else
             ToggleUsernameEdit();
         }
     }
-    private async void CancelEdit()
+    private void CancelEdit()
     {
         if (originalProfile != null)
         {
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
-            await LoadSchedule();
+            LoadSchedule();
             StateHasChanged();
             Console.WriteLine("Edits canceled, changes reverted.");
         }
@@ -521,7 +521,7 @@ else
                 filteredSubjects = allSubjects;
                 await LoadUserProfile();
                 originalUsername = userProfile.username;
-                await LoadSchedule();
+                LoadSchedule();
 
             }
             else
@@ -549,7 +549,7 @@ else
     /// <summary>
     /// Метод для завантаження розкладу з сервера.
     /// </summary>
-    private async Task LoadSchedule()
+    private void LoadSchedule()
     {
         try
         {
@@ -704,7 +704,7 @@ else
                 if (success)
                 {
 
-                    await LoadSchedule();
+                    LoadSchedule();
                     StateHasChanged();
 
                 }

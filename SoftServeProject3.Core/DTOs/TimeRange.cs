@@ -15,8 +15,20 @@ namespace SoftServeProject3.Core.DTOs
 
         [BsonElement("End")]
         public DateTime End { get; set; }
+        [BsonIgnore]
+        public TimeOnly StartTime
+        {
+            get => TimeOnly.Parse(StartString);
+            set => StartString = value.ToString("HH:mm");
+        }
 
-        
+        [BsonIgnore]
+        public TimeOnly EndTime
+        {
+            get => TimeOnly.Parse(EndString);
+            set => EndString = value.ToString("HH:mm");
+        }
+
         [BsonIgnore]
         public string StartString
         {
