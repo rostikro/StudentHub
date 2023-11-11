@@ -13,20 +13,10 @@
 <head>
     <PageTitle>Перегляд профілю</PageTitle>
 </head>
-@* R Від Романа, постараюсь розписати код так як я його розумію.
-HTML-розмітка сторінки розташована всередині if-блоку.
-Цей блок перевіряє, чи користувач аутентифікований (isUserAuthenticated).
-Якщо так, то відображається розмітка профілю користувача.
-Інакше воно виводить: Будь ласка, ввійдіть для доступу до цієї сторінки. *@
 
-
-@* R даному випадку, код використовує @if (userProfile != null) для перевірки,
-    чи існує об'єкт userProfile. Якщо він існує (тобто не є null), то відображається відповідна частина HTML розмітки.
-    Це допомагає уникнути помилок, які можуть виникнути при спробі отримати доступ до властивостей чи методів об'єкта,
-    який не існує (має значення null). При null воно виводить: Завантаження...*@
 @if (userProfile != null)
 {
-    @* R верхній навбар з посиланнями на інші сторінки *@
+
     <body>
         <div class="wrapper">
             <div class="one">
@@ -38,18 +28,9 @@ HTML-розмітка сторінки розташована всередині
                     <a href="UserProfile">Профіль</a>
                 </div>
             </div>
-            @* R область з фотографією *@
-            <div class="two">
-                @* R Якщо isEditMode має значення true,
-            тобто користувач перебуває у режимі редагування,
-            то відображається блок редагування фото профілю: де input type="text" створює текстове поле вводу + type="text" дозволяє  вводити будь-який текст у відповідне поле (не тільки цифри).
-            @bind робить так, що значення властивості photoUrl об'єкта userProfile буде автоматично оновлено на сервері, якщо користувач введе текст у текстове поле.
-            На додаток, якщо значення photoUrl буде змінено в коді на сервері, зміни також автоматично відобразяться в текстовому полі на веб-сторінці.*@
 
-                @* Якщо isEditMode має значення false, тобто користувач не перебуває у режимі редагування, то відображається блок зображення фото профілю:
-            де <img> відображає фотографію профілю з URL, збереженого в userProfile.photoUrl.
-            Якщо userProfile.photoUrl не містить URL фотографії, то відображається текстовий атрибут alt (в даному випадку "Немає Фото профілю").
-            *@
+            <div class="two">
+
 
                 <h2>@userProfile.username</h2>
                 <div class="profile-picture">
@@ -59,27 +40,27 @@ HTML-розмітка сторінки розташована всередині
             </div>
             <div class="three">
                 <h1>Мій розклад</h1>
-                @* R Якщо змінна errorMessage не є null, то відображається текст помилки червоним кольором.*@
+
                 @if (errorMessage != null)
                 {
                     <p class="text-danger">@errorMessage</p>
                 }
-                @* R Якщо розклад (schedule) є null, то відображається текст "Loading...", який вказує на те, що дані розкладу завантажуються.*@
+
                 @if (schedule == null)
                 {
                     <p>Loading...</p>
                 }
-                @* R Якщо розклад існує, але не має жодних записів (його розмір рівний нулю), відображається повідомлення "Розклад пустий".*@
+
                 else if (schedule.Count == 0)
                 {
                     <p>Розклад пустий</p>
                 }
-                @* R Якщо розклад не є null і має записи, то відображається таблиця розкладу з вказаною структурою.*@
+
                 else
                 {
 
                     <table class="table">
-                        @* <thead> вказує на заголовок таблиці з назвами стовпців ("День тижня" та "Час"). *@
+
                         <thead>
                             <tr>
                                 <th>День тижня</th>
@@ -91,10 +72,7 @@ HTML-розмітка сторінки розташована всередині
 
 
 
-                            @* Якщо isEditMode false, цикл foreach у else рендерить кожний день тижня у текстовому форматі, де часові проміжки відображаються як звичайний текст без можливості редагування.
-                    Це відбувається тому, що у режимі перегляду не потрібно надавати можливість редагування розкладу, отже, вводити текстові поля і кнопки не потрібно. Вміст часових проміжків виводиться як текстова рядок без зміни. *@
 
-                            <!-- Render as plain text for viewing -->
                             @foreach (var kvp in schedule)
                             {
                                 var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
@@ -117,19 +95,7 @@ HTML-розмітка сторінки розташована всередині
                     </table>
                 }
             </div>
-            @* <div class="four">
-        <div class="username-container">
-        <h3>Нікнейм користувача</h3>
-        </div>
 
-        </div> *@
-
-            @* R частина коду з юзернеймом(можна лише читати)*@
-            @* <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
-        </div> *@
-            @* R частина коду у якій юзер може редагувати ім'я' *@
 
             <div class="form-group">
                 <label for="name">Призвіще Ім'я:</label>
@@ -138,8 +104,7 @@ HTML-розмітка сторінки розташована всередині
 
 
 
-            @* <div class="five">опис до профілю</div> *@
-            @* R факультет*@
+
 
 
             <div class="five">
@@ -169,9 +134,7 @@ HTML-розмітка сторінки розташована всередині
 
             </div>
 
-            @* <div class="button-content">122 інформатика</div> *@
 
-            @* <div class="Subject">122 інформати1111ка</div> *@
 
 
 
@@ -215,7 +178,7 @@ else
 @code {
     private string errorMessage;
 
-    private bool isUserAuthenticated;
+    
 
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
@@ -244,8 +207,8 @@ else
     [Parameter]
 
 
-    public string Username { get; set; }
-    private UpdateProfile user;
+    public string? Username { get; set; }
+    private UpdateProfile? user;
 
 
 
@@ -335,7 +298,7 @@ else
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
-            //email = user.Email; // Зверніть увагу, що це має бути email, а не Username, якщо ви хочете відображати email користувача
+
 
             userProfile = await Http.GetFromJsonAsync<UpdateProfile>($"https://localhost:7292/Users/profile/{Username}");
             originalProfile = userProfile;

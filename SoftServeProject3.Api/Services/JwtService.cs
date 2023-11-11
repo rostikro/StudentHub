@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SoftServeProject3.Api.Configurations;
+using SoftServeProject3.Api.Interfaces;
 using SoftServeProject3.Core.DTOs;
 
 
