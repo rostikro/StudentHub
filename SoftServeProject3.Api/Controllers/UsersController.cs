@@ -75,8 +75,8 @@ namespace SoftServeProject3.Api.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, loginRequest.Email),
-                new Claim(ClaimTypes.Name, loginRequest.Username)
+                new Claim(ClaimTypes.Email, userInDb.Email),
+                new Claim(ClaimTypes.Name, userInDb.Username)
             };
 
             var token = _jwtService.GenerateJwtToken(claims);
@@ -177,7 +177,15 @@ namespace SoftServeProject3.Api.Controllers
 
             return Ok(subjects);
         }
+        [HttpGet("faculties")]
+        public IActionResult GetFaculties()
+        {
+            var filePath = Path.Combine(_env.ContentRootPath, "Data", "Faculties.json");
+            var jsonString = System.IO.File.ReadAllText(filePath);
+            var faculties = JsonConvert.DeserializeObject<List<string>>(jsonString);
 
+            return Ok(faculties);
+        }
         /// <summary>
         /// Пошук користувачів за часовим інтервалом або/та списком предметів.
         /// </summary>
@@ -186,27 +194,42 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="subjects">Список предметів для фільтрації.</param>
         /// <returns>Фільтрований список користувачів.</returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchUsers(TimeSpan? startTime, TimeSpan? endTime, [FromQuery] List<string> subjects)
+        public async Task<IActionResult> SearchUsers(
+        TimeSpan? startTime,
+        TimeSpan? endTime,
+        [FromQuery] List<string> subjects,
+        [FromQuery] string faculty)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
             var filteredUsers = allUsers.AsEnumerable();
 
-            if (startTime.HasValue && endTime.HasValue)
-            {
-                filteredUsers = filteredUsers.Where(u => u.Schedule != null && u.Schedule.Any(day =>
-                        day.Value.Any(timeRange =>
-                            (timeRange.Start.TimeOfDay <= startTime.Value && timeRange.End.TimeOfDay > startTime.Value) ||
-                            (timeRange.Start.TimeOfDay < endTime.Value && timeRange.End.TimeOfDay >= endTime.Value) ||
-                            (startTime.Value <= timeRange.Start.TimeOfDay && endTime.Value >= timeRange.End.TimeOfDay)))).ToList();
-            }
-
             if (subjects != null && subjects.Any())
             {
-                filteredUsers = filteredUsers.Where(u => u.Subjects != null && u.Subjects.Intersect(subjects, StringComparer.OrdinalIgnoreCase).Any()).ToList();
+                filteredUsers = filteredUsers.Where(u => u.Subjects != null && u.Subjects.Intersect(subjects, StringComparer.OrdinalIgnoreCase).Any());
+            }
+            if (!string.IsNullOrEmpty(faculty) && faculty != "Пусто")
+            {
+                filteredUsers = filteredUsers.Where(u => u.Faculty != null && u.Faculty.Equals(faculty, StringComparison.OrdinalIgnoreCase));
+            }
+            if (startTime.HasValue && endTime.HasValue)
+            {
+                filteredUsers = filteredUsers
+                    .Select(u => new
+                    {
+                        User = u,
+                        MatchingTimeRanges = u.Schedule
+                            .SelectMany(d => d.Value)
+                            .Count(tr => (tr.Start.TimeOfDay <= startTime.Value && tr.End.TimeOfDay > startTime.Value) ||
+                                         (tr.Start.TimeOfDay < endTime.Value && tr.End.TimeOfDay >= endTime.Value) ||
+                                         (startTime.Value <= tr.Start.TimeOfDay && endTime.Value >= tr.End.TimeOfDay))
+                    })
+                    .Where(x => x.MatchingTimeRanges > 0)
+                    .OrderByDescending(x => x.MatchingTimeRanges)
+                    .Select(x => x.User);
             }
 
             if (!filteredUsers.Any())
-                return NotFound("No users");
+                return NotFound("No users found matching the criteria.");
 
             return Ok(filteredUsers);
         }
