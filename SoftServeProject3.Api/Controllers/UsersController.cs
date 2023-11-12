@@ -284,7 +284,7 @@ namespace SoftServeProject3.Api.Controllers
         /// Ініціація процесу входу в систему Google OAuth.
         /// </summary>
         /// <returns>Результат виклику, який перенаправляє на Google для аутентифікації.</returns>
-        [HttpGet("login/google")]
+        [HttpPost("login/google")]
         public IActionResult GoogleLogin()
         {
             var authenticationProperties = new AuthenticationProperties
