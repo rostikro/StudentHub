@@ -90,15 +90,7 @@ namespace SoftServeProject3.Api.Repositories
             }
         }
 
-        /// <summary>
-        /// Замінює існуючий об'єкт користувача в базі даних на новий.
-        /// </summary>
-        /// <param name="user">Новий об'єкт користувача.</param>
-        /// <returns>Асинхронна задача.</returns>
-        public async Task UpdateUserAsync(UserModel user)
-        {
-            await _users.ReplaceOneAsync(u => u.Email == user.Email, user);
-        }
+        
 
         public async Task UpdateUserPasswordAsync(UserModel user, string p)
         {

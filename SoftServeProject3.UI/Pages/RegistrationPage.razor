@@ -18,17 +18,15 @@
     </head>
     <body>
         <div class="container">
-            <!-- Google Sign-In Button -->
-            <div id="g_id_onload"
-                 data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
-                 data-ux_mode="redirect"
-                 data-login_uri="https://localhost:7292/Users/login/google">
-            </div>
-            <div class="g_id_signin" data-type="standard"></div>
-
-            <!-- Your existing registration form code -->
+   
             @if (!isCodeSent)
             {
+                <div id="g_id_onload"
+                     data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
+                     data-ux_mode="redirect"
+                     data-login_uri="https://localhost:7292/Users/login/google">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
                 <h1>Реєстрація</h1>
                 <p>Будь ласка, заповніть цю форму, щоб увійти на сайт.</p>
                 <hr>
@@ -193,41 +191,41 @@ else
     /// </summary>
     private async Task Register()
     {
-
         var registerRequest = new UserModel
+        {
+            Username = regModel.Username,
+            Email = regModel.Email,
+            Password = regModel.Password,
+            IsEmailConfirmed = isEmailConfirmed,
+            PhotoUrl = "",
+            Faculty = "",
+            Name = "",
+            Description = "",
+            Subjects = new List<string>(),
+            Social = new Dictionary<string, string>
             {
-                Username = regModel.Username,
-                Email = regModel.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(regModel.Password),
-                IsEmailConfirmed = isEmailConfirmed,
-                PhotoUrl = "",
-                Faculty = "",
-                Name = "",
-                Description = "",
-                Subjects = new List<string>(),
-                Social = new Dictionary<string, string>
-                {
-                    { "instagram", "" },
-                    { "twitter", "" },
-                    { "github", "" },
-                    { "facebook", "" },
-                    { "telegram", "" }
-                },
-                Schedule = new Dictionary<string, List<TimeRange>>
-                {
-                    { "Monday", new List<TimeRange>() },
-                    { "Tuesday", new List<TimeRange>() },
-                    { "Wednesday", new List<TimeRange>() },
-                    { "Thursday", new List<TimeRange>() },
-                    { "Friday", new List<TimeRange>() },
-                    { "Saturday", new List<TimeRange>() },
-                    { "Sunday", new List<TimeRange>() },
-                },
-                Friends = new List<MongoDB.Bson.ObjectId>(),
-                OutFriends = new List<MongoDB.Bson.ObjectId>(),
-                InFriends = new List<MongoDB.Bson.ObjectId>()
-            };
+                { "instagram", "" },
+                { "twitter", "" },
+                { "github", "" },
+                { "facebook", "" },
+                { "telegram", "" }
+            },
+            Schedule = new Dictionary<string, List<TimeRange>>
+            {
+                { "Monday", new List<TimeRange>() },
+                { "Tuesday", new List<TimeRange>() },
+                { "Wednesday", new List<TimeRange>() },
+                { "Thursday", new List<TimeRange>() },
+                { "Friday", new List<TimeRange>() },
+                { "Saturday", new List<TimeRange>() },
+                { "Sunday", new List<TimeRange>() },
+            },
+            Friends = new List<MongoDB.Bson.ObjectId>(),
+            OutFriends = new List<MongoDB.Bson.ObjectId>(),
+            InFriends = new List<MongoDB.Bson.ObjectId>()
+        };
 
+        
         try
         {
             var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
@@ -309,5 +307,4 @@ else
     {
         editContext.OnFieldChanged -= HandleFieldChanged;
     }
-
 }

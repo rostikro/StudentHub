@@ -4,7 +4,7 @@ namespace SoftServeProject3.Api.Interfaces
 {
     public interface IUserRepository
     {
-        Task UpdateUserAsync(UserModel user);
+        
         Task UpdateUserAsync(string email);
         Task UpdateProfileAsync(UpdateProfile profile, string email);
         Task<bool> IsUserExistsAsync(string email);
