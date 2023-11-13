@@ -54,7 +54,7 @@ namespace SoftServeProject3.Core.DTOs
 
         [JsonProperty("schedule")]
         [BsonElement("schedule")]
-        public Dictionary<string, List<TimeRange>> Schedule { get; set; }
+        public Dictionary<string, List<TimeRange>> Schedule { get; set; } //= new ();
 
         [JsonProperty("friends")]
         [BsonElement("friends")]

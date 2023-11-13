@@ -1,0 +1,333 @@
+﻿@page "/UserProfile/{Username}"
+@inject HttpClient Http
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
+@using System.Net.Http.Json;
+
+<head>
+    <PageTitle>Перегляд профілю</PageTitle>
+</head>
+@if (isUserAuthenticated)
+{
+    @if (userProfile != null)
+    {
+
+        <body>
+            <div class="wrapper">
+                <div class="one">
+                    <div class="left-links">
+                        <a href="#">Home</a>
+                        <a href="UserSearch">Пошук студентів</a>
+                    </div>
+                    <div class="right-links">
+                        <a href="UserProfile">Профіль</a>
+                    </div>
+                </div>
+
+                <div class="two">
+
+
+                    <h2>@userProfile.username</h2>
+                    <div class="profile-picture">
+                        <img src="@userProfile.photoUrl" alt="Немає фото профілю">
+                    </div>
+
+                </div>
+                <div class="three">
+                    <h1>Мій розклад</h1>
+
+                    @if (errorMessage != null)
+                    {
+                        <p class="text-danger">@errorMessage</p>
+                    }
+
+                    @if (schedule == null)
+                    {
+                        <p>Loading...</p>
+                    }
+
+                    else if (schedule.Count == 0)
+                    {
+                        <p>Розклад пустий</p>
+                    }
+
+                    else
+                    {
+
+                        <table class="table">
+
+                            <thead>
+                                <tr>
+                                    <th>День тижня</th>
+                                    <th>Час</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+
+
+
+
+                                @foreach (var kvp in schedule)
+                                {
+                                    var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
+                                    var tasks = kvp.Value;
+                                    <tr>
+                                        <td>@dayOfWeek</td>
+                                        <td>
+                                            @foreach (var task in tasks)
+                                            {
+                                                <div>
+                                                    @task.StartString - @task.EndString
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+
+
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+
+                <div class="form-group">
+                    <label for="name">Призвіще Ім'я:</label>
+                    <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                </div>
+
+
+
+
+
+
+                <div class="five">
+                    <div class="button-content">
+                        <label for="faculty">Факультет:</label>
+                        <span>@userProfile.faculty</span>
+                    </div>
+                    <label for="description">Опис:</label>
+                    <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                </div>
+
+
+                <div class="soc">
+                    @foreach (var socialLink in userProfile.social)
+                    {
+
+                        @if (!string.IsNullOrEmpty(socialLink.Value))
+                        {
+                            <div class="social">
+                                <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                            </div>
+                        }
+
+
+                    }
+
+
+                </div>
+
+
+
+
+
+                <div class="subject-group">
+                    <label for="subject">Предмети:</label>
+                    @if (userProfile.subjects != null && userProfile.subjects.Any())
+                    {
+                        foreach (var subject in userProfile.subjects)
+                        {
+                            if (subject != userProfile.subjects[^1])
+                            {
+                                <span>@subject - </span>
+                            }
+                            else
+                            {
+                                <span>@subject</span>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <span>Немає предметів.</span>
+                    }
+                </div>
+
+
+
+            </div>
+        </body>
+    }
+    else
+    {
+        <p><em>Завантаження...</em></p>
+    }
+}
+else
+{
+
+}
+
+
+@* evgeniypoklov@gmail.com *@
+@* Myparol2017 *@
+@* evgeniypoklov@gmail.com *@
+@* 33 *@
+@code {
+    private string errorMessage;
+
+
+    private bool isUserAuthenticated;
+    private UpdateProfile originalProfile;
+    private UpdateProfile userProfile;
+
+    private DayOfWeek? selectedDay;
+    public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
+    private Dictionary<DayOfWeek, List<TimeRange>> schedule;
+    private List<string> DayOfWeekLocal = new List<string> {
+        "Неділя",
+        "Понеділок",
+        "Вівторок",
+        "Середа",
+        "Четвер",
+        "П'ятниця",
+        "Субота"
+    };
+
+    private List<string> selectedSubjects = new List<string>();
+    private List<string> allSubjects = new List<string>();
+    private string _subjectSearch = string.Empty;
+    private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
+
+
+
+
+    [Parameter]
+
+
+    public string? Username { get; set; }
+    private UpdateProfile? user;
+
+
+
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+    }
+
+
+
+    private string GetSocialClass(string key)
+    {
+        return key switch
+        {
+            "instagram" => "circle1",
+            "twitter" => "circle2",
+            "github" => "circle3",
+            "facebook" => "circle4",
+            "telegram" => "circle5",
+            _ => string.Empty,
+        };
+    }
+
+    /// <summary>
+    /// Метод для часу до розкладу на конкретний день.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+
+            isUserAuthenticated = await IsUserAuthenticatedAsync();
+            if (isUserAuthenticated)
+            {
+                allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
+                filteredSubjects = allSubjects;
+                await LoadUserProfile();
+                LoadSchedule();
+            }
+            else
+            {
+                errorMessage = "Failed to load user info";
+            }
+
+
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Метод для завантаження розкладу з сервера.
+    /// </summary>
+    private void LoadSchedule()
+    {
+        try
+        {
+            if (userProfile != null && userProfile.schedule != null)
+            {
+
+                schedule = userProfile.schedule.ToDictionary(
+                    kvp => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), kvp.Key),
+                    kvp =>
+                    {
+                        var timeRanges = kvp.Value;
+                        foreach (var range in timeRanges)
+                        {
+
+                            range.StartString = range.Start.ToString("HH:mm");
+                            range.EndString = range.End.ToString("HH:mm");
+                        }
+                        return timeRanges;
+                    }
+                );
+            }
+            else
+            {
+                errorMessage = "User profile schedule is not available";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing schedule: {ex.Message}");
+            errorMessage = "Failed to process schedule";
+        }
+    }
+
+    private async Task LoadUserProfile()
+    {
+        try
+        {
+            var token = await TokenService.GetToken();
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+
+
+
+            userProfile = await Http.GetFromJsonAsync<UpdateProfile>($"https://localhost:7292/Users/profile/{Username}");
+            originalProfile = userProfile;
+            selectedSubjects = userProfile.subjects;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing user information: {ex.Message}");
+            errorMessage = "Failed to process user information";
+        }
+    }
+}
+
+
+

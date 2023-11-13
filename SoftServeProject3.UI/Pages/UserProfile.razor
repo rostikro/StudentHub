@@ -13,20 +13,13 @@
 <head>
     <PageTitle>Профіль</PageTitle>
 </head>
-@* R Від Романа, постараюсь розписати код так як я його розумію.
-HTML-розмітка сторінки розташована всередині if-блоку.
-Цей блок перевіряє, чи користувач аутентифікований (isUserAuthenticated).
-Якщо так, то відображається розмітка профілю користувача.
-Інакше воно виводить: Будь ласка, ввійдіть для доступу до цієї сторінки. *@
+
 @if (isUserAuthenticated)
 {
-    @* R даному випадку, код використовує @if (userProfile != null) для перевірки,
-    чи існує об'єкт userProfile. Якщо він існує (тобто не є null), то відображається відповідна частина HTML розмітки.
-    Це допомагає уникнути помилок, які можуть виникнути при спробі отримати доступ до властивостей чи методів об'єкта,
-    який не існує (має значення null). При null воно виводить: Завантаження...*@
+
     @if (userProfile != null)
     {
-        @* R верхній навбар з посиланнями на інші сторінки *@
+
         <body>
             <div class="wrapper">
                 <div class="one">
@@ -38,7 +31,7 @@ HTML-розмітка сторінки розташована всередині
                         <a href="UserProfile">Профіль</a>
                     </div>
                 </div>
-                @* R область з фотографією *@
+
                 <div class="two">
                     @if (isEditMode)
                     {
@@ -64,21 +57,14 @@ HTML-розмітка сторінки розташована всередині
 
                     }
 
-                    @* R Якщо isEditMode має значення true,
-            тобто користувач перебуває у режимі редагування,
-            то відображається блок редагування фото профілю: де input type="text" створює текстове поле вводу + type="text" дозволяє  вводити будь-який текст у відповідне поле (не тільки цифри).
-            @bind робить так, що значення властивості photoUrl об'єкта userProfile буде автоматично оновлено на сервері, якщо користувач введе текст у текстове поле.
-            На додаток, якщо значення photoUrl буде змінено в коді на сервері, зміни також автоматично відобразяться в текстовому полі на веб-сторінці.*@
+
                     @if (isEditMode)
                     {
                         <div class="profile-picture-edit">
                             <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                         </div>
                     }
-                    @* Якщо isEditMode має значення false, тобто користувач не перебуває у режимі редагування, то відображається блок зображення фото профілю:
-            де <img> відображає фотографію профілю з URL, збереженого в userProfile.photoUrl.
-            Якщо userProfile.photoUrl не містить URL фотографії, то відображається текстовий атрибут alt (в даному випадку "Немає Фото профілю").
-            *@
+
                     else
                     {
                         <div class="profile-picture">
@@ -88,27 +74,27 @@ HTML-розмітка сторінки розташована всередині
                 </div>
                 <div class="three">
                     <h1>Мій розклад</h1>
-                    @* R Якщо змінна errorMessage не є null, то відображається текст помилки червоним кольором.*@
+
                     @if (errorMessage != null)
                     {
                         <p class="text-danger">@errorMessage</p>
                     }
-                    @* R Якщо розклад (schedule) є null, то відображається текст "Loading...", який вказує на те, що дані розкладу завантажуються.*@
+
                     @if (schedule == null)
                     {
                         <p>Loading...</p>
                     }
-                    @* R Якщо розклад існує, але не має жодних записів (його розмір рівний нулю), відображається повідомлення "Розклад пустий".*@
+
                     else if (schedule.Count == 0)
                     {
                         <p>Розклад пустий</p>
                     }
-                    @* R Якщо розклад не є null і має записи, то відображається таблиця розкладу з вказаною структурою.*@
+
                     else
                     {
 
                         <table class="table">
-                            @* <thead> вказує на заголовок таблиці з назвами стовпців ("День тижня" та "Час"). *@
+
                             <thead>
                                 <tr>
                                     <th>День тижня</th>
@@ -121,17 +107,16 @@ HTML-розмітка сторінки розташована всередині
 
                                 @if (isEditMode)
                                 {
-                                    @* R Якщо isEditMode має значення true, то використовується цикл foreach для перебору записів у словнику schedule.
-                    У словнику schedule ключами є дні тижня (наприклад, понеділок, вівторок тощо), а значеннями є списки завдань (tasks), які пов'язані з кожним конкретним днем тижня. *@
+
                                     @foreach (var kvp in schedule)
                                     {
-                                        var dayOfWeek = DayOfWeekLocal[(int)kvp.Key]; @* Отримує день тижня, який є ключем у словнику schedule. *@
-                                        var tasks = kvp.Value; @* Отримує список завдань, пов'язаних із поточним днем тижня. *@
+                                        var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
+                                        var tasks = kvp.Value;
                                         <tr>
-                                            @* R html штучка яка створює рядок у таблиці*@
-                                            <td>@dayOfWeek</td> @* R html штучка яка створює стандартну-комірку у таблиці і у неї записується день тижня *@
+
+                                            <td>@dayOfWeek</td>
                                             <td>
-                                                @* друга стандартна-комірка у таблиці і у неї записується день тижня *@
+
                                                 @for (int index = 0; index < tasks.Count; index++)
                                                 {
                                                     var task = tasks[index];
@@ -148,10 +133,9 @@ HTML-розмітка сторінки розташована всередині
                                     }
                                 }
                                 else
-                                @* Якщо isEditMode false, цикл foreach у else рендерить кожний день тижня у текстовому форматі, де часові проміжки відображаються як звичайний текст без можливості редагування.
-                    Це відбувається тому, що у режимі перегляду не потрібно надавати можливість редагування розкладу, отже, вводити текстові поля і кнопки не потрібно. Вміст часових проміжків виводиться як текстова рядок без зміни. *@
+
                                 {
-                                    <!-- Render as plain text for viewing -->
+
                                     @foreach (var kvp in schedule)
                                     {
                                         var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
@@ -174,19 +158,9 @@ HTML-розмітка сторінки розташована всередині
                         </table>
                     }
                 </div>
-                @* <div class="four">
-        <div class="username-container">
-        <h3>Нікнейм користувача</h3>
-        </div>
 
-        </div> *@
 
-                @* R частина коду з юзернеймом(можна лише читати)*@
-                @* <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" id="name" class="form-control" value="@userProfile.username" readonly />
-        </div> *@
-                @* R частина коду у якій юзер може редагувати ім'я' *@
+
                 @if (isEditMode)
                 {
 
@@ -204,8 +178,7 @@ HTML-розмітка сторінки розташована всередині
                 }
 
 
-                @* <div class="five">опис до профілю</div> *@
-                @* R факультет*@
+
                 @if (isEditMode)
                 {
                     <div class="form-group">
@@ -264,16 +237,14 @@ HTML-розмітка сторінки розташована всередині
                                     <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
                                 </div>
                             }
-                            
+
                         }
                     }
 
 
                 </div>
 
-                @* <div class="button-content">122 інформатика</div> *@
 
-                @* <div class="Subject">122 інформати1111ка</div> *@
 
                 @if (isEditMode)
                 {
@@ -301,7 +272,7 @@ HTML-розмітка сторінки розташована всередині
                 @if (isEditMode)
                 {
 
-                    <!-- Editable multiple select for subjects -->
+
                     <div class="searchSubject">
 
                         <label>Оберіть предмет(и):</label>
@@ -345,8 +316,8 @@ HTML-розмітка сторінки розташована всередині
                     @if (isEditMode)
                     {
                         <div class="editButtons">
-                        <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
-                        <button type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
+                            <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
+                            <button type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
                         </div>
 
                     }
@@ -384,10 +355,10 @@ else
     private UpdateProfile userProfile;
     private string originalUsername;
     private string facultySearch;
-    private List<string> allFaculties; 
-    private IEnumerable<string> filteredFaculties; 
+    private List<string> allFaculties;
+    private IEnumerable<string> filteredFaculties;
 
-    private DayOfWeek? selectedDay;
+    
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
     private List<string> DayOfWeekLocal = new List<string> {
@@ -419,12 +390,12 @@ else
                 if (!timeRange.IsEndTimeAfterStartTime(timeRange.StartString, timeRange.EndString))
                 {
                     timeValidationError = "Час завершення повинен бути пізніше часу початку.";
-                    return; // Зупиняємо перевірку, як тільки знаходимо помилку
+                    return;
                 }
             }
         }
 
-        // Якщо ми дійшли до цього місця, значить всі часи валідні
+
         timeValidationError = null;
     }
     private void ToggleUsernameEdit()
@@ -617,7 +588,8 @@ else
     private async Task<bool> IsUserAuthenticatedAsync()
     {
         var token = await TokenService.GetToken();
-        return !string.IsNullOrEmpty(token);
+        return TokenService.IsTokenValid(token);
+
     }
 
 
@@ -698,7 +670,7 @@ else
                 }
                 userProfile.social = userProfile.social ?? new Dictionary<string, string>();
                 userProfile.subjects = selectedSubjects;
-                // Now save the userProfile
+
                 var success = await UserProfileService.UpdateProfileAsync(userProfile);
                 errorMessage = "";
                 if (success)
@@ -710,11 +682,11 @@ else
                 }
                 else
                 {
-                    
+
                     errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
                     userProfile.username = originalUsername;
                     StateHasChanged();
-                    
+
                 }
                 originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
                 isEditMode = false;
@@ -724,12 +696,12 @@ else
 
 
                 errorMessage = $"Час завершення повинен бути пізніше часу початку.";
-                
+
 
 
             }
-            // Update the schedule in the userProfile with the new times for each day
-            
+
+
         }
         catch (Exception ex)
         {
