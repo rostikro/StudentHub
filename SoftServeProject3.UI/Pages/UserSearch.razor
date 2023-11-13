@@ -28,7 +28,7 @@
         <div class="form-group">
             <label for="faculty">Факультет:</label>
             <select id="faculty" class="form-control" @onchange="SelectFaculty">
-                
+
                 @if (allFaculties != null)
                 {
                     @foreach (var faculty in allFaculties)
@@ -121,7 +121,8 @@ else
 
 
 @code {
-    private User[] users;
+    private UserListModel[] users = new UserListModel[0];
+   
     private TimeOnly? startTimeInput;
     private TimeOnly? endTimeInput;
     private List<string> selectedSubjects = new List<string>();
@@ -131,7 +132,7 @@ else
     private bool isUserAuthenticated;
     private string errorMessage;
     private string selectedFaculty = "Пусто";
-    private List<string> allFaculties; 
+    private List<string> allFaculties;
 
     private string subjectSearch
     {
@@ -148,7 +149,7 @@ else
     private async Task<bool> IsUserAuthenticatedAsync()
     {
         var token = await TokenService.GetToken();
-        return !string.IsNullOrEmpty(token);
+        return TokenService.IsTokenValid(token);
     }
     /// <summary>
     /// Обробляє вибір користувача зі списку предметів.
@@ -193,9 +194,9 @@ else
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
-            allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties"); 
+            allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties");
             filteredSubjects = allSubjects;
-            users = await Http.GetFromJsonAsync<User[]>("https://localhost:7292/Users/list");
+            users = await Http.GetFromJsonAsync<UserListModel[]>("https://localhost:7292/Users/list");
         }
         else
         {
@@ -254,7 +255,7 @@ else
         catch (HttpRequestException ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
-            users = Array.Empty<User>();
+            users = Array.Empty<UserListModel>();
         }
 
         if (selectedSubjects.Any())
@@ -269,11 +270,11 @@ else
 
         if (response.IsSuccessStatusCode)
         {
-            users = await response.Content.ReadFromJsonAsync<User[]>();
+            users = await response.Content.ReadFromJsonAsync<UserListModel[]>();
         }
         else
         {
-            users = Array.Empty<User>();
+            users = Array.Empty<UserListModel>();
         }
     }
 
@@ -290,13 +291,5 @@ else
         filteredSubjects = allSubjects;
         StateHasChanged();
         await ApplyFilters();
-    }
-
-
-    public class User
-    {
-        public string Username { get; set; }
-        public List<string> Subjects { get; set; } = new List<string>();
-        public string Faculty { get; set; }
     }
 }

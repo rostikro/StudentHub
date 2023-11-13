@@ -96,7 +96,7 @@ public class EmailController : ControllerBase
             else
             {
 
-                _verRepository.CreateVerification(setData);
+                await _verRepository.CreateVerification(setData);
 
                 return Ok("Verification code has been set to user.");
             }
