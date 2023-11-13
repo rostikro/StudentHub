@@ -1,8 +1,5 @@
 ﻿﻿
 body {
-    background-image: url('Checking mail.razor.css.jpg');
-    background-image: image();
-    background-image: url('file:///C:\Users\Roman\Desktop\photo_2023-10-14_10-28-41.jpg');
     background-color: #007439;
     background-size: cover;
     display: flex;

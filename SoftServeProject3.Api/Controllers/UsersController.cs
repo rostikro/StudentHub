@@ -158,7 +158,15 @@ namespace SoftServeProject3.Api.Controllers
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userRepository.GetAllUsersAsync();
-            return Ok(users);
+
+            var userSummaries = users.Select(u => new UserListModel
+            {
+                Username = u.Username,
+                Subjects = u.Subjects,
+                Faculty = u.Faculty
+            }).ToList();
+
+            return Ok(userSummaries);
         }
 
         /// <summary>
@@ -275,16 +283,13 @@ namespace SoftServeProject3.Api.Controllers
                 var token = _jwtService.GenerateJwtToken(claims);
                 return Ok(new { Token = token });
             }
-
-
-
         }
 
         /// <summary>
         /// Ініціація процесу входу в систему Google OAuth.
         /// </summary>
         /// <returns>Результат виклику, який перенаправляє на Google для аутентифікації.</returns>
-        [HttpGet("login/google")]
+        [HttpPost("login/google")]
         public IActionResult GoogleLogin()
         {
             var authenticationProperties = new AuthenticationProperties

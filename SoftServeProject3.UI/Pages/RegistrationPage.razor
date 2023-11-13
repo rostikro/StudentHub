@@ -9,108 +9,90 @@
 @using SoftServeProject3.Core.DTOs;
 @using SoftServeProject3.UI.Services;
 
-<link rel="stylesheet" href="RegistrationPage.razor.css">
 
-<head>
-    <PageTitle>Registration Page</PageTitle>
-    <meta name="google-signin-client_id" content="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com">
-</head>
-
-
-<body>
-    <div class="container">
-
-        @if (!isCodeSent)
-        {
-            <h1>Реєстрація</h1>
-            <p>Будь ласка, заповніть цю форму, щоб увійти на сайт.</p>
-            <hr>
-            <EditForm OnValidSubmit="@Register" EditContext="@editContext">
-                <DataAnnotationsValidator />
-                <label for="username"><b>Ім'я користувача</b></label>
-                <StyledInputText placeholder="Введіть нікнейм" maxLength="20" @bind-Value="regModel.Username" />
-                <p><ValidationMessage For="@(()=>regModel.Username)" /></p>
-
-                <label for="email"><b>Пошта</b></label>
-                <StyledInputText placeholder="Введіть пошту" type="email" @bind-Value="regModel.Email" />
-                <p><ValidationMessage For="@(()=>regModel.Email)" /></p>
-
-                <label for="password"><b>Пароль</b></label>
-                <StyledInputText placeholder="Введіть пароль" type="password" @bind-Value="regModel.Password" />
-                <p><ValidationMessage For="@(()=>regModel.Password)" /></p>
-
-                <label for="repeatPassword"><b>Повторіть пароль</b></label>
-                <StyledInputText placeholder="Повторіть ваш пароль" type="password" @bind-Value="regModel.ConfirmPassword" />
-                <p><ValidationMessage For="@(()=>regModel.ConfirmPassword)" /></p>
+@if (!isUserAuthenticated)
+{
+    <head>
+        <PageTitle>Registration Page</PageTitle>
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+    </head>
+    <body>
+        <div class="container">
+   
+            @if (!isCodeSent)
+            {
+                <div id="g_id_onload"
+                     data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
+                     data-ux_mode="redirect"
+                     data-login_uri="https://localhost:7292/Users/login/google">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
+                <h1>Реєстрація</h1>
+                <p>Будь ласка, заповніть цю форму, щоб увійти на сайт.</p>
                 <hr>
-                @* error field *@
-                @if(!(errorMessage == ""))
+                <EditForm OnValidSubmit="@Register" EditContext="@editContext">
+                    <DataAnnotationsValidator />
+                    <label for="username"><b>Ім'я користувача</b></label>
+                    <StyledInputText placeholder="Введіть нікнейм" maxLength="20" @bind-Value="regModel.Username" />
+                    <p><ValidationMessage For="@(()=>regModel.Username)" /></p>
+
+                    <label for="email"><b>Пошта</b></label>
+                    <StyledInputText placeholder="Введіть пошту" type="email" @bind-Value="regModel.Email" />
+                    <p><ValidationMessage For="@(()=>regModel.Email)" /></p>
+
+                    <label for="password"><b>Пароль</b></label>
+                    <StyledInputText placeholder="Введіть пароль" type="password" @bind-Value="regModel.Password" />
+                    <p><ValidationMessage For="@(()=>regModel.Password)" /></p>
+
+                    <label for="repeatPassword"><b>Повторіть пароль</b></label>
+                    <StyledInputText placeholder="Повторіть ваш пароль" type="password" @bind-Value="regModel.ConfirmPassword" />
+                    <p><ValidationMessage For="@(()=>regModel.ConfirmPassword)" /></p>
+                    <hr>
+                    @* error field *@
+                    @if (!(errorMessage == ""))
+                    {
+                        <p id=@errorMessageId> @errorMessage</p>
+                    }
+                    <button type="submit" disabled="@isRegDisabled" class="@registerButtonClass">Зареєструватися</button>
+                </EditForm>
+                <hr>
+                <div class="container signin">
+                    <p>Вже зареєстровані? <a href="/login">Увійти</a></p>
+                </div>
+            }
+            else
+            {
+                <h1>Підтвердження пошти</h1>
+                <p>Будь ласка підтвердіть свою пошту.</p>
+                <hr>
+                <label>Поле для коду:</label>
+                <input @bind="code" type="text" class="inputfld" placeholder="Введіть ваш код" />
+                <div style="display: flex;">
+                    <button @onclick="VerifyCode">Підтвердити</button>
+                    <button @onclick="SendCode">Відправити код знову</button>
+                    <button @onclick="ResetForm">Повернутися</button>
+                </div>
+
+                @if (!(errorMessage == ""))
                 {
                     <p id=@errorMessageId> @errorMessage</p>
                 }
-                <button type="submit" disabled="@isRegDisabled" class="@registerButtonClass">Зареєструватися</button>
-            </EditForm>
-
-                //login-in google button
-            <hr>
-            <div @onclick="StartGoogleLogin" style="cursor: pointer; width: 240px; margin: auto;">
-                <div id="my-signin2" style="pointer-events: none;"></div>
-            </div>
-            <hr>
-
-            <script>
-                function onSuccess(googleUser) {
-                    console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-                }
-
-                function onFailure(error) {
-                    console.log(error);
-                }
-                function renderButton() {
-                    gapi.signin2.render('my-signin2', {
-                        'scope': 'profile email',
-                        'width': 240,
-                        'height': 50,
-                        'longtitle': true,
-                        'theme': 'dark',
-                        'onsuccess': onSuccess,
-                        'onfailure': onFailure
-                    });
-                }
-            </script>
-
-            <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
-
-            <div class="container signin">
-                <p>Вже зареєстровані? <a href="/login">Увійти</a></p>
-            </div>
-        }
-        else
-        {
-            <h1>Підтвердження пошти</h1>
-            <p>Будь ласка підтвердіть свою пошту.</p>
-            <hr>
-            <label>Поле для коду:</label>
-            <input @bind="code" type="text" class="inputfld" placeholder="Введіть ваш код" />
-            <div style="display: flex;">
-                <button @onclick="VerifyCode">Підтвердити</button>
-                <button @onclick="SendCode">Відправити код знову</button>
-                <button @onclick="ResetForm">Повернутися</button>
-            </div>
-            
-            @if (!(errorMessage == ""))
-            {
-                <p id=@errorMessageId> @errorMessage</p>
             }
-        }
 
-        @if (isCodeVerified)
-        {
-            <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
-            <button @onclick="Register" class="registerbtn-enabled">Завершити реєстрацію</button>
-        }
-    </div>
-</body>
+            @if (isCodeVerified)
+            {
+                <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
+                <button @onclick="Register" class="registerbtn-enabled">Завершити реєстрацію</button>
+            }
+        </div>
+    </body>
+}
+else
+{
+    Navigation.NavigateTo("/");
+}
+
+
 
 @code {
 
@@ -120,7 +102,7 @@
     private bool isCodeSent = false;
     private bool isCodeVerified = false;
     private bool isEmailConfirmed = false;
-
+    private bool isUserAuthenticated;
     EditContext editContext;
 
     UserRegistrationModel regModel = new UserRegistrationModel();
@@ -150,9 +132,9 @@
         Dispose();
 
         EmailDataModel emailData = new EmailDataModel()
-            {
-                EmailTo = regModel.Email,
-            };
+        {
+            EmailTo = regModel.Email,
+        };
 
         var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
         if (!response.IsSuccessStatusCode)
@@ -165,13 +147,13 @@
     private async Task VerifyCode()
     {
         EmailDataModel emailData = new EmailDataModel()
-            {
-                EmailTo = regModel.Email
-            };
+        {
+            EmailTo = regModel.Email
+        };
         ForgotPasswordModel forgotPassword = new ForgotPasswordModel()
-            {
-                Code = code,
-            };
+        {
+            Code = code,
+        };
         forgotPassword.Email = emailData.EmailTo;
         var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail", forgotPassword);
 
@@ -188,7 +170,6 @@
         }
     }
 
-
     /// <summary>
     /// Повертає до введення полів.
     /// </summary>
@@ -203,52 +184,48 @@
     /// <summary>
     /// Ініціалізує процес входу через Google.
     /// </summary>
-    private void StartGoogleLogin()
-    {
 
-        Navigation.NavigateTo("https://localhost:7292/Users/login/google", forceLoad: true);
-    }
 
     /// <summary>
     /// Виконує реєстрацію користувача.
     /// </summary>
     private async Task Register()
     {
-
         var registerRequest = new UserModel
+        {
+            Username = regModel.Username,
+            Email = regModel.Email,
+            Password = regModel.Password,
+            IsEmailConfirmed = isEmailConfirmed,
+            PhotoUrl = "",
+            Faculty = "",
+            Name = "",
+            Description = "",
+            Subjects = new List<string>(),
+            Social = new Dictionary<string, string>
             {
-                Username = regModel.Username,
-                Email = regModel.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(regModel.Password),
-                IsEmailConfirmed = isEmailConfirmed,
-                PhotoUrl = "",
-                Faculty = "",
-                Name = "",
-                Description = "",
-                Subjects = new List<string>(),
-                Social = new Dictionary<string, string>
-                {
-                    { "instagram", "" },
-                    { "twitter", "" },
-                    { "github", "" },
-                    { "facebook", "" },
-                    { "telegram", "" }
-                },
-                Schedule = new Dictionary<string, List<TimeRange>>
-                {
-                    { "Monday", new List<TimeRange>() },
-                    { "Tuesday", new List<TimeRange>() },
-                    { "Wednesday", new List<TimeRange>() },
-                    { "Thursday", new List<TimeRange>() },
-                    { "Friday", new List<TimeRange>() },
-                    { "Saturday", new List<TimeRange>() },
-                    { "Sunday", new List<TimeRange>() },
-                },
-                Friends = new List<MongoDB.Bson.ObjectId>(),
-                OutFriends = new List<MongoDB.Bson.ObjectId>(),
-                InFriends = new List<MongoDB.Bson.ObjectId>()
-            };
+                { "instagram", "" },
+                { "twitter", "" },
+                { "github", "" },
+                { "facebook", "" },
+                { "telegram", "" }
+            },
+            Schedule = new Dictionary<string, List<TimeRange>>
+            {
+                { "Monday", new List<TimeRange>() },
+                { "Tuesday", new List<TimeRange>() },
+                { "Wednesday", new List<TimeRange>() },
+                { "Thursday", new List<TimeRange>() },
+                { "Friday", new List<TimeRange>() },
+                { "Saturday", new List<TimeRange>() },
+                { "Sunday", new List<TimeRange>() },
+            },
+            Friends = new List<MongoDB.Bson.ObjectId>(),
+            OutFriends = new List<MongoDB.Bson.ObjectId>(),
+            InFriends = new List<MongoDB.Bson.ObjectId>()
+        };
 
+        
         try
         {
             var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
@@ -261,7 +238,7 @@
                     {
 
                         await TokenService.StoreToken(result.Token);
-                        Navigation.NavigateTo("/UserProfile"); //TODO: Змінити на профіль коли профіль буде готовим
+                        Navigation.NavigateTo("/UserProfile"); 
 
                     }
                     else
@@ -291,7 +268,12 @@
     {
         public string Token { get; set; }
     }
-
+    
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+    }
 
     /// <summary>
     /// Метод, я    кий викликається при ініціалізації компоненту.
@@ -300,16 +282,24 @@
 
     protected override async Task OnInitializedAsync()
     {
+
         editContext = new EditContext(regModel);
         editContext.OnFieldChanged += HandleFieldChanged;
         base.OnInitialized();
-
-        var uri = new Uri(Navigation.Uri);
-
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
+        isUserAuthenticated = await IsUserAuthenticatedAsync();
+        if (!isUserAuthenticated)
         {
-            await TokenService.StoreToken(token.ToString());
-            Navigation.NavigateTo("/", forceLoad: true);
+            var uri = new Uri(Navigation.Uri);
+
+            if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
+            {
+                await TokenService.StoreToken(token.ToString());
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+        }
+        else
+        {
+            errorMessage = "Failed to load user info";
         }
     }
 
@@ -317,6 +307,4 @@
     {
         editContext.OnFieldChanged -= HandleFieldChanged;
     }
-
 }
-
