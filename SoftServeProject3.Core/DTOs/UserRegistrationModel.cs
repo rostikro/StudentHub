@@ -17,7 +17,7 @@ namespace SoftServeProject3.Core.DTOs
         public string Username { get; set; }
 
         [Required(ErrorMessage = "Необхідно ввести пошту.")]
-        [EmailAddress(ErrorMessage = "Неправильний формат пошти.")]
+        [EmailValidation]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Необхідно ввести пароль.")]
@@ -30,6 +30,7 @@ namespace SoftServeProject3.Core.DTOs
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
     }
+
     //клас для валідація поля нікнейму: тільки якщо валідація на знаки в довжину проходить - здійснюється валідація знаків
     public class CustomValidationAttribute : ValidationAttribute
     {
@@ -61,6 +62,25 @@ namespace SoftServeProject3.Core.DTOs
             }
 
             return ValidationResult.Success;
+        }
+    }
+
+    public class EmailValidation : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+        {
+            var email = value as string;
+
+            var emailRegex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+            var emailAttr = new EmailAddressAttribute();
+
+            if (!emailAttr.IsValid(email) || !emailRegex.IsMatch(email))
+            {
+                return new ValidationResult("Неправильний формат пошти.");
+            }
+
+            return ValidationResult.Success;
+
         }
     }
 

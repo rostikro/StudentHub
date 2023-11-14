@@ -21,14 +21,14 @@
    
             @if (!isCodeSent)
             {
-                <div id="g_id_onload"
-                     data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
-                     data-ux_mode="redirect"
-                     data-login_uri="https://localhost:7292/Users/login/google">
-                </div>
-                <div class="g_id_signin" data-type="standard"></div>
+                    <div id="g_id_onload"
+                         data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
+                         data-ux_mode="redirect"
+                         data-login_uri="https://localhost:7292/Users/login/google">
+                    </div>
+                    <div class="g_id_signin" data-type="standard"></div>
                 <h1>Реєстрація</h1>
-                <p>Будь ласка, заповніть цю форму, щоб увійти на сайт.</p>
+                <p>Будь ласка, заповніть цю форму, щоб зареєструватися на сайті.</p>
                 <hr>
                 <EditForm OnValidSubmit="@Register" EditContext="@editContext">
                     <DataAnnotationsValidator />
@@ -56,7 +56,7 @@
                     <button type="submit" disabled="@isRegDisabled" class="@registerButtonClass">Зареєструватися</button>
                 </EditForm>
                 <hr>
-                <div class="container signin">
+                <div class="login-link">
                     <p>Вже зареєстровані? <a href="/login">Увійти</a></p>
                 </div>
             }
@@ -286,6 +286,7 @@ else
         editContext = new EditContext(regModel);
         editContext.OnFieldChanged += HandleFieldChanged;
         base.OnInitialized();
+
         isUserAuthenticated = await IsUserAuthenticatedAsync();
         if (!isUserAuthenticated)
         {

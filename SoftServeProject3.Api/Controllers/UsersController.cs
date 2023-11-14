@@ -41,33 +41,22 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         /// <summary>
-        /// Представляє запит на вхід користувача в систему.
-        /// </summary>
-        public class LoginRequest
-        {
-            public string Username { get; set; }
-            public string Email { get; set; }
-            public string Password { get; set; }
-        }
-
-        /// <summary>
         /// Автентифікація користувача на основі його імені користувача/електронної пошти та пароля.
         /// </summary>
         /// <param name="loginRequest">Запит на вхід.</param>
         /// <returns>Токен JWT, якщо автентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] UserLoginModel loginModel)
         {
-            var userInDb = await _userRepository.GetUserByEmailAsync(loginRequest.Email) ?? await _userRepository.GetUserByUsernameAsync(loginRequest.Username);
+            
+            var userInDb = loginModel.EmailorUsername.Contains("@") ? 
+                await _userRepository.GetUserByEmailAsync(loginModel.EmailorUsername) :
+                await _userRepository.GetUserByUsernameAsync(loginModel.EmailorUsername);
 
-            if (userInDb == null)
+            if (userInDb == null ||
+                userInDb != null && !BCrypt.Net.BCrypt.Verify(loginModel.Password, userInDb.Password))
             {
-                return BadRequest("Invalid email or password.");
-            }
-
-            if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password))
-            {
-                return BadRequest("Invalid password.");
+                return BadRequest("Неправильний логін або пароль.");
             }
 
             var claims = new List<Claim>
@@ -149,6 +138,175 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
+
+
+        [HttpGet("friends")]
+        public async Task<IActionResult> GetFriendsAsync(string token)
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(token).Email;
+                
+                var friends = await _userRepository.GetFriendsAsync(email);
+
+                return Ok(friends);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpGet("friends/incomingRequests")]
+        public async Task<IActionResult> GetIncomingFriendRequestsAsync(string token)
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(token).Email;
+
+                var incomingFriendRequests = await _userRepository.GetIncomingFriendRequestsAsync(email);
+
+                return Ok(incomingFriendRequests);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpGet("friends/outgoingRequests")]
+        public async Task<IActionResult> GetOutgoingFriendRequestsAsync(string token)
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(token).Email;
+
+                var outgoingFriendRequests = await _userRepository.GetOutgoingFriendRequestsAsync(email);
+
+                return Ok(outgoingFriendRequests);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("addFriend")]
+        public async Task<IActionResult> AddFriendAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.AddFriendRequest(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("cancelFriendRequest")]
+        public async Task<IActionResult> CancelFriendRequestAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.RemoveFriendRequest(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("ignoreFriendRequest")]
+        public async Task<IActionResult> IgnoreFriendRequestAsync(string token, string target)
+        {
+            try
+            {
+                await _userRepository.RemoveFriendRequest(target, _jwtService.DecodeJwtToken(token).Username);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("acceptFriendRequest")]
+        public async Task<IActionResult> AcceptFriendRequestAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.AddFriend(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("removeFriend")]
+        public async Task<IActionResult> RemoveFriendAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.RemoveFriend(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
         /// <summary>
         /// Отримує список всіх користувачів.
         /// </summary>
