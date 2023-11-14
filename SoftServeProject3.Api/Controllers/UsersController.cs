@@ -41,33 +41,22 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         /// <summary>
-        /// Представляє запит на вхід користувача в систему.
-        /// </summary>
-        public class LoginRequest
-        {
-            public string Username { get; set; }
-            public string Email { get; set; }
-            public string Password { get; set; }
-        }
-
-        /// <summary>
         /// Автентифікація користувача на основі його імені користувача/електронної пошти та пароля.
         /// </summary>
         /// <param name="loginRequest">Запит на вхід.</param>
         /// <returns>Токен JWT, якщо автентифікація пройшла успішно; в іншому випадку, повідомлення про помилку.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] UserLoginModel loginModel)
         {
-            var userInDb = await _userRepository.GetUserByEmailAsync(loginRequest.Email) ?? await _userRepository.GetUserByUsernameAsync(loginRequest.Username);
+            
+            var userInDb = loginModel.EmailorUsername.Contains("@") ? 
+                await _userRepository.GetUserByEmailAsync(loginModel.EmailorUsername) :
+                await _userRepository.GetUserByUsernameAsync(loginModel.EmailorUsername);
 
-            if (userInDb == null)
+            if (userInDb == null ||
+                userInDb != null && !BCrypt.Net.BCrypt.Verify(loginModel.Password, userInDb.Password))
             {
-                return BadRequest("Invalid email or password.");
-            }
-
-            if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, userInDb.Password))
-            {
-                return BadRequest("Invalid password.");
+                return BadRequest("Неправильний логін або пароль.");
             }
 
             var claims = new List<Claim>

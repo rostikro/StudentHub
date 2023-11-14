@@ -81,3 +81,19 @@ a {
     font-size: 14px;
     margin: 10px 0;
 }
+
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+    .login-link a {
+        text-decoration: underline;
+        color: #000000;
+        font-weight: bold;
+    }
+
+        .login-link a:hover {
+            text-decoration: none;
+            color: paleturquoise;
+        }

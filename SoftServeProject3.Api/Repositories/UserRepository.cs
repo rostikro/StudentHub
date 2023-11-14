@@ -124,9 +124,17 @@ namespace SoftServeProject3.Api.Repositories
         /// </summary>
         /// <param name="email">Електронна пошта користувача.</param>
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
-        public async Task<UserModel> GetUserByEmailAsync(string email)
+        public Task<UserModel> GetUserByEmailAsync(string email)
         {
-            return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+            try
+            {
+                return _users.Find(u => u.Email == email).FirstOrDefaultAsync();
+
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
 
         /// <summary>
