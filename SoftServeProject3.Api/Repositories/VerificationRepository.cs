@@ -63,13 +63,13 @@ namespace SoftServeProject3.Api.Repositories
             }
         }
 
-        public ForgotPasswordModel GetByEmail(string email)
+        public async Task<ForgotPasswordModel> GetByEmail(string email)
         {
             try
             {
 
 
-                var verification = _verifications.Find(user => user.Email == email).FirstOrDefault();
+                var verification = await _verifications.Find(user => user.Email == email).FirstOrDefaultAsync();
 
                 if (verification == null)
                 {
@@ -121,12 +121,11 @@ namespace SoftServeProject3.Api.Repositories
                 return null;
             }
         }
-        public void CreateVerification(ForgotPasswordModel verification)
+        public async Task CreateVerification(ForgotPasswordModel verification)
         {
             try
             {
                 Debug.WriteLine(verification.Code);
-                verification.Code = BCrypt.Net.BCrypt.HashPassword(verification.Code);
                 verification.ResendCode = DateTime.UtcNow.AddMinutes(CAN_RESEND_CODE_IN_MIN);
                 verification.ExpirationTime = DateTime.UtcNow.AddMinutes(EXPIRE_IN_MINUTES);
                 _verifications.InsertOne(verification);

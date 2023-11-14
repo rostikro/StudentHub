@@ -3,7 +3,7 @@
 @inject NavigationManager Navigation
 @using SoftServeProject3.Core.DTOs;
 
-<link rel="stylesheet" href="CheckingMail.razor.css">
+
 
 
 <head>
@@ -39,8 +39,9 @@
                     <label>Поле для коду:</label>
                     <InputText @bind-Value="forgotPassword.Code" placeholder="Введіть ваш код" />
                     <button type="submit">Скинути пароль</button>
-                    <button @onclick="SendCode">Відправити код знову</button>
                 </EditForm>
+                <button @onclick="SendCode">Відправити код знову</button>
+
             }
         </div>
     </div>
@@ -67,13 +68,15 @@
         private async Task SendCode()
         {
             var isResetQueryParam = "?isReset=true";
-            var url = "https://localhost:7292/Email/SendVerificationCodePassword" + isResetQueryParam;
-            var response = await Http.PostAsJsonAsync(url, emailData);
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword" + isResetQueryParam, emailData);
 
             if (!response.IsSuccessStatusCode)
                 errorMessage = await response.Content.ReadAsStringAsync();
             else
+            {
                 showCodeInput = true;
+                errorMessage = "";
+            }
 
         }
 

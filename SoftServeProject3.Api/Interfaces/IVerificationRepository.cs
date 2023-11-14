@@ -7,9 +7,9 @@ namespace SoftServeProject3.Api.Interfaces
     {
         Task UpdateCodeAsync(ForgotPasswordModel resetData);
         Task<bool> IsUserExistsAsync(string email);
-        ForgotPasswordModel GetByEmail(string email);
+        Task<ForgotPasswordModel> GetByEmail(string email);
         Task<ForgotPasswordModel> GetByHashCode(string hashCode);
-        void CreateVerification(ForgotPasswordModel verification);
+        Task CreateVerification(ForgotPasswordModel verification);
         bool RemoveVerification(string email);
         Task ClearVerifications();
     }

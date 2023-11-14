@@ -1,97 +1,138 @@
 ﻿@page "/UserSearch"
 @inject HttpClient Http
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
+@using System.Net.Http.Json;
 
-<h3>Список користувачів</h3>
 
-<div>
-    <label for="startTime">Час початку:</label>
-    <input type="time" id="startTime" @bind="startTimeInput" />
-
-    <label for="endTime">Час завершення:</label>
-    <input type="time" id="endTime" @bind="endTimeInput" />
+@if (isUserAuthenticated)
+{
+    @if (errorMessage != null)
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
+    <h3>Список користувачів</h3>
 
     <div>
-        <label for="subjectSearch">Пошук предмету:</label>
-        <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
-    </div>
+        <label for="startTime">Час початку:</label>
+        <input type="time" id="startTime" @bind="startTimeInput" />
 
-    <div>
-        <label>Оберіть предмет(и):</label>
-        <select @onchange="OnSubjectsSelected" multiple>
-            @if (filteredSubjects != null)
+        <label for="endTime">Час завершення:</label>
+        <input type="time" id="endTime" @bind="endTimeInput" />
+        <div class="form-group">
+            <label for="faculty">Факультет:</label>
+            <select id="faculty" class="form-control" @onchange="SelectFaculty">
+
+                @if (allFaculties != null)
+                {
+                    @foreach (var faculty in allFaculties)
+                    {
+                        <option value="@faculty">@faculty</option>
+                    }
+                }
+            </select>
+        </div>
+
+
+        <div>
+            <label for="subjectSearch">Пошук предмету:</label>
+            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+        </div>
+
+        <div>
+            <label>Оберіть предмет(и):</label>
+            <select @onchange="OnSubjectsSelected" multiple>
+                @if (filteredSubjects != null)
+                {
+                    @foreach (var subject in filteredSubjects)
+                    {
+                        <option @onclick="() => SelectSubject(subject)">@subject</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div>
+            <label>Обрані предмети:</label>
+            @if (selectedSubjects.Any())
             {
-                @foreach (var subject in filteredSubjects)
-                {
-                    <option @onclick="() => SelectSubject(subject)">@subject</option>
-                }
+                <ul>
+                    @foreach (var subject in selectedSubjects)
+                    {
+                        <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
+                    }
+                </ul>
             }
-        </select>
+        </div>
+
+        <button @onclick="ApplyFilters">Фільтрувати</button>
+        <button @onclick="ResetFilters">Скинути фільтри</button>
     </div>
 
-    <div>
-        <label>Обрані предмети:</label>
-        @if (selectedSubjects.Any())
-        {
-            <ul>
-                @foreach (var subject in selectedSubjects)
-                {
-                    <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
-                }
-            </ul>
-        }
-    </div>
+    @if (users == null)
+    {
+        <p><em>Завантаження...</em></p>
+    }
+    else if (users.Length == 0)
+    {
+        <p>Користувачів не знайдено.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var user in users)
+            {
+                <li>
+                    <a href="UserProfile/@user.Username">@user.Username</a> -
+                    @if (user.Subjects != null && user.Subjects.Any())
+                    {
 
-    <button @onclick="ApplyFilters">Фільтрувати</button>
-    <button @onclick="ResetFilters">Скинути фільтри</button>
-</div>
-
-@if (users == null)
-{
-    <p><em>Завантаження...</em></p>
-}
-else if (users.Length == 0)
-{
-    <p>Користувачів не знайдено.</p>
+                        foreach (var subject in user.Subjects)
+                        {
+                            if (subject != user.Subjects[^1])
+                            {
+                                <span>@subject - </span>
+                            }
+                            else
+                            {
+                                <span>@subject</span>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <span>Немає предметів.</span>
+                    }
+                </li>
+            }
+        </ul>
+    }
 }
 else
 {
-    <ul>
-        @foreach (var user in users)
-        {
-            <li>
-                <a href="UserProfile/@user.Username">@user.Username</a> -
-                @if (user.Subjects != null && user.Subjects.Any())
-                {
-
-                    foreach (var subject in user.Subjects)
-                    {
-                        if (subject != user.Subjects[^1])
-                        {
-                            <span>@subject - </span>
-                        }
-                        else
-                        {
-                            <span>@subject</span>
-                        }
-                    }
-                }
-                else
-                {
-                    <span>Немає предметів.</span>
-                }
-            </li>
-        }
-    </ul>
+    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
 }
 
+
 @code {
-    private User[] users;
+    private UserListModel[] users = new UserListModel[0];
+   
     private TimeOnly? startTimeInput;
     private TimeOnly? endTimeInput;
     private List<string> selectedSubjects = new List<string>();
     private List<string> allSubjects = new List<string>();
     private string _subjectSearch = string.Empty;
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
+    private bool isUserAuthenticated;
+    private string errorMessage;
+    private string selectedFaculty = "Пусто";
+    private List<string> allFaculties;
 
     private string subjectSearch
     {
@@ -105,7 +146,11 @@ else
             }
         }
     }
-
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+    }
     /// <summary>
     /// Обробляє вибір користувача зі списку предметів.
     /// </summary>
@@ -117,7 +162,10 @@ else
             selectedSubjects.Add(subject);
         }
     }
-
+    private void SelectFaculty(ChangeEventArgs e)
+    {
+        selectedFaculty = e.Value?.ToString();
+    }
     /// <summary>
     /// Фільтрує список предметів в залежності від того що ввів користувач у пошуку.
     /// </summary>
@@ -139,9 +187,21 @@ else
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
-        filteredSubjects = allSubjects;
-        users = await Http.GetFromJsonAsync<User[]>("https://localhost:7292/Users/list");
+        isUserAuthenticated = await IsUserAuthenticatedAsync();
+        if (isUserAuthenticated)
+        {
+            var token = await TokenService.GetToken();
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
+            allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties");
+            filteredSubjects = allSubjects;
+            users = await Http.GetFromJsonAsync<UserListModel[]>("https://localhost:7292/Users/list");
+        }
+        else
+        {
+            errorMessage = "Failed to load user info";
+        }
     }
 
     /// <summary>
@@ -195,14 +255,14 @@ else
         catch (HttpRequestException ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
-            users = Array.Empty<User>();
+            users = Array.Empty<UserListModel>();
         }
 
         if (selectedSubjects.Any())
         {
             queryParameters.AddRange(selectedSubjects.Select(subject => $"subjects={Uri.EscapeDataString(subject)}"));
         }
-
+        queryParameters.Add($"faculty={Uri.EscapeDataString(selectedFaculty)}");
         var queryString = queryParameters.Any() ? $"?{string.Join("&", queryParameters)}" : "";
         var url = $"https://localhost:7292/Users/search{queryString}";
 
@@ -210,11 +270,11 @@ else
 
         if (response.IsSuccessStatusCode)
         {
-            users = await response.Content.ReadFromJsonAsync<User[]>();
+            users = await response.Content.ReadFromJsonAsync<UserListModel[]>();
         }
         else
         {
-            users = Array.Empty<User>();
+            users = Array.Empty<UserListModel>();
         }
     }
 
@@ -226,15 +286,10 @@ else
         startTimeInput = null;
         endTimeInput = null;
         selectedSubjects.Clear();
+        selectedFaculty = "Пусто";
         subjectSearch = string.Empty;
         filteredSubjects = allSubjects;
+        StateHasChanged();
         await ApplyFilters();
-    }
-
-
-    public class User
-    {
-        public string Username { get; set; }
-        public List<string> Subjects { get; set; } = new List<string>();
     }
 }

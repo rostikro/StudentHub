@@ -46,6 +46,7 @@ namespace SoftServeProject3.Api.Repositories
                         .Set(u => u.Subjects, profile.subjects)
                         .Set(u => u.Social, profile.social)
                         .Set(u => u.Schedule, profile.schedule)
+                        .Set(u => u.Username, profile.username)
                     );
             }
             catch (Exception e)
@@ -264,15 +265,7 @@ namespace SoftServeProject3.Api.Repositories
             }
         }
 
-        /// <summary>
-        /// Замінює існуючий об'єкт користувача в базі даних на новий.
-        /// </summary>
-        /// <param name="user">Новий об'єкт користувача.</param>
-        /// <returns>Асинхронна задача.</returns>
-        public async Task UpdateUserAsync(UserModel user)
-        {
-            await _users.ReplaceOneAsync(u => u.Email == user.Email, user);
-        }
+        
 
         public async Task UpdateUserPasswordAsync(UserModel user, string p)
         {
@@ -280,69 +273,7 @@ namespace SoftServeProject3.Api.Repositories
             var update = Builders<UserModel>.Update.Set(u => u.Password, p);
             var result = await _users.UpdateOneAsync(filter, update);
         }
-
-        /// <summary>
-        /// Отримує об'єкт користувача за його електронною поштою.
-        /// </summary>
-        /// <param name="email">Електронна пошта користувача.</param>
-        /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
-        public UserModel GetByEmail(string email)
-        {
-            try
-            {
-
-
-                var user = _users.Find(user => user.Email == email).FirstOrDefault();
-
-                if (user == null)
-                {
-                    Console.WriteLine($"No user found with email: {email}");
-                }
-                else
-                {
-                    Console.WriteLine($"User found with email: {user.Email}");
-                }
-
-                return user;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching user by email: {ex.Message}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Отримує об'єкт користувача за його іменем користувача.
-        /// </summary>
-        /// <param name="username">Ім'я користувача.</param>
-        /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
-        public UserModel GetByUsername(string username)
-        {
-            try
-            {
-
-
-                var user = _users.Find(user => user.Username == username).FirstOrDefault();
-
-                if (user == null)
-                {
-                    Console.WriteLine($"No user found with username: {username}");
-                }
-                else
-                {
-                    Console.WriteLine($"User found with username: {user.Username}");
-                }
-
-                return user;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching user by username: {ex.Message}");
-                return null;
-            }
-        }
-
+        
         /// <summary>
         /// Реєструє нового користувача в системі.
         /// </summary>

@@ -1,6 +1,6 @@
 ﻿body {
     background-color: #B4C6D0;
-    height: 110vh;
+    height: 150vh;
 }
 * {
     box-sizing: border-box;
@@ -106,7 +106,7 @@
 }
 .five {
     grid-column: 1;
-    grid-row: 4;
+    grid-row: 5;
     background-color: #757575;
 }
 
@@ -185,7 +185,7 @@ button {
     background-color: white;
     border-radius: 20px;
 }
-.social {
+.soc {
     list-style: none;
     color: white;
     display: grid;
@@ -247,4 +247,31 @@ button {
     margin-right: 20px;
     background-image: url(https://i.postimg.cc/SsND6SsV/1133.jpg);
     background-size: cover;
+}
+.subject-group {
+    background-color: #949494; /* Колір фотографії */
+    grid-column: 2/4;
+    grid-row: 6/7;
+}
+
+
+.blueButton button {
+
+    width: 100%;
+}
+.subjectSearch {
+    display: grid;
+    background-color: #949494; /* Колір фотографії */
+    grid-column: 2/4;
+    grid-row: 7/8;
+    /*    grid-template-columns: 1fr 1fr 1fr;*/
+}
+.searchSubject {
+    background-color: #949494; /* Колір фотографії */
+    grid-column: 2/4;
+    grid-row: 6;
+}
+.searchSubject select {
+    cursor: pointer;
+    width: 100%;
 }
