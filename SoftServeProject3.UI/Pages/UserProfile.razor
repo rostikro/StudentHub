@@ -588,7 +588,8 @@ else
     private async Task<bool> IsUserAuthenticatedAsync()
     {
         var token = await TokenService.GetToken();
-        return !string.IsNullOrEmpty(token);
+        return TokenService.IsTokenValid(token);
+
     }
 
 

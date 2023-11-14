@@ -1,38 +1,10 @@
-﻿body {
-    background-image: url('Login.razor.css.jpg');
-    background-color: #007439;
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+﻿* {
+    box-sizing: border-box
 }
 
-.form {
-    width: 350px;
-    height: 360px;
-    border: 3px solid #228653;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    background-color: #00B358;
-    align-items: center;
+.container {
+    padding: 16px;
 }
-
-    .form h3 {
-        font-family: popins;
-        margin-top: 20px;
-    }
-
-    .form .email {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 10px;
-        padding: 5px;
-        width: 80%;
-    }
 
 label {
     font-weight: bold;
@@ -44,14 +16,26 @@ input {
     margin: 5px;
 }
 
-button {
-    margin: 10px;
-    background-color: #007439;
+.loginbtn-disabled {
+    background-color: grey;
     color: white;
-    padding: 10px 20px;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: not-allowed;
+    width: 100%;
+    opacity: 0.9;
+}
+
+.loginbtn-enabled {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
     border: none;
     cursor: pointer;
-    border-radius: 10px;
+    width: 100%;
+    opacity: 0.9;
 }
 
 .error-message {
@@ -62,6 +46,7 @@ button {
 .forgot-password-link {
     text-align: center;
     margin-top: 20px;
+    font-style: italic;
 }
 
     .forgot-password-link a {
@@ -72,21 +57,22 @@ button {
 
         .forgot-password-link a:hover {
             text-decoration: none;
-            color: #FFFFFF;
+            color: paleturquoise;
         }
 
 .registration-link {
     text-align: center;
     margin-top: 20px;
+    font-style: italic;
 }
 
     .registration-link a {
-        text-decoration: underline; 
+        text-decoration: underline;
         color: #000000;
         font-weight: bold;
     }
 
         .registration-link a:hover {
-            text-decoration: none; 
-            color: #FFFFFF; 
+            text-decoration: none;
+            color: paleturquoise;
         }

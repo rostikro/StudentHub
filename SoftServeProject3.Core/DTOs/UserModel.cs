@@ -7,6 +7,7 @@ using System.Globalization;
 
 namespace SoftServeProject3.Core.DTOs
 {
+    [BsonIgnoreExtraElements]
     public class UserModel
     {
         [System.Text.Json.Serialization.JsonIgnore]
@@ -27,7 +28,7 @@ namespace SoftServeProject3.Core.DTOs
         [JsonProperty("isEmailConfirmed")]
         [BsonElement("isEmailConfirmed")]
         public bool IsEmailConfirmed { get; set; }
-
+        
         [JsonProperty("photoUrl")]
         [BsonElement("photoUrl")]
         public string PhotoUrl { get; set; }
@@ -51,20 +52,22 @@ namespace SoftServeProject3.Core.DTOs
         [JsonProperty("social")]
         [BsonElement("social")]
         public Dictionary<string, string> Social { get; set; }
-
-        [JsonProperty("schedule")]
-        [BsonElement("schedule")]
-        public Dictionary<string, List<TimeRange>> Schedule { get; set; } //= new ();
-
+        
         [JsonProperty("friends")]
         [BsonElement("friends")]
         public List<ObjectId> Friends { get; set; }
+        
         [JsonProperty("incomingFriendRequests")]
         [BsonElement("incomingFriendRequests")]
-        public List<ObjectId> InFriends { get; set; }
+        public List<ObjectId> IncomingFriendRequests { get; set; }
+        
         [JsonProperty("outgoingFriendRequests")]
         [BsonElement("outgoingFriendRequests")]
-        public List<ObjectId> OutFriends { get; set; }
+        public List<ObjectId> OutgoingFriendRequests { get; set; }
+        
+        [JsonProperty("schedule")]
+        [BsonElement("schedule")]
+        public Dictionary<string, List<TimeRange>> Schedule { get; set; } //= new ();
     }
     public class ScheduleDay
     {

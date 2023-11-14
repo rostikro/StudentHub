@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SoftServeProject3.UI.Services
 {
@@ -10,6 +11,28 @@ namespace SoftServeProject3.UI.Services
         public TokenService(IJSRuntime jsRuntime)
         {
             _jsRuntime = jsRuntime;
+        }
+
+        public bool IsTokenValid(string token)
+        {
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+                var expClaim = jsonToken?.Claims.FirstOrDefault(claim => claim.Type == "exp")?.Value;
+
+                if (expClaim != null)
+                {
+                    var expTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim));
+                    return expTime > DateTimeOffset.UtcNow;
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task StoreToken(string token)

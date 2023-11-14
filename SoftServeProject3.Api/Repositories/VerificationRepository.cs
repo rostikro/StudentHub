@@ -121,7 +121,7 @@ namespace SoftServeProject3.Api.Repositories
                 return null;
             }
         }
-        public void CreateVerification(ForgotPasswordModel verification)
+        public async Task CreateVerification(ForgotPasswordModel verification)
         {
             try
             {
