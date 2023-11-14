@@ -15,23 +15,31 @@
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: var(--blazor-load-percentage, 0%)">
+                <div class="loading-text"></div>
+            </div>
+        </div>
+        <span class="loader"></span>
+        <!--<svg class="loading-progress">
             <circle r="40%" cx="50%" cy="50%" />
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
         <div class="loading-progress-text"></div>
+    </div>-->
     </div>
+        <div id="blazor-error-ui">
+            An unhandled error has occurred.
+            <a href="" class="reload">Reload</a>
+            <a class="dismiss">🗙</a>
+        </div>
 
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
-    <script>
-        window.API_URL = 'https://localhost:7292';
-    </script>
-    <script src="_framework/blazor.webassembly.js"></script>
-    <script src="js/interop.js"></script>
+
+        <script>
+            window.API_URL = 'https://localhost:7292';
+        </script>
+        <script src="_framework/blazor.webassembly.js"></script>
+        <script src="js/interop.js"></script>
 </body>
 
 </html>
