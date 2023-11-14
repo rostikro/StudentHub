@@ -518,8 +518,8 @@ namespace SoftServeProject3.Api.Controllers
                         { "telegram", "" }
                     },
                     Friends = new List<MongoDB.Bson.ObjectId>(),
-                    OutFriends = new List<MongoDB.Bson.ObjectId>(),
-                    InFriends = new List<MongoDB.Bson.ObjectId>()
+                    OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
+                    IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>()
                 };
 
                 _userRepository.Register(newUser);
