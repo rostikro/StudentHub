@@ -301,15 +301,10 @@ namespace SoftServeProject3.Api.Repositories
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
         public Task<UserModel> GetUserByEmailAsync(string email)
         {
-            try
-            {
+            
                 return _users.Find(u => u.Email == email).FirstOrDefaultAsync();
 
-            } catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
+            
         }
 
         /// <summary>
