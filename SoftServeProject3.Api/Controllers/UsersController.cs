@@ -317,12 +317,13 @@ namespace SoftServeProject3.Api.Controllers
         {
             var users = await _userRepository.GetAllUsersAsync();
 
-            var userSummaries = users.Select(u => new UserListModel
-            {
-                Username = u.Username,
-                Subjects = u.Subjects,
-                Faculty = u.Faculty
-            }).ToList();
+            var userSummaries = users.Where(u => !u.IsProfilePrivate)
+                                     .Select(u => new UserListModel
+                                     {
+                                         Username = u.Username,
+                                         Subjects = u.Subjects,
+                                         Faculty = u.Faculty
+                                     }).ToList();
 
             return Ok(userSummaries);
         }
