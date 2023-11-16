@@ -37,6 +37,10 @@ hr {
     opacity: 0.9;
 }
 
+#field-error-message {
+    color: red;
+}
+
 .registerbtn-enabled {
     background-color: #4CAF50;
     color: white;
@@ -45,6 +49,17 @@ hr {
     border: none;
     cursor: pointer;
     width: 100%;
+    opacity: 0.9;
+}
+
+.confirmationbtns {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 80%;
     opacity: 0.9;
 }
 
@@ -100,3 +115,37 @@ a {
             text-decoration: none;
             color: paleturquoise;
         }
+
+#field-error-message {
+    color: red;
+}
+
+#error-message {
+    display: block;
+    font-weight: bold;
+    background-color: #fce4e4;
+    border: 1px solid #fcc2c3;
+    color: #B22222;
+    padding: 20px 30px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 1s;
+}

@@ -50,6 +50,10 @@ hr {
     font-weight: bold;
 }
 
+#field-error-message {
+    color: red;
+}
+
 .forgot-password-link {
     text-align: center;
     margin-top: 20px;

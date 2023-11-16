@@ -8,6 +8,8 @@
 @using Microsoft.AspNetCore.WebUtilities;
 @using SoftServeProject3.Core.DTOs;
 @using SoftServeProject3.UI.Services;
+@using System.ComponentModel.DataAnnotations;
+
 
 
 @if (!isUserAuthenticated)
@@ -18,7 +20,7 @@
     </head>
     <body>
         <div class="container">
-   
+
             @if (!isCodeSent)
             {
                 <h1>Реєстрація</h1>
@@ -27,26 +29,31 @@
                 <EditForm OnValidSubmit="@Register" EditContext="@editContext">
                     <DataAnnotationsValidator />
                     <label for="username"><b>Ім'я користувача</b></label>
-                    <StyledInputText placeholder="Введіть нікнейм" maxLength="20" @bind-Value="regModel.Username" />
-                    <p><ValidationMessage For="@(()=>regModel.Username)" /></p>
+                    <StyledInputText placeholder="Введіть нікнейм" maxLength="20" @bind-Value="regModel.Username"
+                    @oninput="EventCallback.Factory.Create(this, HandleUsernameInput)" />
+                    <p id="field-error-message">@UsernameFieldError</p>
 
                     <label for="email"><b>Пошта</b></label>
-                    <StyledInputText placeholder="Введіть пошту" type="email" @bind-Value="regModel.Email" />
-                    <p><ValidationMessage For="@(()=>regModel.Email)" /></p>
+                    <StyledInputText placeholder="Введіть пошту" type="email" @bind-Value="regModel.Email"
+                    @oninput="EventCallback.Factory.Create(this, HandleEmailInput)" />
+                    <p id="field-error-message">@EmailFieldError</p>
 
                     <label for="password"><b>Пароль</b></label>
-                    <StyledInputText placeholder="Введіть пароль" type="password" @bind-Value="regModel.Password" />
-                    <p><ValidationMessage For="@(()=>regModel.Password)" /></p>
+                    <StyledInputText placeholder="Введіть пароль" type="password" @bind-Value="regModel.Password"
+                    @oninput="EventCallback.Factory.Create(this, HandlePasswordInput)" />
+                    <p id="field-error-message">@PasswordFieldError</p>
 
                     <label for="repeatPassword"><b>Повторіть пароль</b></label>
-                    <StyledInputText placeholder="Повторіть ваш пароль" type="password" @bind-Value="regModel.ConfirmPassword" />
-                    <p><ValidationMessage For="@(()=>regModel.ConfirmPassword)" /></p>
+                    <StyledInputText placeholder="Повторіть ваш пароль" type="password" @bind-Value="regModel.ConfirmPassword"
+                    @oninput="EventCallback.Factory.Create(this, HandleConfirmPasswordInput)" />
+                    <p id="field-error-message">@ConfirmPasswordFieldError</p>
                     <hr>
                     @* error field *@
-                    @if (!(errorMessage == ""))
+                    @if (errorMessage != "")
                     {
-                        <p id=@errorMessageId> @errorMessage</p>
+                        <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
                     }
+
                     <button type="submit" disabled="@isRegDisabled" class="@registerButtonClass">Зареєструватися</button>
                 </EditForm>
                 <p></p>
@@ -79,20 +86,25 @@
             }
             else
             {
-                <h1>Підтвердження пошти</h1>
-                <p>Будь ласка підтвердіть свою пошту.</p>
-                <hr>
-                <label>Поле для коду:</label>
-                <input @bind="code" type="text" class="inputfld" placeholder="Введіть ваш код" />
-                <div style="display: flex;">
-                    <button @onclick="VerifyCode">Підтвердити</button>
-                    <button @onclick="SendCode">Відправити код знову</button>
-                    <button @onclick="ResetForm">Повернутися</button>
+                
+                    <h1>Підтвердження пошти</h1>
+                    <p>Код верифікації був відправлений на <b>@regModel.Email</b>.</p>
+                    <p>Будь ласка, підтвердіть, що пошта ваша, ввівши код у поле нижче.</p>
+                    <hr>
+                    <label><b>Поле для коду:</b></label>
+                    <input @bind="code" type="text" class="inputfld" placeholder="Введіть ваш код" />
+                @if (!isCodeVerified)
+                {
+                    @if (errorMessage != "")
+                    {
+                        <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
+                    }
+                    <div style="display: flex; gap: 20px;">
+                        <button type="submit" @onclick="VerifyCode" class="confirmationbtns">Підтвердити</button>
+                    <button @onclick="SendCode" class="confirmationbtns">Відправити код знову</button>
+                    <button @onclick="ResetForm" class="confirmationbtns">Повернутися</button>
                 </div>
 
-                @if (!(errorMessage == ""))
-                {
-                    <p id=@errorMessageId> @errorMessage</p>
                 }
             }
 
@@ -112,9 +124,14 @@ else
 
 
 @code {
-
-
     private string errorMessage = "";
+
+    private string UsernameFieldError = "";
+    private string EmailFieldError = "";
+    private string PasswordFieldError = "";
+    private string ConfirmPasswordFieldError = "";
+
+    private string ErrorPulseClass = "";
 
     private bool isCodeSent = false;
     private bool isCodeVerified = false;
@@ -131,31 +148,130 @@ else
     private string registerButtonClass => isRegDisabled ? "registerbtn-disabled" : "registerbtn-enabled";
     private string confirmRegisterButtonClass => isCodeVerified ? "registerbtn-enabled" : "registerbtn-disabled";
 
-    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
+    #region InputHandlers
+    void HandleUsernameInput(ChangeEventArgs e)
     {
-        isRegDisabled = string.IsNullOrWhiteSpace(regModel.Username) ||
-                   string.IsNullOrWhiteSpace(regModel.Email) ||
-                   string.IsNullOrWhiteSpace(regModel.Password) ||
-                   string.IsNullOrWhiteSpace(regModel.ConfirmPassword);
-        StateHasChanged();
+        // Update the variable
+        string input = e.Value.ToString();
+        regModel.Username = input.Replace(" ", "");
+
+        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => regModel.Username)));
+
+        var validationContext = new ValidationContext(regModel) { MemberName = nameof(regModel.Username) };
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateProperty(regModel.Username, validationContext, validationResults);
+        UsernameFieldError = validationResults.Any() ? validationResults[0].ErrorMessage : "";
     }
+
+    void HandleEmailInput(ChangeEventArgs e)
+    {
+        // Update the variable
+        string input = e.Value.ToString();
+        regModel.Email = input.Replace(" ", "");
+
+        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => regModel.Email)));
+
+        var validationContext = new ValidationContext(regModel) { MemberName = nameof(regModel.Email) };
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateProperty(regModel.Email, validationContext, validationResults);
+        EmailFieldError = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+    }
+
+    void HandlePasswordInput(ChangeEventArgs e)
+    {
+        // Update the variable
+        string input = e.Value.ToString();
+        regModel.Password = input.Replace(" ", "");
+
+        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => regModel.Password)));
+
+        var validationContext = new ValidationContext(regModel) { MemberName = nameof(regModel.Password) };
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateProperty(regModel.Password, validationContext, validationResults);
+        PasswordFieldError = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+
+    }
+
+    void HandleConfirmPasswordInput(ChangeEventArgs e)
+    {
+        // Update the variable
+        string input = e.Value.ToString();
+        regModel.ConfirmPassword = input.Replace(" ", "");
+
+        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => regModel.ConfirmPassword)));
+
+        var validationContext = new ValidationContext(regModel) { MemberName = nameof(regModel.ConfirmPassword) };
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateProperty(regModel.ConfirmPassword, validationContext, validationResults);
+        ConfirmPasswordFieldError = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+
+    }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        var editContext = sender as EditContext;
+        var fieldIdentifier = e.FieldIdentifier;
+        // Get the type of the model
+        var modelType = editContext.Model.GetType();
+
+        // Get the value of the field
+        var fieldProperty = fieldIdentifier.Model.GetType().GetProperty(fieldIdentifier.FieldName);
+
+        var fieldValue = fieldProperty.GetValue(fieldIdentifier.Model);
+
+        // Get all properties of the model
+        var properties = modelType.GetProperties();
+        if (!string.IsNullOrWhiteSpace(fieldValue as string))
+        {
+            // Iterate over each property
+            foreach (var property in properties)
+            {
+                // Get the value of the property
+                var value = property.GetValue(editContext.Model);
+
+                // Check if the value is not null or whitespace
+                if (string.IsNullOrWhiteSpace(value?.ToString()) && property.Name != fieldProperty.Name)
+                {
+                    isRegDisabled = true;
+                    StateHasChanged();
+                    return;
+                }
+            }
+            isRegDisabled = false;
+            StateHasChanged();
+        }
+        else
+        {
+            isRegDisabled = true;
+            StateHasChanged();
+        }
+    }
+
+    #endregion
 
     /// <summary>
     /// Відправляє на електронну пошту користувача код для підтвердження реєстрації.
     /// </summary>
     private async Task SendCode()
     {
+        ErrorPulseClass = "";
+
         //deattaching HandleFieldChanged
         Dispose();
 
         EmailDataModel emailData = new EmailDataModel()
-        {
-            EmailTo = regModel.Email,
-        };
+            {
+                EmailTo = regModel.Email,
+            };
 
         var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword", emailData);
         if (!response.IsSuccessStatusCode)
+        {
             errorMessage = await response.Content.ReadAsStringAsync();
+            ErrorPulseClass = "pulse";
+        }
+        else
+            errorMessage = "";
         isCodeSent = true;
         isCodeVerified = false;
 
@@ -163,14 +279,16 @@ else
 
     private async Task VerifyCode()
     {
+        ErrorPulseClass = "";
+
         EmailDataModel emailData = new EmailDataModel()
-        {
-            EmailTo = regModel.Email
-        };
+            {
+                EmailTo = regModel.Email
+            };
         ForgotPasswordModel forgotPassword = new ForgotPasswordModel()
-        {
-            Code = code,
-        };
+            {
+                Code = code,
+            };
         forgotPassword.Email = emailData.EmailTo;
         var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail", forgotPassword);
 
@@ -182,7 +300,8 @@ else
         }
         else
         {
-            errorMessage = "Verification failed.";
+            errorMessage = await response.Content.ReadAsStringAsync();
+            ErrorPulseClass = "pulse";
             isCodeVerified = false;
         }
     }
@@ -208,18 +327,20 @@ else
     /// </summary>
     private async Task Register()
     {
+        ErrorPulseClass = "";
+
         var registerRequest = new UserModel
-        {
-            Username = regModel.Username,
-            Email = regModel.Email,
-            Password = regModel.Password,
-            IsEmailConfirmed = isEmailConfirmed,
-            PhotoUrl = "",
-            Faculty = "",
-            Name = "",
-            Description = "",
-            Subjects = new List<string>(),
-            Social = new Dictionary<string, string>
+            {
+                Username = regModel.Username.Trim(),
+                Email = regModel.Email.Trim(),
+                Password = regModel.Password.Trim(),
+                IsEmailConfirmed = isEmailConfirmed,
+                PhotoUrl = "",
+                Faculty = "",
+                Name = "",
+                Description = "",
+                Subjects = new List<string>(),
+                Social = new Dictionary<string, string>
             {
                 { "instagram", "" },
                 { "twitter", "" },
@@ -227,7 +348,7 @@ else
                 { "facebook", "" },
                 { "telegram", "" }
             },
-            Schedule = new Dictionary<string, List<TimeRange>>
+                Schedule = new Dictionary<string, List<TimeRange>>
             {
                 { "Monday", new List<TimeRange>() },
                 { "Tuesday", new List<TimeRange>() },
@@ -237,13 +358,13 @@ else
                 { "Saturday", new List<TimeRange>() },
                 { "Sunday", new List<TimeRange>() },
             },
-            Friends = new List<MongoDB.Bson.ObjectId>(),
-            OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
-            IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
-            IsProfilePrivate = false,
-        };
+                Friends = new List<MongoDB.Bson.ObjectId>(),
+                OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
+                IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
+                IsProfilePrivate = false,
+            };
 
-        
+
         try
         {
             var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/register", registerRequest);
@@ -256,12 +377,13 @@ else
                     {
 
                         await TokenService.StoreToken(result.Token);
-                        Navigation.NavigateTo("/UserProfile"); 
+                        Navigation.NavigateTo("/UserProfile");
 
                     }
                     else
                     {
                         errorMessage = await response.Content.ReadAsStringAsync();
+                        ErrorPulseClass = "pulse";
                     }
                 }
                 else
@@ -272,6 +394,7 @@ else
             else
             {
                 errorMessage = await response.Content.ReadAsStringAsync();
+                ErrorPulseClass = "pulse";
             }
             errorMessageId = !string.IsNullOrEmpty(errorMessage) ? "error-message-display" : "error-message-nondisplay";
 
@@ -286,7 +409,7 @@ else
     {
         public string Token { get; set; }
     }
-    
+
     private async Task<bool> IsUserAuthenticatedAsync()
     {
         var token = await TokenService.GetToken();
@@ -302,7 +425,7 @@ else
     {
 
         editContext = new EditContext(regModel);
-        editContext.OnFieldChanged += HandleFieldChanged;
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
         base.OnInitialized();
 
         isUserAuthenticated = await IsUserAuthenticatedAsync();
@@ -324,6 +447,6 @@ else
 
     public void Dispose()
     {
-        editContext.OnFieldChanged -= HandleFieldChanged;
+        editContext.OnFieldChanged -= EditContext_OnFieldChanged;
     }
 }

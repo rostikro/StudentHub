@@ -37,7 +37,7 @@ public class EmailController : ControllerBase
             {
                 if (!await _userRepository.IsUserExistsAsync(emailData.EmailTo))
                 {
-                    return BadRequest("User with the email does not exist.");
+                    return BadRequest("Користувач з такою поштою не існує.");
                 }
             }
 
@@ -60,7 +60,7 @@ public class EmailController : ControllerBase
 
             if (!result)
             {
-                return BadRequest("Failed to send verification code.");
+                return BadRequest("Сталася помилка при відсиланні коду:( Спробуйте ще раз.");
             }
 
 
@@ -89,7 +89,7 @@ public class EmailController : ControllerBase
                 else
                 {
                     //telling user to wait to resend a code
-                    return BadRequest($"You can resend code in " +
+                    return BadRequest($"Зачейкайте, будь ласка. Код можна відіслати ще раз через " +
                         $"{Math.Round(((await _verRepository.GetByEmail(emailData.EmailTo)).ResendCode - DateTime.Now).TotalSeconds)} seconds.");
                 }
             }
@@ -119,12 +119,12 @@ public class EmailController : ControllerBase
 
             if (verData.Code != verification.Code)
             {
-                return BadRequest("Code is not correct.");
+                return BadRequest("Неправильний код.");
             }
             //checking if the code is still valid
             if (verification.ExpirationTime < DateTime.UtcNow)
             {
-                return BadRequest("Code has expired.");
+                return BadRequest("Термін дії коду закінчився.Спробуйте відправити новий.");
             }
 
             //changing user email data to verified and removing user verification
