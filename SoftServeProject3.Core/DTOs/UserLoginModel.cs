@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+    
 
 namespace SoftServeProject3.Core.DTOs
 {
@@ -23,9 +24,12 @@ namespace SoftServeProject3.Core.DTOs
 
     public class EmailOrUsernameValidation : ValidationAttribute
     {
+        private int MIN_LENGTH = 4;
+
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             var str = value as string;
+
             if (str == null)
             {
                 return new ValidationResult("Необхідно ввести нікнейм або пошту.");
@@ -46,9 +50,13 @@ namespace SoftServeProject3.Core.DTOs
             {
                 // Validate as username
                 var usernameRegex = new Regex(@"^[a-zA-Z0-9._~-]+$");
-                if (!usernameRegex.IsMatch(str) || str.Length < 4 || str.Length > 100)
+                if (!usernameRegex.IsMatch(str))
                 {
                     return new ValidationResult("Використовуйте лише латинь, цифри та спеціальні знаки для нікнейму.");
+                }
+                if(str.Length < MIN_LENGTH)
+                {
+                    return new ValidationResult($"Нікнейм повинен бути щонайменше {MIN_LENGTH} знаки в довжину.");
                 }
             }
 

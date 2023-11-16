@@ -23,13 +23,32 @@
             <EditForm OnValidSubmit="@AttemptLogin" EditContext="@editContext">
                 <DataAnnotationsValidator />
                 <label><b>Ім'я користувача або пошта</b></label>
-                <StyledInputText placeholder="Введіть ім'я користувача або пошту" maxLength="50" @bind-Value="loginModel.EmailorUsername" />
+                <StyledInputText placeholder="Введіть ім'я користувача або пошту" maxLength="50" @bind-Value="loginModel.EmailorUsername"
+                @oninput="EventCallback.Factory.CreateBinder<string>(this, __value => loginModel.EmailorUsername = __value, loginModel.EmailorUsername)"
+                @onkeyup="EventCallback.Factory.Create(this, () =>
+                EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.EmailorUsername))))" />
                 <p><ValidationMessage For="@(()=>loginModel.EmailorUsername)" /></p>
-
                 <label for="password"><b>Пароль:</b></label>
-                <StyledInputText type="password" placeholder="Введіть пароль" @bind-Value="loginModel.Password" />
-                <p><ValidationMessage For="@(()=>loginModel.Password)" /></p>
+                <StyledInputText type="password" placeholder="Введіть пароль" @bind-Value="loginModel.Password"
+                @oninput="EventCallback.Factory.CreateBinder<string>(this, __value => loginModel.Password = __value, loginModel.Password)"
+                @onkeyup="EventCallback.Factory.Create(this, () =>
+                EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.Password))))" />
+                <p>
+                    <ValidationMessage For="@(()=>loginModel.Password)" />
+                </p>
+                @if (errorMessage != "")
+                {
+                    <p id="error-message" class="@ErrorPulse"> @errorMessage</p>
+                }
+                @* error field *@
+                @*                 @if (!(errorMessage == ""))
+            {
+            } *@
                 <button type="submit" disabled="@isLoginDisabled" class="@loginButtonClass">Увійти</button>
+            </EditForm>
+
+            <p></p>
+            <div style="display: flex; justify-content: center;">
                 <div id="g_id_onload"
                      data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
                      data-context="signin"
@@ -50,14 +69,11 @@
                          data-width="420">
                     </div>
                 </div>
-               
-            </EditForm>
+            </div>
 
             <hr>
 
         </div>
-
-        <p>@errorMessage</p>
 
         <div class="registration-link">
             <p>Ще не зареєстровані? <a href="/RegistrationPage">Зареєструватися</a></p>
@@ -73,14 +89,24 @@ else
     Navigation.NavigateTo("/");
 }
 @code {
+
+    void CombinedMethod(ChangeEventArgs e)
+    {
+
+        EventCallback.Factory.CreateBinder<string>(e, __value => loginModel.EmailorUsername = __value, loginModel.EmailorUsername);
+        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.EmailorUsername)));
+    }
+
     private string errorMessage = "";
 
     private bool isLoginDisabled = true;
     private bool isUserAuthenticated;
     private string loginButtonClass => isLoginDisabled ? "loginbtn-disabled" : "loginbtn-enabled";
 
+    private string ErrorPulse;
 
-    EditContext editContext;
+    EditContext editContext { get; set; }
+
     UserLoginModel loginModel = new UserLoginModel();
 
     /// <summary>
@@ -88,7 +114,7 @@ else
     /// </summary>
     private async Task AttemptLogin()
     {
-
+        ErrorPulse = "";
         UserLoginModel loginRequest = new UserLoginModel
             {
                 EmailorUsername = loginModel.EmailorUsername,
@@ -101,6 +127,10 @@ else
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
             if (result != null && !string.IsNullOrEmpty(result.Token))
             {
+                //deattaching HandleFieldChanged
+                Dispose();
+
+                errorMessage = "";
                 await TokenService.StoreToken(result.Token);
                 Navigation.NavigateTo("/");
             }
@@ -111,16 +141,62 @@ else
         }
         else
         {
-            errorMessage = await response.Content.ReadAsStringAsync(); ;
+            errorMessage = await response.Content.ReadAsStringAsync();
+            ErrorPulse = "pulse";
         }
 
     }
-
-    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
     {
-        isLoginDisabled = string.IsNullOrWhiteSpace(loginModel.EmailorUsername) ||
-                   string.IsNullOrWhiteSpace(loginModel.Password);
-        StateHasChanged();
+        var editContext = sender as EditContext;
+        var fieldIdentifier = e.FieldIdentifier;
+        // Get the type of the model
+        var modelType = editContext.Model.GetType();
+
+        // Get the value of the field
+        var fieldProperty = fieldIdentifier.Model.GetType().GetProperty(fieldIdentifier.FieldName);
+
+        var fieldValue = fieldProperty.GetValue(fieldIdentifier.Model);
+
+        // Get all properties of the model
+        var properties = modelType.GetProperties();
+        if (!string.IsNullOrWhiteSpace(fieldValue as string))
+        {
+            // Iterate over each property
+            foreach (var property in properties)
+            {
+                // Get the value of the property
+                var value = property.GetValue(editContext.Model);
+
+                // Check if the value is not null or whitespace
+                if (string.IsNullOrWhiteSpace(value?.ToString()) && property.Name != fieldProperty.Name)
+                {
+                    isLoginDisabled = true;
+                    StateHasChanged();
+                    return;
+                }
+            }
+            isLoginDisabled = false;
+            StateHasChanged();
+        }
+        else
+        {
+            isLoginDisabled = true;
+            StateHasChanged();
+        }
+
+
+
+        // Get the value of the field
+        // var propertyInfo = fieldIdentifier.Model.GetType().GetProperty(fieldIdentifier.FieldName);
+        // var fieldValue = propertyInfo.GetValue(fieldIdentifier.Model);
+        // isLoginDisabled = string.IsNullOrWhiteSpace(loginModel.EmailorUsername)
+        // || string.IsNullOrWhiteSpace(loginModel.Password);
+        // isLoginDisabled = string.IsNullOrWhiteSpace(fieldValue?.ToString())
+        // && string.IsNullOrWhiteSpace(loginModel.EmailorUsername) ||
+        // string.IsNullOrWhiteSpace(fieldValue?.ToString())
+        // && string.IsNullOrWhiteSpace(loginModel.Password);
+        // isLoginDisabled = string.IsNullOrWhiteSpace(fieldValue?.ToString());//disabled if field is empty
     }
 
     public class LoginResponse
@@ -141,7 +217,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         editContext = new EditContext(loginModel);
-        editContext.OnFieldChanged += HandleFieldChanged;
+        editContext.OnFieldChanged += EditContext_OnFieldChanged; //HandleFieldChanged;
         base.OnInitialized();
 
         isUserAuthenticated = await IsUserAuthenticatedAsync();
@@ -165,7 +241,7 @@ else
 
     public void Dispose()
     {
-        editContext.OnFieldChanged -= HandleFieldChanged;
+        editContext.OnFieldChanged -= EditContext_OnFieldChanged;
     }
 }
 

@@ -126,15 +126,7 @@ namespace SoftServeProject3.Api.Repositories
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
         public Task<UserModel> GetUserByEmailAsync(string email)
         {
-            try
-            {
-                return _users.Find(u => u.Email == email).FirstOrDefaultAsync();
-
-            } catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
+                return _users.Find(u => u.Email == email)?.FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -144,7 +136,7 @@ namespace SoftServeProject3.Api.Repositories
         /// <returns>Об'єкт користувача або <c>null</c>, якщо користувача не знайдено.</returns>
         public async Task<UserModel> GetUserByUsernameAsync(string username)
         {
-            return await _users.Find(u => u.Username == username).FirstOrDefaultAsync();
+            return await _users.Find(u => u.Username == username)?.FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<UserModel>> GetAllUsersAsync()
