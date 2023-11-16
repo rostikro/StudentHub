@@ -56,10 +56,14 @@
                         <h2 style="color:black">@userProfile.username</h2>
 
                     }
-
+                    
 
                     @if (isEditMode)
                     {
+                        <div class="form-group">
+                            <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate" />
+                            <label for="profilePrivacy">Зробити профіль приватним</label>
+                        </div>
                         <div class="profile-picture-edit">
                             <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                         </div>

@@ -520,7 +520,8 @@ namespace SoftServeProject3.Api.Controllers
                     },
                     Friends = new List<MongoDB.Bson.ObjectId>(),
                     OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
-                    IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>()
+                    IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
+                    IsProfilePrivate = false,
                 };
 
                 _userRepository.Register(newUser);

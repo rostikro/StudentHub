@@ -47,6 +47,7 @@ namespace SoftServeProject3.Api.Repositories
                         .Set(u => u.Social, profile.social)
                         .Set(u => u.Schedule, profile.schedule)
                         .Set(u => u.Username, profile.username)
+                        .Set(u => u.IsProfilePrivate, profile.isprofileprivate)
                     );
             }
             catch (Exception e)
