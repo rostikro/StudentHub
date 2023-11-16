@@ -21,12 +21,6 @@
    
             @if (!isCodeSent)
             {
-                    <div id="g_id_onload"
-                         data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
-                         data-ux_mode="redirect"
-                         data-login_uri="https://localhost:7292/Users/login/google">
-                    </div>
-                    <div class="g_id_signin" data-type="standard"></div>
                 <h1>Реєстрація</h1>
                 <p>Будь ласка, заповніть цю форму, щоб зареєструватися на сайті.</p>
                 <hr>
@@ -55,6 +49,29 @@
                     }
                     <button type="submit" disabled="@isRegDisabled" class="@registerButtonClass">Зареєструватися</button>
                 </EditForm>
+                <p></p>
+                <div style="display: flex; justify-content: center;">
+                    <div id="g_id_onload"
+                         data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-login_uri="https://localhost:7292/Users/login/google"
+                         data-nonce=""
+                         data-auto_prompt="false">
+                    </div>
+
+                    <div style="align-content:center">
+                        <div class="g_id_signin"
+                             data-type="standard"
+                             data-shape="rectangular"
+                             data-theme="filled_blue"
+                             data-text="continue_with"
+                             data-size="large"
+                             data-logo_alignment="center"
+                             data-width="420">
+                        </div>
+                    </div>
+                </div>
                 <hr>
                 <div class="login-link">
                     <p>Вже зареєстровані? <a href="/login">Увійти</a></p>

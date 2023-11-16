@@ -1,4 +1,4 @@
-﻿* {
+* {
     box-sizing: border-box
 }
 
@@ -21,12 +21,13 @@
     }
 
 hr {
-    border: 1px solid #f1f1f1;
+    border: 2px solid #f1f1f1;
+    margin-top: 25px;
     margin-bottom: 25px;
 }
 
 .registerbtn-disabled {
-    background-color: grey;
+    background-color: slategrey;
     color: white;
     padding: 16px 20px;
     margin: 8px 0;
@@ -85,6 +86,8 @@ a {
 .login-link {
     text-align: center;
     margin-top: 20px;
+    font-style: italic;
+
 }
 
     .login-link a {
