@@ -1,4 +1,4 @@
-﻿* {
+* {
     box-sizing: border-box
 }
 
@@ -87,6 +87,7 @@ a {
     text-align: center;
     margin-top: 20px;
     font-style: italic;
+
 }
 
     .login-link a {

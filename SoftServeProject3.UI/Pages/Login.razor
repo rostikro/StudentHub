@@ -1,4 +1,4 @@
-﻿@page "/login"
+@page "/login"
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject TokenService TokenService
@@ -71,6 +71,7 @@
                 </div>
             </div>
 
+
             <hr>
 
         </div>
@@ -89,14 +90,6 @@ else
     Navigation.NavigateTo("/");
 }
 @code {
-
-    void CombinedMethod(ChangeEventArgs e)
-    {
-
-        EventCallback.Factory.CreateBinder<string>(e, __value => loginModel.EmailorUsername = __value, loginModel.EmailorUsername);
-        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.EmailorUsername)));
-    }
-
     private string errorMessage = "";
 
     private bool isLoginDisabled = true;
@@ -115,6 +108,7 @@ else
     private async Task AttemptLogin()
     {
         ErrorPulse = "";
+
         UserLoginModel loginRequest = new UserLoginModel
             {
                 EmailorUsername = loginModel.EmailorUsername,
@@ -184,19 +178,6 @@ else
             isLoginDisabled = true;
             StateHasChanged();
         }
-
-
-
-        // Get the value of the field
-        // var propertyInfo = fieldIdentifier.Model.GetType().GetProperty(fieldIdentifier.FieldName);
-        // var fieldValue = propertyInfo.GetValue(fieldIdentifier.Model);
-        // isLoginDisabled = string.IsNullOrWhiteSpace(loginModel.EmailorUsername)
-        // || string.IsNullOrWhiteSpace(loginModel.Password);
-        // isLoginDisabled = string.IsNullOrWhiteSpace(fieldValue?.ToString())
-        // && string.IsNullOrWhiteSpace(loginModel.EmailorUsername) ||
-        // string.IsNullOrWhiteSpace(fieldValue?.ToString())
-        // && string.IsNullOrWhiteSpace(loginModel.Password);
-        // isLoginDisabled = string.IsNullOrWhiteSpace(fieldValue?.ToString());//disabled if field is empty
     }
 
     public class LoginResponse
@@ -217,7 +198,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         editContext = new EditContext(loginModel);
-        editContext.OnFieldChanged += EditContext_OnFieldChanged; //HandleFieldChanged;
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
+
         base.OnInitialized();
 
         isUserAuthenticated = await IsUserAuthenticatedAsync();
@@ -242,6 +224,7 @@ else
     public void Dispose()
     {
         editContext.OnFieldChanged -= EditContext_OnFieldChanged;
+
     }
 }
 

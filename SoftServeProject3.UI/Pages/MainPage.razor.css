@@ -1,13 +1,116 @@
 ﻿body {
-    width: 100%;
-    background-color: #b3b3b3;
-    margin: 0;
-    height: 1000px;
-    width: 100%;
-    font-family: Arial, sans-serif;
+    background-color: #B4C6D0;
+    height: 150vh;
 }
 
-.navbar {
+.wrapper {
+    max-width: 940px;
+    margin: 0 auto;
+}
+
+    .wrapper > div {
+        border-radius: 5px;
+        padding: 1em;
+    }
+
+.wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    grid-auto-rows: minmax(100px, auto);
+}
+
+.one {
+    grid-column: 1 / 4;
+    grid-row: 1;
+    list-style: none;
+    background-color: #b3b3b3;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 40px 20px;
+}
+
+    .one a {
+        background-color: #757575;
+        display: inline-block;
+        border: 10px solid #757575;
+        border-radius: 5px;
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+        padding: 0px 5px;
+    }
+
+        .one a:hover {
+            background-color: peru;
+            border: 10px solid peru;
+        }
+
+.left-links a:first-child {
+    margin-left: 0;
+}
+
+.right-links a:last-child {
+    margin-right: 0;
+}
+.two {
+    grid-column: 1/4;
+    grid-row: 2;
+    color: red;
+    background-color: #b3b3b3;
+    display: grid;
+    grid-template-columns: 0.4fr 1fr 1fr 1fr;
+
+}
+.circle1 {
+    aspect-ratio: 1 / 1;
+    width: auto;
+    height: auto;
+    border-radius: 50%;
+    background-color: #ffcd29;
+    margin-right: 20px;
+    background-image: url(https://avatars.githubusercontent.com/u/129945281?v=4);
+    background-size: cover;
+    border: 5px solid #ffcd29;
+}
+.oval {
+    color: #454545;
+    width: auto;
+    height: auto;
+    border-radius: 20px;
+    background-color: #ffe8a3;
+    Колір підпису margin-bottom: 10px;
+    display: flex;
+    margin: 0 45px;
+    overflow: hidden;
+    justify-content: center;
+}
+.three {
+    grid-column: 1/4;
+    grid-row: 3;
+    color: red;
+    background-color: #b3b3b3;
+    display: grid;
+    grid-template-columns: 0.4fr 1fr 1fr 1fr;
+}
+.four {
+    grid-column: 1/4;
+    grid-row: 4;
+    color: red;
+    background-color: #b3b3b3;
+    display: grid;
+    grid-template-columns: 0.4fr 1fr 1fr 1fr;
+}
+.five {
+    grid-column: 1/4;
+    grid-row: 5;
+    color: red;
+    background-color: #b3b3b3;
+    display: grid;
+    grid-template-columns: 0.4fr 1fr 1fr 1fr;
+}
+/*/*.navbar {
     list-style: none;
     background-color: #b3b3b3;
     color: white;
@@ -43,10 +146,10 @@
 .button {
     background-color: #e6e6e6;
     color: white;
-    padding: 20px 40px; /* Збільште відступи, щоб зробити кнопки ширшими */
-    border-radius: 10px;
-    margin-bottom: 40px; /* відступ між кнопками */
-    display: flex;
+    padding: 20px 40px;*/ /* Збільште відступи, щоб зробити кнопки ширшими */
+    /*border-radius: 10px;
+    margin-bottom: 40px;*/ /* відступ між кнопками */
+    /*display: flex;
     flex-direction: column;
     align-items: center;
     
@@ -56,9 +159,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* центрування відносно висоти */
-    height: 85%; /* робить так, щоб .container займав висоту екрану */
-}
+    justify-content: center;*/ /* центрування відносно висоти */
+    /*height: 85%;*/ /* робить так, щоб .container займав висоту екрану */
+    /*}
 
 .button-content {
     display: flex;
@@ -71,18 +174,18 @@
 
 }
 .circle {
-    width: 50px;
-    height: 50px;
+    width: 50vh;
+    height: 50vh;
     border-radius: 50%;
-    background-color: #ffcd29; /* Колір фотографії */
-    margin-right: 20px;
+    background-color: #ffcd29;*/ /* Колір фотографії */
+    /*margin-right: 20px;
 }
 .circle1 {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #ffcd29; /* Колір фотографії */
-    margin-right: 20px;
+    background-color: #ffcd29;*/ /* Колір фотографії */
+    /*margin-right: 20px;
     background-image: url(https://avatars.githubusercontent.com/u/129945281?v=4);
     background-size: cover;
     border: 5px solid #ffcd29;
@@ -92,8 +195,8 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #ffcd29; /* Колір фотографії */
-    margin-right: 20px;
+    background-color: #ffcd29;*/ /* Колір фотографії */
+    /*margin-right: 20px;
     background-image: url(https://avatars.githubusercontent.com/u/76153577?v=4);
     background-size: cover;
     border: 5px solid #ffcd29;
@@ -102,8 +205,8 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #ffcd29; /* Колір фотографії */
-    margin-right: 20px;
+    background-color: #ffcd29;*/ /* Колір фотографії */
+    /*margin-right: 20px;
     background-image: url(https://avatars.githubusercontent.com/u/101930216?v=4);
     background-size: cover;
     border: 5px solid #ffcd29;
@@ -113,8 +216,8 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #ffcd29; /* Колір фотографії */
-    margin-right: 20px;
+    background-color: #ffcd29;*/ /* Колір фотографії */
+    /*margin-right: 20px;
     background-image: url(https://i.pinimg.com/236x/47/42/4c/47424c6c6d58906cc0ba04cffb479574.jpg);
     background-size: cover;
     border: 5px solid #ffcd29;
@@ -123,22 +226,22 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #ffcd29; /* Колір фотографії */
-    margin-right: 20px;
+    background-color: #ffcd29;*/ /* Колір фотографії */
+    /*margin-right: 20px;
     background-image: url(https://nnews.com.ua/wp-content/uploads/2022/11/b040317b019b9e584433a2fa9e714471.jpeg);
     background-size: cover;
     border: 5px solid #ffcd29;
-}
-.oval {
+}*/
+/*.oval {
     color: #454545;
     width: 400px;
     height: 40px;
     border-radius: 20px;
-    background-color: #ffe8a3; /* Колір підпису */
+    background-color: #ffe8a3;  Колір підпису 
     margin-bottom: 10px;
     display: flex;
     margin: 0 45px;
-    overflow: hidden; /* Додайте цю властивість для обмеження вмісту в овалі */
+    overflow: hidden;  Додайте цю властивість для обмеження вмісту в овалі 
     align-items: center;
     justify-content: center;
-}
+}*/

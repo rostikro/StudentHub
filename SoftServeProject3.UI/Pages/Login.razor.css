@@ -24,6 +24,7 @@ hr {
 
 .loginbtn-disabled {
     background-color: slategrey;
+
     color: white;
     padding: 16px 20px;
     margin: 8px 0;

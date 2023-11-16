@@ -138,6 +138,175 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
+
+
+        [HttpGet("friends")]
+        public async Task<IActionResult> GetFriendsAsync(string token)
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(token).Email;
+                
+                var friends = await _userRepository.GetFriendsAsync(email);
+
+                return Ok(friends);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpGet("friends/incomingRequests")]
+        public async Task<IActionResult> GetIncomingFriendRequestsAsync(string token)
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(token).Email;
+
+                var incomingFriendRequests = await _userRepository.GetIncomingFriendRequestsAsync(email);
+
+                return Ok(incomingFriendRequests);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpGet("friends/outgoingRequests")]
+        public async Task<IActionResult> GetOutgoingFriendRequestsAsync(string token)
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(token).Email;
+
+                var outgoingFriendRequests = await _userRepository.GetOutgoingFriendRequestsAsync(email);
+
+                return Ok(outgoingFriendRequests);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("addFriend")]
+        public async Task<IActionResult> AddFriendAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.AddFriendRequest(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("cancelFriendRequest")]
+        public async Task<IActionResult> CancelFriendRequestAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.RemoveFriendRequest(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("ignoreFriendRequest")]
+        public async Task<IActionResult> IgnoreFriendRequestAsync(string token, string target)
+        {
+            try
+            {
+                await _userRepository.RemoveFriendRequest(target, _jwtService.DecodeJwtToken(token).Username);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("acceptFriendRequest")]
+        public async Task<IActionResult> AcceptFriendRequestAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.AddFriend(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpPost("removeFriend")]
+        public async Task<IActionResult> RemoveFriendAsync(string token, string target)
+        {
+            try
+            {
+                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+
+                await _userRepository.RemoveFriend(senderUsername, target);
+
+                return Ok("Success");
+            }
+            catch (KeyNotFoundException e)
+            {
+                Console.WriteLine(e);
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
         /// <summary>
         /// Отримує список всіх користувачів.
         /// </summary>
@@ -148,12 +317,13 @@ namespace SoftServeProject3.Api.Controllers
         {
             var users = await _userRepository.GetAllUsersAsync();
 
-            var userSummaries = users.Select(u => new UserListModel
-            {
-                Username = u.Username,
-                Subjects = u.Subjects,
-                Faculty = u.Faculty
-            }).ToList();
+            var userSummaries = users.Where(u => !u.IsProfilePrivate)
+                                     .Select(u => new UserListModel
+                                     {
+                                         Username = u.Username,
+                                         Subjects = u.Subjects,
+                                         Faculty = u.Faculty
+                                     }).ToList();
 
             return Ok(userSummaries);
         }
@@ -349,8 +519,9 @@ namespace SoftServeProject3.Api.Controllers
                         { "telegram", "" }
                     },
                     Friends = new List<MongoDB.Bson.ObjectId>(),
-                    OutFriends = new List<MongoDB.Bson.ObjectId>(),
-                    InFriends = new List<MongoDB.Bson.ObjectId>()
+                    OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
+                    IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
+                    IsProfilePrivate = false,
                 };
 
                 _userRepository.Register(newUser);

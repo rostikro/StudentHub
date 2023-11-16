@@ -56,10 +56,14 @@
                         <h2 style="color:black">@userProfile.username</h2>
 
                     }
-
+                    
 
                     @if (isEditMode)
                     {
+                        <div class="form-group">
+                            <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate" />
+                            <label for="profilePrivacy">Зробити профіль приватним</label>
+                        </div>
                         <div class="profile-picture-edit">
                             <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                         </div>
@@ -334,11 +338,12 @@
     }
     else
     {
-        <p><em>Завантаження...</em></p>
+        <span class="loader"></span>
     }
 }
 else
 {
+    <span class="loader"></span>
     <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
 }
 
