@@ -1,126 +1,15 @@
 ﻿@inherits LayoutComponentBase
-@inject HttpClient Http
-@inject TokenService TokenService
-@inject NavigationManager Navigation
-@inject UserProfileService UserProfileService
-@using SoftServeProject3.UI.Services;
-@using System.Globalization
-@using Newtonsoft.Json;
-@using SoftServeProject3.Core.DTOs;
 
-<div style="@sidebarWidth" class="sidebar">
-    <a class="closebtn" @onclick="CloseNav">&times;</a>
-
-    <div class="top-row ps-3 navbar navbar-dark">
-        <div class="container-fluid">
-            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-        </div>
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
     </div>
 
-    <div class="@NavMenuCssClass nav-scrollable">
-        <nav class="flex-column">
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="">
-                    <span class="oi oi-home" aria-hidden="true"></span> Головна сторінка
-                </NavLink>
-            </div>
-            @* <div class="nav-item px-3">
-            <NavLink class="nav-link" href="checking_mail">
-            <span class="oi oi-main-page" aria-hidden="true"></span> Скидання паролю
-            </NavLink>
-            </div> *@
-            @*     <div class="nav-item px-3">
-            <NavLink class="nav-link" href="RegistrationPage">
-            <span class="oi oi-account-login" aria-hidden="true"></span> Registration Page
-            </NavLink>
-            </div> *@
-            @*         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="reset-password">
-            <span class="oi oi-reset-password" aria-hidden="true"></span> Set New Password
-            </NavLink>
-            </div> *@
-            @if (!isUserAuthenticated)
-            {
-                <li class="nav-item px-3">
-                    <NavLink class="nav-link" href="login">
-                        <span class="oi oi-account-login" aria-hidden="true"></span> Login
-                    </NavLink>
-                </li>
-            }
-            else
-            {
+    <main>
+       
 
-            }
-
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="UserProfile">
-                    <span class="oi oi-main-page" aria-hidden="true"></span> User Profile
-                </NavLink>
-            </li>
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="UserSearch">
-                    <span class="oi oi-main-page" aria-hidden="true"></span> Пошук користувача
-                </NavLink>
-            </li>
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="" @onclick="Logout">
-                    <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
-                </NavLink>
-            </li>
-
-        </nav>
-    </div>
-
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
 </div>
-
-<div style="@mainMargin">
-    @if (width == 0)
-    {
-        <button class="openbtn" @onclick="OpenNav">&#9776; Open Sidebar</button>
-    }
-    else
-    {
-
-    }
-    <p>@Body</p>
-</div>
-
-@code {
-    int width = 0;
-    string sidebarWidth => $"width: {width}px;";
-    string mainMargin => $"margin-left: {width}px;";
-    void OpenNav() => width = 250;
-    void CloseNav() => width = 0;
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private bool isUserAuthenticated;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-    protected override async Task OnInitializedAsync()
-    {
-        await IsUserAuthenticatedAsync();
-    }
-    private async Task Logout()
-    {
-
-        await TokenService.RemoveToken();
-        Navigation.NavigateTo("/login");
-    }
-
-    private async Task IsUserAuthenticatedAsync()
-    {
-        var token = await TokenService.GetToken();
-        isUserAuthenticated = TokenService.IsTokenValid(token);
-        StateHasChanged();
-    }
-
-
-
-}
