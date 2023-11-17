@@ -365,7 +365,7 @@ namespace SoftServeProject3.Api.Controllers
         [FromQuery] string faculty)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
-            var filteredUsers = allUsers.AsEnumerable();
+            var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate).AsEnumerable();
 
             if (subjects != null && subjects.Any())
             {
