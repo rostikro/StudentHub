@@ -141,13 +141,27 @@ namespace SoftServeProject3.Api.Controllers
 
 
         [HttpGet("friends")]
-        public async Task<IActionResult> GetFriendsAsync(string token)
+        [Authorize]
+        public async Task<IActionResult> GetFriendsAsync(string? username = null)
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(token).Email;
-                
-                var friends = await _userRepository.GetFriendsAsync(email);
+                List<Friend> friends;
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                    friends = await _userRepository.GetFriendsAsync(email);
+                }
+                else
+                {
+                    var user = await _userRepository.GetUserByUsernameAsync(username);
+                    if (user == null)
+                    {
+                        return NotFound("User not found");
+                    }
+                    friends = await _userRepository.GetFriendsAsync(user.Email);
+                }
 
                 return Ok(friends);
             }
@@ -362,10 +376,11 @@ namespace SoftServeProject3.Api.Controllers
         TimeSpan? startTime,
         TimeSpan? endTime,
         [FromQuery] List<string> subjects,
-        [FromQuery] string faculty)
+        [FromQuery] string faculty,
+        [FromQuery] List<string> days)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
-            var filteredUsers = allUsers.AsEnumerable();
+            var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate).AsEnumerable();
 
             if (subjects != null && subjects.Any())
             {
@@ -382,7 +397,8 @@ namespace SoftServeProject3.Api.Controllers
                     {
                         User = u,
                         MatchingTimeRanges = u.Schedule
-                            .SelectMany(d => d.Value)
+                            .Where(sch => days.Count == 0 || days.Contains(sch.Key)) 
+                            .SelectMany(sch => sch.Value)
                             .Count(tr => (tr.Start.TimeOfDay <= startTime.Value && tr.End.TimeOfDay > startTime.Value) ||
                                          (tr.Start.TimeOfDay < endTime.Value && tr.End.TimeOfDay >= endTime.Value) ||
                                          (startTime.Value <= tr.Start.TimeOfDay && endTime.Value >= tr.End.TimeOfDay))
@@ -522,6 +538,7 @@ namespace SoftServeProject3.Api.Controllers
                     OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                     IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                     IsProfilePrivate = false,
+                    IsFriendsPrivate = false,
                 };
 
                 _userRepository.Register(newUser);
