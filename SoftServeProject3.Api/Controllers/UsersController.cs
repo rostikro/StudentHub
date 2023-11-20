@@ -100,7 +100,6 @@ namespace SoftServeProject3.Api.Controllers
                 var serializeOptions = new JsonSerializerSettings
                 {
                     ContractResolver = new GetUserContractResolver(),
-                    Converters = new List<JsonConverter> { new ObjectIdJsonConverter() }
                 };
 
                 var jsonRepsonse = JsonConvert.SerializeObject(user, serializeOptions);
@@ -142,13 +141,27 @@ namespace SoftServeProject3.Api.Controllers
 
 
         [HttpGet("friends")]
-        public async Task<IActionResult> GetFriendsAsync(string token)
+        [Authorize]
+        public async Task<IActionResult> GetFriendsAsync(string? username = null)
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(token).Email;
-                
-                var friends = await _userRepository.GetFriendsAsync(email);
+                List<Friend> friends;
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                    friends = await _userRepository.GetFriendsAsync(email);
+                }
+                else
+                {
+                    var user = await _userRepository.GetUserByUsernameAsync(username);
+                    if (user == null)
+                    {
+                        return NotFound("User not found");
+                    }
+                    friends = await _userRepository.GetFriendsAsync(user.Email);
+                }
 
                 return Ok(friends);
             }
@@ -525,6 +538,7 @@ namespace SoftServeProject3.Api.Controllers
                     OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                     IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                     IsProfilePrivate = false,
+                    IsFriendsPrivate = false,
                 };
 
                 _userRepository.Register(newUser);

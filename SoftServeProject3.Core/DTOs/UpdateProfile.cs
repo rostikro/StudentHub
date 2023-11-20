@@ -16,11 +16,11 @@ namespace SoftServeProject3.Core.DTOs
 
         public string description { get; set; }
         public bool isprofileprivate { get; set; }
-
+        public bool isfriendsprivate { get; set; }
         public List<string> subjects { get; set; }
 
         public Dictionary<string, string> social { get; set; }
-        public List<ObjectId> friends { get; set; }
+        
 
         public Dictionary<string, List<TimeRange>> schedule { get; set; }
 

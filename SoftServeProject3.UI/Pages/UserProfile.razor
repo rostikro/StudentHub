@@ -222,7 +222,14 @@
                         <p id="description" class="form-control-plaintext">@userProfile.description</p>
                     </div>
                 }
-
+                @if (isEditMode)
+                {
+                    <div class="form-group">
+                        <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate" />
+                        <label for="socialPrivacy">Зробити соціальні мережі приватними</label>
+                    </div>
+                    
+                }
                 <div class="soc">
                     @foreach (var socialLink in userProfile.social)
                     {

@@ -8,6 +8,6 @@ class GetUserContractResolver : DefaultContractResolver
     protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
     {
         IList<JsonProperty> props = base.CreateProperties(type, memberSerialization);
-        return props.Where(p => p.PropertyName is "username" or "photoUrl" or "faculty" or "name" or "description" or "subjects" or "social" or "schedule" or "Start" or "End" or "isProfilePrivate" or "friends").ToList();
+        return props.Where(p => p.PropertyName is "username" or "photoUrl" or "faculty" or "name" or "description" or "subjects" or "social" or "schedule" or "Start" or "End" or "isProfilePrivate" or "isFriendsPrivate").ToList();
     }
 }

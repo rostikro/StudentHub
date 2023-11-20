@@ -117,23 +117,28 @@
                     <p id="description" class="form-control-plaintext">@userProfile.description</p>
                 </div>
 
-
-                <div class="soc">
-                    @foreach (var socialLink in userProfile.social)
-                    {
-
-                        @if (!string.IsNullOrEmpty(socialLink.Value))
+                @if (isFriend && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
+                {
+                    <div class="soc">
+                        @foreach (var socialLink in userProfile.social)
                         {
-                            <div class="social">
-                                <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
-                            </div>
+
+                            @if (!string.IsNullOrEmpty(socialLink.Value))
+                            {
+                                <div class="social">
+                                    <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                                </div>
+                            }
                         }
+                    </div>
+                }
+                else
+                {
+                    <div class="soc">
 
+                    </div>
+                }
 
-                    }
-
-
-                </div>
 
 
 
@@ -184,7 +189,6 @@ else
 @* 33 *@
 @code {
     private string errorMessage;
-    IEnumerable<MongoDB.Bson.ObjectId> isFriend;
     private bool isUserAuthenticated;
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
@@ -206,8 +210,8 @@ else
     private List<string> allSubjects = new List<string>();
     private string _subjectSearch = string.Empty;
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
+    bool isFriend;
 
-    
 
 
     [Parameter]
@@ -317,11 +321,16 @@ else
 
             userProfile = await Http.GetFromJsonAsync<UpdateProfile>($"https://localhost:7292/Users/profile/{Username}");
             myProfile = await Http.GetFromJsonAsync<UserModel>($"https://localhost:7292/Users/profile/");
-            isFriend = myProfile.Friends.Intersect(userProfile.friends);
-            foreach (var friend in isFriend)
-            {
-                Console.WriteLine($"Friend ID: {friend}");
-            }
+            var myFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends");
+            var userFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends?username={userProfile.username}");
+            isFriend = myFriends.Any(friend => friend.username.Equals(userProfile.username));
+            
+            //Console.WriteLine($"Friend ID: {Friends}");
+            // isFriend = myProfile.Friends.Intersect(userProfile.friends);
+            // foreach (var friend in Friends)
+            // {
+            //     Console.WriteLine($"Friend ID: {friend}");
+            // }
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
             
