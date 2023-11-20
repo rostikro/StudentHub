@@ -324,13 +324,6 @@ else
             var myFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends");
             var userFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends?username={userProfile.username}");
             isFriend = myFriends.Any(friend => friend.username.Equals(userProfile.username));
-            
-            //Console.WriteLine($"Friend ID: {Friends}");
-            // isFriend = myProfile.Friends.Intersect(userProfile.friends);
-            // foreach (var friend in Friends)
-            // {
-            //     Console.WriteLine($"Friend ID: {friend}");
-            // }
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
             
