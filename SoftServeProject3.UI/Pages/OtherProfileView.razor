@@ -184,11 +184,11 @@ else
 @* 33 *@
 @code {
     private string errorMessage;
-
+    IEnumerable<MongoDB.Bson.ObjectId> isFriend;
     private bool isUserAuthenticated;
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
-
+    private UserModel myProfile;
     private DayOfWeek? selectedDay;
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
@@ -207,12 +207,10 @@ else
     private string _subjectSearch = string.Empty;
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
 
-
+    
 
 
     [Parameter]
-
-
     public string? Username { get; set; }
     private UpdateProfile? user;
 
@@ -318,8 +316,15 @@ else
 
 
             userProfile = await Http.GetFromJsonAsync<UpdateProfile>($"https://localhost:7292/Users/profile/{Username}");
+            myProfile = await Http.GetFromJsonAsync<UserModel>($"https://localhost:7292/Users/profile/");
+            isFriend = myProfile.Friends.Intersect(userProfile.friends);
+            foreach (var friend in isFriend)
+            {
+                Console.WriteLine($"Friend ID: {friend}");
+            }
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
+            
         }
         catch (Exception ex)
         {

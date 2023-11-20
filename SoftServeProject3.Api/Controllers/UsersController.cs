@@ -100,6 +100,7 @@ namespace SoftServeProject3.Api.Controllers
                 var serializeOptions = new JsonSerializerSettings
                 {
                     ContractResolver = new GetUserContractResolver(),
+                    Converters = new List<JsonConverter> { new ObjectIdJsonConverter() }
                 };
 
                 var jsonRepsonse = JsonConvert.SerializeObject(user, serializeOptions);
@@ -362,7 +363,8 @@ namespace SoftServeProject3.Api.Controllers
         TimeSpan? startTime,
         TimeSpan? endTime,
         [FromQuery] List<string> subjects,
-        [FromQuery] string faculty)
+        [FromQuery] string faculty,
+        [FromQuery] List<string> days)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
             var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate).AsEnumerable();
@@ -382,7 +384,8 @@ namespace SoftServeProject3.Api.Controllers
                     {
                         User = u,
                         MatchingTimeRanges = u.Schedule
-                            .SelectMany(d => d.Value)
+                            .Where(sch => days.Count == 0 || days.Contains(sch.Key)) 
+                            .SelectMany(sch => sch.Value)
                             .Count(tr => (tr.Start.TimeOfDay <= startTime.Value && tr.End.TimeOfDay > startTime.Value) ||
                                          (tr.Start.TimeOfDay < endTime.Value && tr.End.TimeOfDay >= endTime.Value) ||
                                          (startTime.Value <= tr.Start.TimeOfDay && endTime.Value >= tr.End.TimeOfDay))
