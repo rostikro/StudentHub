@@ -1,4 +1,4 @@
-window.moveFocus = function () {
+/*window.moveFocus = function () {
     var ele = document.activeElement;
     var tabIndex = ele.tabIndex;
     var inputs = document.getElementById("my-form").elements;
@@ -8,4 +8,12 @@ window.moveFocus = function () {
             return;
         }
     }
-};
+};*/
+
+window.preventSpace = function () {
+    document.getElementById("field").addEventListener('keydown', function (e) {
+        if (e.key === ' ') {
+            e.preventDefault();
+        }
+    });
+}

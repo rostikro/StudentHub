@@ -72,6 +72,10 @@ namespace SoftServeProject3.Core.DTOs
         [JsonProperty("isProfilePrivate")]
         [BsonElement("isProfilePrivate")]
         public bool IsProfilePrivate { get; set; }
+
+        [JsonProperty("isFriendsPrivate")]
+        [BsonElement("isFriendsPrivate")]
+        public bool IsFriendsPrivate { get; set; }
     }
     public class ScheduleDay
     {
