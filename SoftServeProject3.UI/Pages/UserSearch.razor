@@ -10,120 +10,150 @@
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
 
+<head>
+    <PageTitle>Пошук студентів</PageTitle>
+</head>
 
 @if (isUserAuthenticated)
 {
-    @if (errorMessage != null)
-    {
-        <p class="text-danger">@errorMessage</p>
-    }
-    <h3>Список користувачів</h3>
-
-    <div>
-        <label for="startTime">Час початку:</label>
-        <input type="time" id="startTime" @bind="startTimeInput" />
-
-        <label for="endTime">Час завершення:</label>
-        <input type="time" id="endTime" @bind="endTimeInput" />
-        <div class="form-group">
-            <label for="faculty">Факультет:</label>
-            <select id="faculty" class="form-control" @onchange="SelectFaculty">
-
-                @if (allFaculties != null)
-                {
-                    @foreach (var faculty in allFaculties)
-                    {
-                        <option value="@faculty">@faculty</option>
-                    }
-                }
-            </select>
+    <body>
+        <div class="wrapper">
+            <div class="one">
+                <div class="left-links">
+                    <a href="#">Home</a>
+                    <a href="UserSearch">Пошук студентів</a>
+                </div>
+                <div class="right-links">
+                    <a href="UserProfile">Профіль</a>
+                </div>
+            </div>
         </div>
-
+        @if (errorMessage != null)
+        {
+            <p class="text-danger">@errorMessage</p>
+        }
 
         <div>
-            <label for="subjectSearch">Пошук предмету:</label>
-            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
-        </div>
+            <div class="right-side">
+                <label for="startTime">Час початку:</label>
+                <input type="time" id="startTime" @bind="startTimeInput" />
 
-        <div>
-            <label>Оберіть предмет(и):</label>
-            <select @onchange="OnSubjectsSelected" multiple>
-                @if (filteredSubjects != null)
-                {
-                    @foreach (var subject in filteredSubjects)
-                    {
-                        <option @onclick="() => SelectSubject(subject)">@subject</option>
-                    }
-                }
-            </select>
-        </div>
+                <label for="endTime">Час завершення:</label>
+                <input type="time" id="endTime" @bind="endTimeInput" />
+                <div class="form-group">
+                    <label for="faculty">Факультет:</label>
+                    <select id="faculty" class="form-control" @onchange="SelectFaculty">
 
-        <div>
-            <label>Обрані предмети:</label>
-            @if (selectedSubjects.Any())
-            {
-                <ul>
-                    @foreach (var subject in selectedSubjects)
-                    {
-                        <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
-                    }
-                </ul>
-            }
-        </div>
-
-        <button @onclick="ApplyFilters">Фільтрувати</button>
-        <button @onclick="ResetFilters">Скинути фільтри</button>
-    </div>
-
-    @if (users == null)
-    {
-        <p><em>Завантаження...</em></p>
-    }
-    else if (users.Length == 0)
-    {
-        <p>Користувачів не знайдено.</p>
-    }
-    else
-    {
-        <ul>
-            @foreach (var user in users)
-            {
-                <li>
-                    <a href="UserProfile/@user.Username">@user.Username</a> -
-                    @if (user.Subjects != null && user.Subjects.Any())
-                    {
-
-                        foreach (var subject in user.Subjects)
+                        @if (allFaculties != null)
                         {
-                            if (subject != user.Subjects[^1])
+                            @foreach (var faculty in allFaculties)
                             {
-                                <span>@subject - </span>
-                            }
-                            else
-                            {
-                                <span>@subject</span>
+                                <option value="@faculty">@faculty</option>
                             }
                         }
-                    }
-                    else
+                    </select>
+                </div>
+            </div>
+            <div class="left-side">
+                <div>
+                    <label for="subjectSearch">Пошук предмету:</label>
+                    <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+                </div>
+
+                <div>
+                    <label>Оберіть предмет(и):</label>
+                    <select @onchange="OnSubjectsSelected" multiple>
+                        @if (filteredSubjects != null)
+                        {
+                            @foreach (var subject in filteredSubjects)
+                            {
+                                <option @onclick="() => SelectSubject(subject)">@subject</option>
+                            }
+                        }
+                    </select>
+                </div>
+            
+
+            
+                <label>Обрані предмети:</label>
+                @if (selectedSubjects.Any())
+                {
+                    <ul>
+                        @foreach (var subject in selectedSubjects)
+                        {
+                            <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
+                        }
+                    </ul>
+                }
+
+            </div>
+            <div class="buttons">
+                <button @onclick="ApplyFilters">Фільтрувати</button>
+                <button @onclick="ResetFilters">Скинути фільтри</button>
+            </div>
+        </div>
+
+        <h3 class="user-list-title">Список користувачів</h3>
+
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>Ім'я користувача</th>
+                    <th>Предмети</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (users != null && users.Length > 0)
+                {
+                    @foreach (var user in users)
                     {
-                        <span>Немає предметів.</span>
+                        <tr>
+                            <td>
+                                <a href="UserProfile/@user.Username">@user.Username</a></td>
+                            <td>
+                                @if (user.Subjects != null && user.Subjects.Any())
+                                {
+                                    @foreach (var subject in user.Subjects)
+                                    {
+                                        if (subject != user.Subjects[^1])
+                                        {
+                                            <span>@subject, </span>
+                                        }
+                                        else
+                                        {
+                                            <span>@subject</span>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <span>Немає предметів</span>
+                                }
+                            </td>
+                        </tr>
                     }
-                </li>
-            }
-        </ul>
-    }
-}
-else
-{
-    <span class="loader"></span>
-    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
-}
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="2">Користувачів не знайдено</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
+    </body>
+        }
+        else
+        {
+        <span class="loader"></span>
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+        }
+    
 
-@code {
+    @code {
     private UserListModel[] users = new UserListModel[0];
-   
+
     private TimeOnly? startTimeInput;
     private TimeOnly? endTimeInput;
     private List<string> selectedSubjects = new List<string>();
