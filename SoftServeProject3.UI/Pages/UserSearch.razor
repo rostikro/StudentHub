@@ -16,6 +16,7 @@
 
 @if (isUserAuthenticated)
 {
+
     <body>
         <div class="wrapper">
             <div class="one">
@@ -27,6 +28,64 @@
                     <a href="UserProfile">Профіль</a>
                 </div>
             </div>
+
+    @if (errorMessage != null)
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
+    <h3>Список користувачів</h3>
+
+    <div>
+        <label for="startTime">Час початку:</label>
+        <input type="time" id="startTime" @bind="startTimeInput" />
+
+        <label for="endTime">Час завершення:</label>
+        <input type="time" id="endTime" @bind="endTimeInput" />
+        <div>
+            @foreach (var day in daysOfWeek)
+            {
+                <div>
+                    <input type="checkbox" @bind="@selectedDays[day]" />
+                    <label>@day</label>
+                </div>
+            }
+        </div>
+        <div class="form-group">
+            <label for="faculty">Факультет:</label>
+            <select id="faculty" class="form-control" @onchange="SelectFaculty">
+
+                @if (allFaculties != null)
+                {
+                    @foreach (var faculty in allFaculties)
+                    {
+                        <option value="@faculty">@faculty</option>
+                    }
+                }
+            </select>
+        </div>
+        <div>
+            <label for="usernameSearch">Пошук користувача за нікнеймом:</label>
+            <input type="text" id="usernameSearch" @bind="usernameSearch" />
+            <button @onclick="SearchByUsername">Пошук</button>
+        </div>
+
+        <div>
+            <label for="subjectSearch">Пошук предмету:</label>
+            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+        </div>
+
+        <div>
+            <label>Оберіть предмет(и):</label>
+            <select @onchange="OnSubjectsSelected" multiple>
+                @if (filteredSubjects != null)
+                {
+                    @foreach (var subject in filteredSubjects)
+                    {
+                        <option @onclick="() => SelectSubject(subject)">@subject</option>
+                    }
+                }
+            </select>
+
         </div>
         @if (errorMessage != null)
         {
@@ -132,6 +191,7 @@
                             </td>
                         </tr>
                     }
+
                 }
                 else
                 {
@@ -141,6 +201,17 @@
                 }
             </tbody>
         </table>
+
+                </li>
+            }
+        </ul>
+    }
+}
+else
+{
+    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+}
+
 
     </body>
         }
@@ -154,6 +225,10 @@
     @code {
     private UserListModel[] users = new UserListModel[0];
 
+
+
+    private string usernameSearch = string.Empty;
+
     private TimeOnly? startTimeInput;
     private TimeOnly? endTimeInput;
     private List<string> selectedSubjects = new List<string>();
@@ -164,6 +239,17 @@
     private string errorMessage;
     private string selectedFaculty = "Пусто";
     private List<string> allFaculties;
+    private string[] daysOfWeek = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+    private Dictionary<string, bool> selectedDays = new Dictionary<string, bool>
+    {
+        {"Monday", false},
+        {"Tuesday", false},
+        {"Wednesday", false},
+        {"Thursday", false},
+        {"Friday", false},
+        {"Saturday", false},
+        {"Sunday", false}
+    };
 
     private string subjectSearch
     {
@@ -193,6 +279,36 @@
             selectedSubjects.Add(subject);
         }
     }
+
+    private async Task SearchByUsername()
+    {
+        ResetFilters();
+        var queryParams = new Dictionary<string, string>();
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(usernameSearch))
+        {
+            errorMessage = "Будь ласка, введіть нікнейм користувача для пошуку.";
+            return;
+        }
+        if (!string.IsNullOrWhiteSpace(usernameSearch))
+        {
+            var url = $"https://localhost:7292/Users/search?username={Uri.EscapeDataString(usernameSearch)}";
+            var response = await Http.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                users = await response.Content.ReadFromJsonAsync<UserListModel[]>();
+            }
+            else
+            {
+                users = Array.Empty<UserListModel>();
+                errorMessage = "Користувача не знайдено.";
+            }
+        }
+        usernameSearch = string.Empty;
+    }
+
     private void SelectFaculty(ChangeEventArgs e)
     {
         selectedFaculty = e.Value?.ToString();
@@ -294,6 +410,18 @@
             queryParameters.AddRange(selectedSubjects.Select(subject => $"subjects={Uri.EscapeDataString(subject)}"));
         }
         queryParameters.Add($"faculty={Uri.EscapeDataString(selectedFaculty)}");
+        foreach (var day in selectedDays)
+        {
+            if (day.Value) 
+            {
+                queryParameters.Add($"days={day.Key}");
+            }
+        }
+        if (startTimeInput.HasValue && endTimeInput.HasValue)
+        {
+            queryParameters.Add($"startTime={startTimeInput.Value:hh\\:mm}");
+            queryParameters.Add($"endTime={endTimeInput.Value:hh\\:mm}");
+        }
         var queryString = queryParameters.Any() ? $"?{string.Join("&", queryParameters)}" : "";
         var url = $"https://localhost:7292/Users/search{queryString}";
 
@@ -320,6 +448,10 @@
         selectedFaculty = "Пусто";
         subjectSearch = string.Empty;
         filteredSubjects = allSubjects;
+        foreach (var day in daysOfWeek)
+        {
+            selectedDays[day] = false;
+        }
         StateHasChanged();
         await ApplyFilters();
     }

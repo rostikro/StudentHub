@@ -141,13 +141,27 @@ namespace SoftServeProject3.Api.Controllers
 
 
         [HttpGet("friends")]
-        public async Task<IActionResult> GetFriendsAsync(string token)
+        [Authorize]
+        public async Task<IActionResult> GetFriendsAsync(string? username = null)
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(token).Email;
-                
-                var friends = await _userRepository.GetFriendsAsync(email);
+                List<Friend> friends;
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                    friends = await _userRepository.GetFriendsAsync(email);
+                }
+                else
+                {
+                    var user = await _userRepository.GetUserByUsernameAsync(username);
+                    if (user == null)
+                    {
+                        return NotFound("User not found");
+                    }
+                    friends = await _userRepository.GetFriendsAsync(user.Email);
+                }
 
                 return Ok(friends);
             }
@@ -315,9 +329,11 @@ namespace SoftServeProject3.Api.Controllers
         [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
+            var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
+            
             var users = await _userRepository.GetAllUsersAsync();
 
-            var userSummaries = users.Where(u => !u.IsProfilePrivate)
+            var userSummaries = users.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username)
                                      .Select(u => new UserListModel
                                      {
                                          Username = u.Username,
@@ -358,14 +374,32 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="subjects">Список предметів для фільтрації.</param>
         /// <returns>Фільтрований список користувачів.</returns>
         [HttpGet("search")]
+        [Authorize]
         public async Task<IActionResult> SearchUsers(
         TimeSpan? startTime,
         TimeSpan? endTime,
-        [FromQuery] List<string> subjects,
-        [FromQuery] string faculty)
+        [FromQuery] List<string> subjects = null,
+        [FromQuery] string faculty = "Пусто",
+        [FromQuery] List<string> days = null,
+        [FromQuery] string username = null)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
-            var filteredUsers = allUsers.AsEnumerable();
+            var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                var user = allUsers.FirstOrDefault(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+                if (user != null && !user.IsProfilePrivate)
+                {
+                    return Ok(new[] { user });
+                }
+                else
+                {
+                    return NotFound("User not found.");
+                }
+            }
+
+            var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username).AsEnumerable();
 
             if (subjects != null && subjects.Any())
             {
@@ -382,7 +416,8 @@ namespace SoftServeProject3.Api.Controllers
                     {
                         User = u,
                         MatchingTimeRanges = u.Schedule
-                            .SelectMany(d => d.Value)
+                            .Where(sch => days.Count == 0 || days.Contains(sch.Key)) 
+                            .SelectMany(sch => sch.Value)
                             .Count(tr => (tr.Start.TimeOfDay <= startTime.Value && tr.End.TimeOfDay > startTime.Value) ||
                                          (tr.Start.TimeOfDay < endTime.Value && tr.End.TimeOfDay >= endTime.Value) ||
                                          (startTime.Value <= tr.Start.TimeOfDay && endTime.Value >= tr.End.TimeOfDay))
@@ -483,8 +518,8 @@ namespace SoftServeProject3.Api.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, userEmail),
-                new Claim(ClaimTypes.Name, userEmail)
+                new Claim(ClaimTypes.Email, userInDb.Email),
+                new Claim(ClaimTypes.Name, userInDb.Username)
             };
 
             if (userInDb == null)
@@ -522,6 +557,7 @@ namespace SoftServeProject3.Api.Controllers
                     OutgoingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                     IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                     IsProfilePrivate = false,
+                    IsFriendsPrivate = false,
                 };
 
                 _userRepository.Register(newUser);
@@ -567,7 +603,6 @@ namespace SoftServeProject3.Api.Controllers
             else
             {
                 await _userRepository.UpdateUserPasswordAsync(existingUser, BCrypt.Net.BCrypt.HashPassword(resetPassword.Password));
-                //existingUser.Password = resetPassword.Password;
                 return Ok(new { Message = "Password has been changed successfully." });
             }
         }

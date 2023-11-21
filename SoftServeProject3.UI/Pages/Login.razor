@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.WebUtilities;
 @using SoftServeProject3.UI.Services;
 @using SoftServeProject3.Core.DTOs;
+@using System.ComponentModel.DataAnnotations;
 
 
 @if (!isUserAuthenticated)
@@ -13,6 +14,7 @@
     <head>
         <PageTitle>Log In</PageTitle>
         <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script src="~/js/loginfields.js" async defer></script>
     </head>
 
     <body>
@@ -24,26 +26,16 @@
                 <DataAnnotationsValidator />
                 <label><b>Ім'я користувача або пошта</b></label>
                 <StyledInputText placeholder="Введіть ім'я користувача або пошту" maxLength="50" @bind-Value="loginModel.EmailorUsername"
-                @oninput="EventCallback.Factory.CreateBinder<string>(this, __value => loginModel.EmailorUsername = __value, loginModel.EmailorUsername)"
-                @onkeyup="EventCallback.Factory.Create(this, () =>
-                EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.EmailorUsername))))" />
-                <p><ValidationMessage For="@(()=>loginModel.EmailorUsername)" /></p>
+                @oninput="EventCallback.Factory.Create(this, HandleEmailOrUsernameInput)" />
+                <p id="field-error-message">@EmailOrUsernameFieldError</p>
                 <label for="password"><b>Пароль:</b></label>
                 <StyledInputText type="password" placeholder="Введіть пароль" @bind-Value="loginModel.Password"
-                @oninput="EventCallback.Factory.CreateBinder<string>(this, __value => loginModel.Password = __value, loginModel.Password)"
-                @onkeyup="EventCallback.Factory.Create(this, () =>
-                EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.Password))))" />
-                <p>
-                    <ValidationMessage For="@(()=>loginModel.Password)" />
-                </p>
+                @oninput="EventCallback.Factory.Create(this, HandlePasswordInput)" />
+                <p id="field-error-message">@PasswordFieldError</p>
                 @if (errorMessage != "")
                 {
-                    <p id="error-message" class="@ErrorPulse"> @errorMessage</p>
+                    <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
                 }
-                @* error field *@
-                @*                 @if (!(errorMessage == ""))
-            {
-            } *@
                 <button type="submit" disabled="@isLoginDisabled" class="@loginButtonClass">Увійти</button>
             </EditForm>
 
@@ -83,6 +75,9 @@
         <div class="forgot-password-link">
             <p>Забули пароль? <a href="/checking_mail">Скидання паролю</a></p>
         </div>
+        <script>
+            // preventSpace();
+         </script>
     </body>
 }
 else
@@ -92,11 +87,14 @@ else
 @code {
     private string errorMessage = "";
 
+    private string EmailOrUsernameFieldError = "";
+    private string PasswordFieldError = "";
+
     private bool isLoginDisabled = true;
     private bool isUserAuthenticated;
     private string loginButtonClass => isLoginDisabled ? "loginbtn-disabled" : "loginbtn-enabled";
 
-    private string ErrorPulse;
+    private string ErrorPulseClass = "";
 
     EditContext editContext { get; set; }
 
@@ -107,12 +105,12 @@ else
     /// </summary>
     private async Task AttemptLogin()
     {
-        ErrorPulse = "";
+        ErrorPulseClass = "";
 
         UserLoginModel loginRequest = new UserLoginModel
             {
-                EmailorUsername = loginModel.EmailorUsername,
-                Password = loginModel.Password
+                EmailorUsername = loginModel.EmailorUsername.Trim(),
+                Password = loginModel.Password.Trim()
             };
 
         var response = await Http.PostAsJsonAsync("https://localhost:7292/Users/login", loginRequest);
@@ -136,10 +134,40 @@ else
         else
         {
             errorMessage = await response.Content.ReadAsStringAsync();
-            ErrorPulse = "pulse";
+            ErrorPulseClass = "pulse";
         }
 
     }
+
+    void HandleEmailOrUsernameInput(ChangeEventArgs e)
+    {
+        // Update the variable
+        string input = e.Value.ToString();
+        loginModel.EmailorUsername = input.Replace(" ", "");
+
+        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.EmailorUsername)));
+
+        var validationContext = new ValidationContext(loginModel) { MemberName = nameof(loginModel.EmailorUsername) };
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateProperty(loginModel.EmailorUsername, validationContext, validationResults);
+        EmailOrUsernameFieldError = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+    }
+
+    void HandlePasswordInput(ChangeEventArgs e)
+    {
+        // Update the variable
+        string input = e.Value.ToString();
+        loginModel.Password = input.Replace(" ", "");
+
+        EditContext_OnFieldChanged(editContext, new FieldChangedEventArgs(FieldIdentifier.Create(() => loginModel.Password)));
+
+        var validationContext = new ValidationContext(loginModel) { MemberName = nameof(loginModel.Password) };
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateProperty(loginModel.Password, validationContext, validationResults);
+        PasswordFieldError = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+
+    }
+
     private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
     {
         var editContext = sender as EditContext;
