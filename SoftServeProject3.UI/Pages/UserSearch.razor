@@ -47,7 +47,11 @@
                 }
             </select>
         </div>
-
+        <div>
+            <label for="usernameSearch">Пошук користувача за нікнеймом:</label>
+            <input type="text" id="usernameSearch" @bind="usernameSearch" />
+            <button @onclick="SearchByUsername">Пошук</button>
+        </div>
 
         <div>
             <label for="subjectSearch">Пошук предмету:</label>
@@ -131,7 +135,7 @@ else
 
 @code {
     private UserListModel[] users = new UserListModel[0];
-   
+    private string usernameSearch = string.Empty;
     private TimeOnly? startTimeInput;
     private TimeOnly? endTimeInput;
     private List<string> selectedSubjects = new List<string>();
@@ -182,6 +186,36 @@ else
             selectedSubjects.Add(subject);
         }
     }
+
+    private async Task SearchByUsername()
+    {
+        ResetFilters();
+        var queryParams = new Dictionary<string, string>();
+        errorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(usernameSearch))
+        {
+            errorMessage = "Будь ласка, введіть нікнейм користувача для пошуку.";
+            return;
+        }
+        if (!string.IsNullOrWhiteSpace(usernameSearch))
+        {
+            var url = $"https://localhost:7292/Users/search?username={Uri.EscapeDataString(usernameSearch)}";
+            var response = await Http.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                users = await response.Content.ReadFromJsonAsync<UserListModel[]>();
+            }
+            else
+            {
+                users = Array.Empty<UserListModel>();
+                errorMessage = "Користувача не знайдено.";
+            }
+        }
+        usernameSearch = string.Empty;
+    }
+
     private void SelectFaculty(ChangeEventArgs e)
     {
         selectedFaculty = e.Value?.ToString();

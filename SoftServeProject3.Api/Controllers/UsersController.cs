@@ -329,9 +329,11 @@ namespace SoftServeProject3.Api.Controllers
         [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
+            var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
+            
             var users = await _userRepository.GetAllUsersAsync();
 
-            var userSummaries = users.Where(u => !u.IsProfilePrivate)
+            var userSummaries = users.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username)
                                      .Select(u => new UserListModel
                                      {
                                          Username = u.Username,
@@ -372,15 +374,32 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="subjects">Список предметів для фільтрації.</param>
         /// <returns>Фільтрований список користувачів.</returns>
         [HttpGet("search")]
+        [Authorize]
         public async Task<IActionResult> SearchUsers(
         TimeSpan? startTime,
         TimeSpan? endTime,
-        [FromQuery] List<string> subjects,
-        [FromQuery] string faculty,
-        [FromQuery] List<string> days)
+        [FromQuery] List<string> subjects = null,
+        [FromQuery] string faculty = "Пусто",
+        [FromQuery] List<string> days = null,
+        [FromQuery] string username = null)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
-            var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate).AsEnumerable();
+            var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                var user = allUsers.FirstOrDefault(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+                if (user != null && !user.IsProfilePrivate)
+                {
+                    return Ok(new[] { user });
+                }
+                else
+                {
+                    return NotFound("User not found.");
+                }
+            }
+
+            var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username).AsEnumerable();
 
             if (subjects != null && subjects.Any())
             {
@@ -499,8 +518,8 @@ namespace SoftServeProject3.Api.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, userEmail),
-                new Claim(ClaimTypes.Name, userEmail)
+                new Claim(ClaimTypes.Email, userInDb.Email),
+                new Claim(ClaimTypes.Name, userInDb.Username)
             };
 
             if (userInDb == null)
@@ -584,7 +603,6 @@ namespace SoftServeProject3.Api.Controllers
             else
             {
                 await _userRepository.UpdateUserPasswordAsync(existingUser, BCrypt.Net.BCrypt.HashPassword(resetPassword.Password));
-                //existingUser.Password = resetPassword.Password;
                 return Ok(new { Message = "Password has been changed successfully." });
             }
         }
