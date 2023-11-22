@@ -142,26 +142,13 @@ namespace SoftServeProject3.Api.Controllers
 
         [HttpGet("friends")]
         [Authorize]
-        public async Task<IActionResult> GetFriendsAsync(string? username = null)
+        public async Task<IActionResult> GetFriendsAsync()
         {
             try
             {
-                List<Friend> friends;
-
-                if (string.IsNullOrEmpty(username))
-                {
-                    string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
-                    friends = await _userRepository.GetFriendsAsync(email);
-                }
-                else
-                {
-                    var user = await _userRepository.GetUserByUsernameAsync(username);
-                    if (user == null)
-                    {
-                        return NotFound("User not found");
-                    }
-                    friends = await _userRepository.GetFriendsAsync(user.Email);
-                }
+                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                
+                var friends = await _userRepository.GetFriendsAsync(email);
 
                 return Ok(friends);
             }
@@ -173,11 +160,12 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpGet("friends/incomingRequests")]
-        public async Task<IActionResult> GetIncomingFriendRequestsAsync(string token)
+        [Authorize]
+        public async Task<IActionResult> GetIncomingFriendRequestsAsync()
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(token).Email;
+                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
                 var incomingFriendRequests = await _userRepository.GetIncomingFriendRequestsAsync(email);
 
@@ -191,11 +179,12 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpGet("friends/outgoingRequests")]
-        public async Task<IActionResult> GetOutgoingFriendRequestsAsync(string token)
+        [Authorize]
+        public async Task<IActionResult> GetOutgoingFriendRequestsAsync()
         {
             try
             {
-                string email = _jwtService.DecodeJwtToken(token).Email;
+                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
                 var outgoingFriendRequests = await _userRepository.GetOutgoingFriendRequestsAsync(email);
 
@@ -209,11 +198,15 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpPost("addFriend")]
-        public async Task<IActionResult> AddFriendAsync(string token, string target)
+        [Authorize]
+        public async Task<IActionResult> AddFriendAsync(string target)
         {
             try
             {
-                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+                if (string.IsNullOrEmpty(target))
+                    throw new KeyNotFoundException("Target user is null");
+                
+                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.AddFriendRequest(senderUsername, target);
 
@@ -232,11 +225,15 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpPost("cancelFriendRequest")]
-        public async Task<IActionResult> CancelFriendRequestAsync(string token, string target)
+        [Authorize]
+        public async Task<IActionResult> CancelFriendRequestAsync(string target)
         {
             try
             {
-                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+                if (string.IsNullOrEmpty(target))
+                    throw new KeyNotFoundException("Target user is null");
+                
+                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.RemoveFriendRequest(senderUsername, target);
 
@@ -255,11 +252,17 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpPost("ignoreFriendRequest")]
-        public async Task<IActionResult> IgnoreFriendRequestAsync(string token, string target)
+        [Authorize]
+        public async Task<IActionResult> IgnoreFriendRequestAsync(string target)
         {
             try
             {
-                await _userRepository.RemoveFriendRequest(target, _jwtService.DecodeJwtToken(token).Username);
+                if (string.IsNullOrEmpty(target))
+                    throw new KeyNotFoundException("Target user is null");
+                
+                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
+                
+                await _userRepository.RemoveFriendRequest(target, senderUsername);
 
                 return Ok("Success");
             }
@@ -276,11 +279,15 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpPost("acceptFriendRequest")]
-        public async Task<IActionResult> AcceptFriendRequestAsync(string token, string target)
+        [Authorize]
+        public async Task<IActionResult> AcceptFriendRequestAsync(string target)
         {
             try
             {
-                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+                if (string.IsNullOrEmpty(target))
+                    throw new KeyNotFoundException("Target user is null");
+                
+                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.AddFriend(senderUsername, target);
 
@@ -299,11 +306,15 @@ namespace SoftServeProject3.Api.Controllers
         }
 
         [HttpPost("removeFriend")]
-        public async Task<IActionResult> RemoveFriendAsync(string token, string target)
+        [Authorize]
+        public async Task<IActionResult> RemoveFriendAsync(string target)
         {
             try
             {
-                string senderUsername = _jwtService.DecodeJwtToken(token).Username;
+                if (string.IsNullOrEmpty(target))
+                    throw new KeyNotFoundException("Target user is null");
+                
+                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.RemoveFriend(senderUsername, target);
 
