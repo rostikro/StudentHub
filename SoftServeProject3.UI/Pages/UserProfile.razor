@@ -25,9 +25,12 @@
                 <div class="one">
                     <div class="left-links">
                         <a href="#">Home</a>
-                        <a href="UserSearch">Пошук студентів</a>
+                        <a href="UserSearch">Search</a>
+                        <a href="#">about</a>
+                        <a href="#">friends</a>
                     </div>
                     <div class="right-links">
+                        <a href="#">about</a>
                         <a href="UserProfile">Профіль</a>
                     </div>
                 </div>
@@ -338,6 +341,9 @@
                         <div class="blueButton">
                             <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
                         </div>
+                        <NavLink class="nav-link" href="" @onclick="Logout">
+                            <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+                        </NavLink>
                     }
                 </div>
             </div>
@@ -761,7 +767,11 @@ else
         tasks.RemoveAt(index);
         StateHasChanged();
     }
-
+    private async Task Logout()
+    {
+        await TokenService.RemoveToken();
+        Navigation.NavigateTo("/login");
+    }
 }
 
 
