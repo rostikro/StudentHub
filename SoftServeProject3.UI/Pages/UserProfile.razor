@@ -370,7 +370,7 @@ else
     private List<string> allFaculties;
     private IEnumerable<string> filteredFaculties;
 
-    
+
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
     private List<string> DayOfWeekLocal = new List<string> {
@@ -391,7 +391,7 @@ else
     private bool isEditMode = false;
     private bool isUsernameEdit = false;
     private string ButtonText => isEditMode ? "Cancel Edit" : "Edit";
-    private string timeValidationError;
+    private string timeValidationError = string.Empty;
 
     private void CheckTimeValidity()
     {
@@ -432,6 +432,7 @@ else
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
             LoadSchedule();
+            errorMessage = string.Empty;
             StateHasChanged();
             Console.WriteLine("Edits canceled, changes reverted.");
         }
