@@ -55,5 +55,9 @@ namespace SoftServeProject3.Core.DTOs
             }
             return false;
         }
+        public bool IsOverlappingWith(TimeRange other)
+        {
+            return (Start < other.End && End > other.Start);
+        }
     }
 }

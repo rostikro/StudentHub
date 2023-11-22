@@ -5,6 +5,7 @@
 @inject UserProfileService UserProfileService
 @using SoftServeProject3.UI.Services;
 @using System.Globalization
+@using System.Net
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
@@ -102,6 +103,41 @@
                     <label for="name">Призвіще Ім'я:</label>
                     <p id="name" class="form-control-plaintext">@userProfile.name</p>
                 </div>
+                
+                <div class="friend-interaction">
+                    <button class="btn" @onclick="FriendInteractionAsync">
+                        @{
+                            switch (friendStatus)
+                            {
+                                case FriendStatus.NOT_FRIEND:
+                                    <text>
+                                        Додати в друзі
+                                    </text>
+                                    break;
+                                case FriendStatus.FRIEND:
+                                    <text>
+                                        Видалити з друзів
+                                    </text>
+                                    break;
+                                case FriendStatus.INCOMING_REQUEST:
+                                    <text>
+                                        Прийняти запит в друзі
+                                    </text>
+                                    break;
+                                case FriendStatus.OUTGOING_REQUEST:
+                                    <text>
+                                        Відмінити запит в друзі
+                                    </text>
+                                    break;
+                            }
+                        }
+                    </button>
+                    @if (friendStatus == FriendStatus.INCOMING_REQUEST)
+                    {
+                        <button class="btn" @onclick="IgnoreFriendRequestAsync">Відхилити запит у друзі</button>
+                    }
+                    
+                </div>
 
 
 
@@ -117,7 +153,7 @@
                     <p id="description" class="form-control-plaintext">@userProfile.description</p>
                 </div>
 
-                @if (isFriend && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
+                @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
                 {
                     <div class="soc">
                         @foreach (var socialLink in userProfile.social)
@@ -210,9 +246,16 @@ else
     private List<string> allSubjects = new List<string>();
     private string _subjectSearch = string.Empty;
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
-    bool isFriend;
 
-
+    enum FriendStatus
+    {
+        NOT_FRIEND = 0,
+        FRIEND = 1,
+        OUTGOING_REQUEST = 2,
+        INCOMING_REQUEST = 3
+    }
+    
+    FriendStatus friendStatus = FriendStatus.NOT_FRIEND;
 
     [Parameter]
     public string? Username { get; set; }
@@ -315,15 +358,26 @@ else
         {
             var token = await TokenService.GetToken();
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-
-
-
+            
             userProfile = await Http.GetFromJsonAsync<UpdateProfile>($"https://localhost:7292/Users/profile/{Username}");
             myProfile = await Http.GetFromJsonAsync<UserModel>($"https://localhost:7292/Users/profile/");
             var myFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends");
-            var userFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends?username={userProfile.username}");
-            isFriend = myFriends.Any(friend => friend.username.Equals(userProfile.username));
+            var myOutgoingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/outgoingRequests");
+            var myIncomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
+            
+            if (myFriends.Any(friend => friend.username.Equals(userProfile.username)))
+            {
+                friendStatus = FriendStatus.FRIEND;
+            }
+            else if (myOutgoingRequests.Any(friend => friend.username.Equals(userProfile.username)))
+            {
+                friendStatus = FriendStatus.OUTGOING_REQUEST;
+            }
+            else if (myIncomingRequests.Any(friend => friend.username.Equals(userProfile.username)))
+            {
+                friendStatus = FriendStatus.INCOMING_REQUEST;
+            }
+            
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
             
@@ -334,6 +388,76 @@ else
             errorMessage = "Failed to process user information";
         }
     }
+
+    private async Task FriendInteractionAsync()
+    {
+        try
+        {
+            var token = await TokenService.GetToken();
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            switch (friendStatus)
+            {
+                case FriendStatus.NOT_FRIEND:
+                    var response = await Http.PostAsync($"https://localhost:7292/Users/addFriend?target={userProfile.username}", null);
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        friendStatus = FriendStatus.OUTGOING_REQUEST;
+                    }
+                    return;
+                    
+                case FriendStatus.FRIEND:
+                    response = await Http.PostAsync($"https://localhost:7292/Users/removeFriend?target={userProfile.username}", null);
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        friendStatus = FriendStatus.NOT_FRIEND;
+                    }
+                    return;
+                    
+                case FriendStatus.OUTGOING_REQUEST:
+                    response = await Http.PostAsync($"https://localhost:7292/Users/cancelFriendRequest?target={userProfile.username}", null);
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        friendStatus = FriendStatus.NOT_FRIEND;
+                    }
+                    return;
+                    
+                case FriendStatus.INCOMING_REQUEST:
+                    response = await Http.PostAsync($"https://localhost:7292/Users/acceptFriendRequest?target={userProfile.username}", null);
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        friendStatus = FriendStatus.FRIEND;
+                    }
+                    return;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error occured in FriendInteractionAsync(): " + e.Message);
+            errorMessage = "Error occured while interacting with friend";
+        }
+    }
+
+    private async Task IgnoreFriendRequestAsync()
+    {
+        try
+        {
+            var token = await TokenService.GetToken();
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.PostAsync($"https://localhost:7292/Users/ignoreFriendRequest?target={userProfile.username}", null);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                friendStatus = FriendStatus.NOT_FRIEND;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error occured in IgnoreFriendRequestAsync(): " + e.Message);
+            errorMessage = "Error occured while interacting with friend";
+        }
+    }
+
 }
 
 

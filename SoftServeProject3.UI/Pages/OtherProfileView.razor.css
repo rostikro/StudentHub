@@ -184,7 +184,9 @@ placeholder-shown {
 button {
     background-color: white;
     border-radius: 20px;
+    margin: 5px;
 }
+
 .soc {
     list-style: none;
     color: white;

@@ -359,10 +359,12 @@ else
 @* evgeniypoklov@gmail.com *@
 @* 33 *@
 @code {
+    const int MAX_RANGES = 4;
+    
     private string errorMessage;
 
     private bool isUserAuthenticated;
-
+    
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
     private string originalUsername;
@@ -370,7 +372,7 @@ else
     private List<string> allFaculties;
     private IEnumerable<string> filteredFaculties;
 
-    
+
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
     private List<string> DayOfWeekLocal = new List<string> {
@@ -429,6 +431,7 @@ else
     {
         if (originalProfile != null)
         {
+            errorMessage = "";
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
             LoadSchedule();
@@ -470,22 +473,19 @@ else
             tasks = new List<TimeRange>();
         }
 
-        tasks.Add(new TimeRange());
-        StateHasChanged();
-    }
-
-    /// <summary>
-    /// Метод для часу до розкладу на конкретний день.
-    /// </summary>
-    private void AddTask(DayOfWeek dayOfWeek)
-    {
-        if (!schedule.ContainsKey(dayOfWeek))
+        if (tasks.Count < MAX_RANGES)
         {
-            schedule[dayOfWeek] = new List<TimeRange>();
+            tasks.Add(new TimeRange());
+            StateHasChanged();
         }
-
-        schedule[dayOfWeek].Add(new TimeRange());
+        else
+        {
+            errorMessage = $"Не можна додати більше {MAX_RANGES} проміжків";
+        }
     }
+
+
+    
 
     /// <summary>
     /// Метод, який викликається під час ініціалізації сторінки.
@@ -503,7 +503,6 @@ else
                 allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties");
                 filteredSubjects = allSubjects;
                 await LoadUserProfile();
-                originalUsername = userProfile.username;
                 LoadSchedule();
 
             }
@@ -651,7 +650,7 @@ else
         try
         {
             userProfile = await UserProfileService.GetProfileAsync();
-            originalProfile = userProfile;
+            originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
             selectedSubjects = userProfile.subjects;
         }
         catch (Exception ex)
@@ -665,6 +664,22 @@ else
     {
         try
         {
+            bool isOverlap = false;
+            foreach (var daySchedule in schedule)
+            {
+                if (IsOverlapInDay(daySchedule.Value))
+                {
+                    isOverlap = true;
+                    break;
+                }
+            }
+
+            if (isOverlap)
+            {
+                errorMessage = "У графіку є перетинаючі часові проміжки.";
+                return;
+            }
+
             CheckTimeValidity();
             if (timeValidationError == null)
             {
@@ -687,14 +702,12 @@ else
                 errorMessage = "";
                 if (success)
                 {
-
                     LoadSchedule();
                     StateHasChanged();
 
                 }
                 else
                 {
-
                     errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
                     userProfile.username = originalUsername;
                     StateHasChanged();
@@ -705,22 +718,28 @@ else
             }
             else
             {
-
-
                 errorMessage = $"Час завершення повинен бути пізніше часу початку.";
-
-
-
             }
-
-
         }
         catch (Exception ex)
         {
             errorMessage = $"An error occurred while saving the schedule: {ex.Message}";
         }
     }
-
+    private bool IsOverlapInDay(List<TimeRange> daySchedule)
+    {
+        for (int i = 0; i < daySchedule.Count; i++)
+        {
+            for (int j = i + 1; j < daySchedule.Count; j++)
+            {
+                if (daySchedule[i].IsOverlappingWith(daySchedule[j]))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     /// <summary>
     /// Метод для видалення проміжку часу.
     /// </summary>
