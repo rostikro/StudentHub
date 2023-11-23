@@ -26,14 +26,24 @@
                 <div class="two">
 
 
-                    <h2>@userProfile.username</h2>
+                    <div class="verified-account">
+                        <h2 style="color:black">@userProfile.username</h2>
+                        @if (@isProfileVerified)
+                        {
+                            <img class="verified-icon"
+                                 src="https://cdn2.iconfinder.com/data/icons/business-finance-170/48/identity-badge-verified-approved-man-minority-256.png"
+                                 alt="Verified Icon"
+                                 title="Підтверджений користувач.">
+
+                        }
+                    </div>
                     <div class="profile-picture">
                         <img src="@userProfile.photoUrl" alt="Немає фото профілю">
                     </div>
 
                 </div>
                 <div class="three">
-                    <h1>Мій розклад</h1>
+                    <h1>Розклад @userProfile.username</h1>
 
                     @if (errorMessage != null)
                     {
@@ -90,14 +100,10 @@
                     }
                 </div>
 
-
-                <div class="form-group">
-                    <label for="name">Призвіще Ім'я:</label>
-                    <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                </div>
-                
                 <div class="friend-interaction">
-                    <button class="btn" @onclick="FriendInteractionAsync">
+                    <label><b>@FriendStatusStr</b></label>
+                    <hr>
+                    <button class="btn" style="color:limegreen" @onclick="FriendInteractionAsync">
                         @{
                             switch (friendStatus)
                             {
@@ -113,12 +119,12 @@
                                     break;
                                 case FriendStatus.INCOMING_REQUEST:
                                     <text>
-                                        Прийняти запит в друзі
+                                        Прийняти
                                     </text>
                                     break;
                                 case FriendStatus.OUTGOING_REQUEST:
                                     <text>
-                                        Відмінити запит в друзі
+                                        Відхилити
                                     </text>
                                     break;
                             }
@@ -126,15 +132,16 @@
                     </button>
                     @if (friendStatus == FriendStatus.INCOMING_REQUEST)
                     {
-                        <button class="btn" @onclick="IgnoreFriendRequestAsync">Відхилити запит у друзі</button>
+                        <button class="btn" style="color:darkred" @onclick="IgnoreFriendRequestAsync">Відхилити</button>
                     }
-                    
+
                 </div>
 
 
-
-
-
+                <div class="form-group">
+                    <label for="name">Призвіще Ім'я:</label>
+                    <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                </div
 
                 <div class="five">
                     <div class="button-content">
@@ -163,7 +170,6 @@
                 else
                 {
                     <div class="soc">
-
                     </div>
                 }
 
@@ -217,7 +223,10 @@ else
 @* 33 *@
 @code {
     private string errorMessage;
+
     private bool isUserAuthenticated;
+    private bool isProfileVerified;
+
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
     private UserModel myProfile;
@@ -246,8 +255,9 @@ else
         OUTGOING_REQUEST = 2,
         INCOMING_REQUEST = 3
     }
-    
+
     FriendStatus friendStatus = FriendStatus.NOT_FRIEND;
+    private string FriendStatusStr = string.Empty;
 
     [Parameter]
     public string? Username { get; set; }
@@ -261,7 +271,27 @@ else
         return TokenService.IsTokenValid(token);
     }
 
+    private void setFriendStatusString(FriendStatus status)
+    {
+        switch (status)
+        {
+            case FriendStatus.NOT_FRIEND:
+                FriendStatusStr = "Ви поки не знайомі з цим користувачем.";
+                break;
+            case FriendStatus.FRIEND:
+                FriendStatusStr = "Ви співпрацюєте з цим користувачем.";
 
+                break;
+            case FriendStatus.INCOMING_REQUEST:
+                FriendStatusStr = "Користувач запитує дозвіл на дружбу з вами.";
+
+                break;
+            case FriendStatus.OUTGOING_REQUEST:
+                FriendStatusStr = "Запит на дружбу надіслано.";
+
+                break;
+        }
+    }
 
     private string GetSocialClass(string key)
     {
@@ -350,13 +380,13 @@ else
         {
             var token = await TokenService.GetToken();
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            
+
             userProfile = await Http.GetFromJsonAsync<UpdateProfile>($"https://localhost:7292/Users/profile/{Username}");
             myProfile = await Http.GetFromJsonAsync<UserModel>($"https://localhost:7292/Users/profile/");
             var myFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends");
             var myOutgoingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/outgoingRequests");
             var myIncomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
-            
+
             if (myFriends.Any(friend => friend.username.Equals(userProfile.username)))
             {
                 friendStatus = FriendStatus.FRIEND;
@@ -369,16 +399,38 @@ else
             {
                 friendStatus = FriendStatus.INCOMING_REQUEST;
             }
-            
+
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
-            
+            isProfileVerified = userProfile.isProfileVerified;
+           await FriendStatusString();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing user information: {ex.Message}");
             errorMessage = "Failed to process user information";
         }
+    }
+
+    private async Task FriendStatusString()
+    {
+        switch (friendStatus)
+        {
+            case FriendStatus.NOT_FRIEND:
+                FriendStatusStr = "Ви поки не знайомі з цим користувачем.";
+                break;
+            case FriendStatus.FRIEND:
+                FriendStatusStr = "Ви співпрацюєте з цим користувачем.";
+                break;
+            case FriendStatus.INCOMING_REQUEST:
+                FriendStatusStr = "Користувач запитує дозвіл на дружбу з вами.";
+                break;
+            case FriendStatus.OUTGOING_REQUEST:
+                FriendStatusStr = "Запит на дружбу надіслано.";
+                break;
+        }
+
+        StateHasChanged();
     }
 
     private async Task FriendInteractionAsync()
@@ -396,32 +448,34 @@ else
                     {
                         friendStatus = FriendStatus.OUTGOING_REQUEST;
                     }
-                    return;
-                    
+                    break;
+
                 case FriendStatus.FRIEND:
                     response = await Http.PostAsync($"https://localhost:7292/Users/removeFriend?target={userProfile.username}", null);
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         friendStatus = FriendStatus.NOT_FRIEND;
                     }
-                    return;
-                    
+                    break;
+
                 case FriendStatus.OUTGOING_REQUEST:
                     response = await Http.PostAsync($"https://localhost:7292/Users/cancelFriendRequest?target={userProfile.username}", null);
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         friendStatus = FriendStatus.NOT_FRIEND;
                     }
-                    return;
-                    
+                    break;
+
                 case FriendStatus.INCOMING_REQUEST:
                     response = await Http.PostAsync($"https://localhost:7292/Users/acceptFriendRequest?target={userProfile.username}", null);
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         friendStatus = FriendStatus.FRIEND;
                     }
-                    return;
+                    break;
             }
+            await FriendStatusString();
+
         }
         catch (Exception e)
         {
