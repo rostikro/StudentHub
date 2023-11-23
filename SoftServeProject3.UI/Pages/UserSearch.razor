@@ -10,170 +10,172 @@
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
 
-
-@if (isUserAuthenticated)
+@if (isLoaded)
 {
-    <body>
-        @if (errorMessage != null)
-        {
-            <p class="text-danger">@errorMessage</p>
-        }
-
-        <div class="wrapper">
-            <div class="one">
-                <div class="left-links">
-                    <a href="#">Home</a>
-                    <a href="UserSearch">Пошук студентів</a>
-                </div>
-                <div class="sidebarlinks">
-                    <a href="UserProfile">Профіль</a>
-                </div>
-            </div>
-        </div>
-
-        <label for="endTime">Час завершення:</label>
-        <input type="time" id="endTime" @bind="endTimeInput" />
-        <div>
-            <div class="right-side">
-                <div>
-                    <label>Оберіть дні:</label>
-                    <div>
-                        @foreach (var day in daysOfWeek)
-                        {
-                            <div style="display: inline-block; margin-right: 10px;">
-                                <input type="checkbox" @bind="@selectedDays[day]" />
-                                <label>@day</label>
-                            </div>
-                        }
+    @if (isUserAuthenticated)
+    {
+        <body>
+            @* @if (errorMessage != null)
+    {
+    <p class="text-danger">@errorMessage</p>
+    }
+    *@
+            <div class="wrapper">
+                <div class="one">
+                    <div class="left-links">
+                        <a href="#">Home</a>
+                        <a href="UserSearch">Пошук студентів</a>
+                    </div>
+                    <div class="sidebarlinks">
+                        <a href="UserProfile">Профіль</a>
                     </div>
                 </div>
-
-                <label for="startTime">Час початку:</label>
-                <input type="time" id="startTime" @bind="startTimeInput" />
-
-                <label for="endTime">Час завершення:</label>
-                <input type="time" id="endTime" @bind="endTimeInput" />
-
-                <div class="form-group">
-                    <label for="faculty">Факультет:</label>
-                    <select id="faculty" class="form-control" @onchange="SelectFaculty">
-
-                        @if (allFaculties != null)
-                        {
-                            @foreach (var faculty in allFaculties)
-                            {
-                                <option value="@faculty">@faculty</option>
-                            }
-                        }
-                    </select>
-                </div>
             </div>
 
-            <div class="left-side">
-                <div>
-                    <label for="usernameSearch">Пошук користувача за нікнеймом:</label>
-                    <input type="text" id="usernameSearch" @bind="usernameSearch" />
-                    <button @onclick="SearchByUsername">Пошук</button>
-                </div>
 
-                <div>
-                    <label for="subjectSearch">Пошук предмету:</label>
-                    <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
-                </div>
-
-                <div>
-                    <label>Оберіть предмет(и):</label>
-                    <select @onchange="OnSubjectsSelected" multiple>
-                        @if (filteredSubjects != null)
-                        {
-                            @foreach (var subject in filteredSubjects)
+            <div>
+                <div class="right-side">
+                    <div>
+                        <label>Оберіть дні:</label>
+                        <div>
+                            @foreach (var day in daysOfWeek)
                             {
-                                <option @onclick="() => SelectSubject(subject)">@subject</option>
-                            }
-                        }
-                    </select>
-                </div>
-
-                <div class="selected-subjects-container">
-                    @if (selectedSubjects.Any())
-                    {
-                        <div class="subject-items">
-                            @foreach (var subject in selectedSubjects)
-                            {
-                                <div class="subject-item">
-                                    <span>@subject</span>
-                                    <button @onclick="@(() => RemoveSubject(subject))">Видалити</button>
+                                <div style="display: inline-block; margin-right: 10px;">
+                                    <input type="checkbox" @bind="@selectedDays[day]" />
+                                    <label>@day</label>
                                 </div>
                             }
                         </div>
-                    }
+                    </div>
+
+                    <label for="startTime">Час початку:</label>
+                    <input type="time" id="startTime" @bind="startTimeInput" />
+
+                    <label for="endTime">Час завершення:</label>
+                    <input type="time" id="endTime" @bind="endTimeInput" />
+
+                    <div class="form-group">
+                        <label for="faculty">Факультет:</label>
+                        <select id="faculty" class="form-control" @onchange="SelectFaculty">
+
+                            @if (allFaculties != null)
+                            {
+                                @foreach (var faculty in allFaculties)
+                                {
+                                    <option value="@faculty">@faculty</option>
+                                }
+                            }
+                        </select>
+                    </div>
                 </div>
 
+                <div class="left-side">
+                    <div>
+                        <label for="usernameSearch">Пошук користувача за нікнеймом:</label>
+                        <input type="text" id="usernameSearch" @bind="usernameSearch" />
+                        <button @onclick="SearchByUsername">Пошук</button>
+                    </div>
 
-            </div>
+                    <div>
+                        <label for="subjectSearch">Пошук предмету:</label>
+                        <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+                    </div>
 
-            <div class="buttons">
-                <button @onclick="ApplyFilters">Фільтрувати</button>
-                <button @onclick="ResetFilters">Скинути фільтри</button>
-            </div>
-        </div>
-
-        <table class="user-table">
-            <caption>Список студентів</caption>
-            <thead>
-                <tr>
-                    <th>Ім'я користувача</th>
-                    <th>Предмети</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (users != null && users.Length > 0)
-                {
-                    @foreach (var user in users)
-                    {
-                        <tr>
-                            <td>
-                                <a href="UserProfile/@user.Username">@user.Username</a>
-                            </td>
-                            <td>
-                                @if (user.Subjects != null && user.Subjects.Any())
+                    <div>
+                        <label>Оберіть предмет(и):</label>
+                        <select @onchange="OnSubjectsSelected" multiple>
+                            @if (filteredSubjects != null)
+                            {
+                                @foreach (var subject in filteredSubjects)
                                 {
-                                    @foreach (var subject in user.Subjects)
+                                    <option @onclick="() => SelectSubject(subject)">@subject</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="selected-subjects-container">
+                        @if (selectedSubjects.Any())
+                        {
+                            <div class="subject-items">
+                                @foreach (var subject in selectedSubjects)
+                                {
+                                    <div class="subject-item">
+                                        <span>@subject</span>
+                                        <button @onclick="@(() => RemoveSubject(subject))">Видалити</button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+
+                </div>
+
+                <div class="buttons">
+                    <button @onclick="ApplyFilters">Фільтрувати</button>
+                    <button @onclick="ResetFilters">Скинути фільтри</button>
+                </div>
+            </div>
+
+            <table class="user-table">
+                <caption>Список студентів</caption>
+                <thead>
+                    <tr>
+                        <th>Ім'я користувача</th>
+                        <th>Предмети</th>
+                        <th>Факультет</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (users != null && users.Length > 0)
+                    {
+                        @foreach (var user in users)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="UserProfile/@user.Username">@user.Username</a>
+                                </td>
+                                <td>
+                                    @if (user.Subjects != null && user.Subjects.Any())
                                     {
-                                        if (subject != user.Subjects[^1])
+                                        @foreach (var subject in user.Subjects)
                                         {
-                                            <span>@subject, </span>
-                                        }
-                                        else
-                                        {
-                                            <span>@subject</span>
+                                            if (subject != user.Subjects[^1])
+                                            {
+                                                <span>@subject, </span>
+                                            }
+                                            else
+                                            {
+                                                <span>@subject</span>
+                                            }
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    <span>Немає предметів</span>
-                                }
-                            </td>
+                                    else
+                                    {
+                                        <span>Немає предметів</span>
+                                    }
+                                </td>
+                                <td>@user.Faculty</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3">Користувачів не знайдено</td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="2">Користувачів не знайдено</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </body>
-}
+                </tbody>
+            </table>
+        </body>
+    }
 
-else
-{
-    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+    else
+    {
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+    }
 }
-
 
 @code {
     private UserListModel[] users = new UserListModel[0];
@@ -199,7 +201,7 @@ else
         {"Saturday", false},
         {"Sunday", false}
     };
-
+    bool isLoaded;
     private string subjectSearch
     {
         get => _subjectSearch;
@@ -283,6 +285,7 @@ else
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
+        isLoaded = false;
         isUserAuthenticated = await IsUserAuthenticatedAsync();
         if (isUserAuthenticated)
         {
@@ -298,6 +301,7 @@ else
         {
             errorMessage = "Failed to load user info";
         }
+        isLoaded = true;
     }
 
     /// <summary>
@@ -361,7 +365,7 @@ else
         queryParameters.Add($"faculty={Uri.EscapeDataString(selectedFaculty)}");
         foreach (var day in selectedDays)
         {
-            if (day.Value) 
+            if (day.Value)
             {
                 queryParameters.Add($"days={day.Key}");
             }

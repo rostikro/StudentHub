@@ -165,47 +165,48 @@ ul {
 
 
 .user-table {
-    width: 85%; 
-    margin: 0 auto; 
+    width: 85%;
+    margin: 0 auto;
     border-collapse: collapse;
     margin-top: 20px;
     margin-bottom: 30px;
-    position: relative; 
+    position: relative;
+    table-layout: fixed; 
 }
+
+    .user-table th,
+    .user-table td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: center;
+       
+    }
 
     .user-table th {
         background-color: #757575;
         color: white;
         font-weight: bold;
-        padding: 12px; 
+        padding: 12px;
         text-align: center;
     }
 
-    .user-table td,
-    .user-table th {
-        border: 1px solid #ddd;
-        padding: 12px; 
-        text-align: center; 
-        width: 50%;
+    .user-table td a {
+        color: #333;
+        text-decoration: none;
+        font-weight: bold;
     }
 
-        .user-table td a {
-            color: #333;
-            text-decoration: none;
-            font-weight: bold;
+        .user-table td a:hover {
+            color: #007bff;
         }
-
-            .user-table td a:hover {
-                color: #007bff;
-            }
 
     .user-table caption {
         caption-side: top;
         font-weight: bold;
-        padding: 16px; 
+        padding: 16px;
         background-color: #757575;
         color: white;
         border-radius: 5px 5px 0 0;
-        font-size: 24px; 
+        font-size: 24px;
         text-align: center;
     }

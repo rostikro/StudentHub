@@ -1,0 +1,60 @@
+﻿@inject HttpClient Http
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+@using System.Net.Http.Headers;
+@using SoftServeProject3.UI.Services;
+@using SoftServeProject3.Core.DTOs;
+
+@if (IsVisible)
+{
+    <div class="message-popup">
+        <div class="message-content">
+            @if (incomingRequests.Any())
+            {
+                foreach (var friend in incomingRequests)
+                {
+                    <div>
+                        <img src="@friend.photoUrl" alt="Profile Picture" />
+                        <a href="UserProfile/@friend.username">@friend.username</a>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Немає запитів на дружбу</p>
+            }
+            <button @onclick="ClosePopup">Закрити</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnClose { get; set; }
+    private List<Friend> incomingRequests = new List<Friend>();
+    
+
+    public void Show()
+    {
+        IsVisible = true;
+    }
+
+    public async Task ClosePopup()
+    {
+        IsVisible = false;
+        await OnClose.InvokeAsync(false);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await TokenService.GetToken();
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
+    }
+    
+
+    
+    
+}

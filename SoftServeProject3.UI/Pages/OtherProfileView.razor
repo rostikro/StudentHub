@@ -14,216 +14,218 @@
 <head>
     <PageTitle>Перегляд профілю</PageTitle>
 </head>
-@if (isUserAuthenticated)
+@if (isLoaded)
 {
-    @if (userProfile != null)
+    @if (isUserAuthenticated)
     {
+        @if (userProfile != null)
+        {
 
-        <body>
-            <div class="wrapper">
-                <div class="one">
-                    <div class="left-links">
-                        <a href="#">Home</a>
-                        <a href="UserSearch">Пошук студентів</a>
+            <body>
+                <div class="wrapper">
+                    <div class="one">
+                        <div class="left-links">
+                            <a href="#">Home</a>
+                            <a href="UserSearch">Пошук студентів</a>
+                        </div>
+                        <div class="right-links">
+                            <a href="UserProfile">Профіль</a>
+                        </div>
                     </div>
-                    <div class="right-links">
-                        <a href="UserProfile">Профіль</a>
+
+                    <div class="two">
+
+
+                        <div class="verified-account">
+                            <h2 style="color:black">@userProfile.username</h2>
+                            @if (@isProfileVerified)
+                            {
+                                <img class="verified-icon"
+                                     src="https://cdn2.iconfinder.com/data/icons/business-finance-170/48/identity-badge-verified-approved-man-minority-256.png"
+                                     alt="Verified Icon"
+                                     title="Підтверджений користувач.">
+
+                            }
+                        </div>
+                        <div class="profile-picture">
+                            <img src="@userProfile.photoUrl" alt="Немає фото профілю">
+                        </div>
+
                     </div>
-                </div>
+                    <div class="three">
+                        <h1>Розклад @userProfile.username</h1>
 
-                <div class="two">
-
-
-                    <div class="verified-account">
-                        <h2 style="color:black">@userProfile.username</h2>
-                        @if (@isProfileVerified)
+                        @if (errorMessage != null)
                         {
-                            <img class="verified-icon"
-                                 src="https://cdn2.iconfinder.com/data/icons/business-finance-170/48/identity-badge-verified-approved-man-minority-256.png"
-                                 alt="Verified Icon"
-                                 title="Підтверджений користувач.">
-
+                            <p class="text-danger">@errorMessage</p>
                         }
-                    </div>
-                    <div class="profile-picture">
-                        <img src="@userProfile.photoUrl" alt="Немає фото профілю">
-                    </div>
 
-                </div>
-                <div class="three">
-                    <h1>Розклад @userProfile.username</h1>
+                        @if (schedule == null)
+                        {
+                            <p>Loading...</p>
+                        }
 
-                    @if (errorMessage != null)
-                    {
-                        <p class="text-danger">@errorMessage</p>
-                    }
+                        else if (schedule.Count == 0)
+                        {
+                            <p>Розклад пустий</p>
+                        }
 
-                    @if (schedule == null)
-                    {
-                        <p>Loading...</p>
-                    }
+                        else
+                        {
 
-                    else if (schedule.Count == 0)
-                    {
-                        <p>Розклад пустий</p>
-                    }
+                            <table class="table">
 
-                    else
-                    {
-
-                        <table class="table">
-
-                            <thead>
-                                <tr>
-                                    <th>День тижня</th>
-                                    <th>Час</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-
-
-
-
-                                @foreach (var kvp in schedule)
-                                {
-                                    var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
-                                    var tasks = kvp.Value;
+                                <thead>
                                     <tr>
-                                        <td>@dayOfWeek</td>
-                                        <td>
-                                            @foreach (var task in tasks)
-                                            {
-                                                <div>
-                                                    @task.StartString - @task.EndString
-                                                </div>
-                                            }
-                                        </td>
+                                        <th>День тижня</th>
+                                        <th>Час</th>
                                     </tr>
+                                </thead>
+                                <tbody>
+
+
+
+
+
+                                    @foreach (var kvp in schedule)
+                                    {
+                                        var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
+                                        var tasks = kvp.Value;
+                                        <tr>
+                                            <td>@dayOfWeek</td>
+                                            <td>
+                                                @foreach (var task in tasks)
+                                                {
+                                                    <div>
+                                                        @task.StartString - @task.EndString
+                                                    </div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+
+
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+
+                    <div class="friend-interaction">
+                        <label><b>@FriendStatusStr</b></label>
+                        <hr>
+                        <button class="btn" style="color:limegreen" @onclick="FriendInteractionAsync">
+                            @{
+                                switch (friendStatus)
+                                {
+                                    case FriendStatus.NOT_FRIEND:
+                                        <text>
+                                            Додати в друзі
+                                        </text>
+                                        break;
+                                    case FriendStatus.FRIEND:
+                                        <text>
+                                            Видалити з друзів
+                                        </text>
+                                        break;
+                                    case FriendStatus.INCOMING_REQUEST:
+                                        <text>
+                                            Прийняти
+                                        </text>
+                                        break;
+                                    case FriendStatus.OUTGOING_REQUEST:
+                                        <text>
+                                            Відхилити
+                                        </text>
+                                        break;
                                 }
-
-
-                            </tbody>
-                        </table>
-                    }
-                </div>
-
-                <div class="friend-interaction">
-                    <label><b>@FriendStatusStr</b></label>
-                    <hr>
-                    <button class="btn" style="color:limegreen" @onclick="FriendInteractionAsync">
-                        @{
-                            switch (friendStatus)
-                            {
-                                case FriendStatus.NOT_FRIEND:
-                                    <text>
-                                        Додати в друзі
-                                    </text>
-                                    break;
-                                case FriendStatus.FRIEND:
-                                    <text>
-                                        Видалити з друзів
-                                    </text>
-                                    break;
-                                case FriendStatus.INCOMING_REQUEST:
-                                    <text>
-                                        Прийняти
-                                    </text>
-                                    break;
-                                case FriendStatus.OUTGOING_REQUEST:
-                                    <text>
-                                        Відхилити
-                                    </text>
-                                    break;
                             }
-                        }
-                    </button>
-                    @if (friendStatus == FriendStatus.INCOMING_REQUEST)
-                    {
-                        <button class="btn" style="color:darkred" @onclick="IgnoreFriendRequestAsync">Відхилити</button>
-                    }
-
-                </div>
-
-
-                <div class="form-group">
-                    <label for="name">Призвіще Ім'я:</label>
-                    <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                </div
-
-                <div class="five">
-                    <div class="button-content">
-                        <label for="faculty">Факультет:</label>
-                        <span>@userProfile.faculty</span>
-                    </div>
-                    <label for="description">Опис:</label>
-                    <p id="description" class="form-control-plaintext">@userProfile.description</p>
-                </div>
-
-                @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
-                {
-                    <div class="soc">
-                        @foreach (var socialLink in userProfile.social)
+                        </button>
+                        @if (friendStatus == FriendStatus.INCOMING_REQUEST)
                         {
-
-                            @if (!string.IsNullOrEmpty(socialLink.Value))
-                            {
-                                <div class="social">
-                                    <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
-                                </div>
-                            }
+                            <button class="btn" style="color:darkred" @onclick="IgnoreFriendRequestAsync">Відхилити</button>
                         }
+
                     </div>
-                }
-                else
-                {
-                    <div class="soc">
+
+
+                    <div class="form-group">
+                        <label for="name">Призвіще Ім'я:</label>
+                        <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                    </div
+
+                    <div class="five">
+                        <div class="button-content">
+                            <label for="faculty">Факультет:</label>
+                            <span>@userProfile.faculty</span>
+                        </div>
+                        <label for="description">Опис:</label>
+                        <p id="description" class="form-control-plaintext">@userProfile.description</p>
                     </div>
-                }
 
-
-
-
-
-
-                <div class="subject-group">
-                    <label for="subject">Предмети:</label>
-                    @if (userProfile.subjects != null && userProfile.subjects.Any())
+                    @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
                     {
-                        foreach (var subject in userProfile.subjects)
-                        {
-                            if (subject != userProfile.subjects[^1])
+                        <div class="soc">
+                            @foreach (var socialLink in userProfile.social)
                             {
-                                <span>@subject - </span>
+
+                                @if (!string.IsNullOrEmpty(socialLink.Value))
+                                {
+                                    <div class="social">
+                                        <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                                    </div>
+                                }
                             }
-                            else
-                            {
-                                <span>@subject</span>
-                            }
-                        }
+                        </div>
                     }
                     else
                     {
-                        <span>Немає предметів.</span>
+                        <div class="soc">
+                        </div>
                     }
+
+
+
+
+
+
+                    <div class="subject-group">
+                        <label for="subject">Предмети:</label>
+                        @if (userProfile.subjects != null && userProfile.subjects.Any())
+                        {
+                            foreach (var subject in userProfile.subjects)
+                            {
+                                if (subject != userProfile.subjects[^1])
+                                {
+                                    <span>@subject - </span>
+                                }
+                                else
+                                {
+                                    <span>@subject</span>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <span>Немає предметів.</span>
+                        }
+                    </div>
+
+
+
                 </div>
-
-
-
-            </div>
-        </body>
+            </body>
+        }
+        else
+        {
+            <p><em>Завантаження...</em></p>
+        }
     }
     else
     {
-        <p><em>Завантаження...</em></p>
+
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
     }
 }
-else
-{
-
-    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
-}
-
 
 @* evgeniypoklov@gmail.com *@
 @* Myparol2017 *@
@@ -234,7 +236,7 @@ else
 
     private bool isUserAuthenticated;
     private bool isProfileVerified;
-
+    bool isLoaded;
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
     private UserModel myProfile;
@@ -322,7 +324,7 @@ else
         try
         {
 
-
+            isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
             {
@@ -335,7 +337,7 @@ else
             {
                 errorMessage = "Failed to load user info";
             }
-
+            isLoaded = true;
 
 
         }

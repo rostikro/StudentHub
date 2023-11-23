@@ -344,7 +344,8 @@ namespace SoftServeProject3.Api.Controllers
             
             var users = await _userRepository.GetAllUsersAsync();
 
-            var userSummaries = users.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username)
+            var userSummaries = users.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username &&
+                                         (authUser.IsProfileVerified || !u.IsProfileVerified))
                                      .Select(u => new UserListModel
                                      {
                                          Username = u.Username,
@@ -400,7 +401,8 @@ namespace SoftServeProject3.Api.Controllers
             if (!string.IsNullOrEmpty(username))
             {
                 var user = allUsers.FirstOrDefault(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
-                if (user != null && !user.IsProfilePrivate)
+                if (user != null && !user.IsProfilePrivate &&
+                                         (authUser.IsProfileVerified || !user.IsProfileVerified))
                 {
                     return Ok(new[] { user });
                 }
@@ -410,7 +412,8 @@ namespace SoftServeProject3.Api.Controllers
                 }
             }
 
-            var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username).AsEnumerable();
+            var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username &&
+                                         (authUser.IsProfileVerified || !u.IsProfileVerified)).AsEnumerable();
 
             if (subjects != null && subjects.Any())
             {

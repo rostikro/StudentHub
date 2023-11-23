@@ -13,356 +13,363 @@
 <head>
     <PageTitle>Профіль</PageTitle>
 </head>
-
-@if (isUserAuthenticated)
+@if (isLoaded)
 {
 
-    @if (userProfile != null)
+    @if (isUserAuthenticated)
     {
 
-        <body>
-            <div class="wrapper">
-                <div class="one">
-                    <div class="left-links">
-                        <a href="#">Home</a>
-                        <a href="UserSearch">Пошук студентів</a>
-                    </div>
-                    <div class="right-links">
-                        <a href="UserProfile">Профіль</a>
-                    </div>
-                </div>
+        @if (userProfile != null)
+        {
 
-                <div class="two">
-                    @if (isEditMode)
-                    {
-                        if (!isUsernameEdit)
+            <body>
+                <div class="wrapper">
+                    <div class="one">
+                        <div class="left-links">
+                            <a href="#">Home</a>
+                            <a href="UserSearch">Пошук студентів</a>
+                        </div>
+                        <div class="right-links">
+                            <button @onclick="ShowMessagePopup">Повідомлення</button>
+                            @if (showMessagePopup)
+                            {
+                                <MessagePopupComponent IsVisible="@showMessagePopup" OnClose="HandleClose" />
+                            }
+                            <a href="UserProfile">Профіль</a>
+                        </div>
+                    </div>
+
+                    <div class="two">
+                        @if (isEditMode)
                         {
-                            <div style="display: flex;">
-                                <h2 style="margin-right: 0;">@userProfile.username</h2>
-                                <button @onclick="ToggleUsernameEdit">&#x270E</button>
-                            </div>
+                            if (!isUsernameEdit)
+                            {
+                                <div style="display: flex;">
+                                    <h2 style="margin-right: 0;">@userProfile.username</h2>
+                                    <button @onclick="ToggleUsernameEdit">&#x270E</button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="display: flex;">
+                                    <input type="text" @bind="userProfile.username" />
+                                    <button @onclick="CheckUsername">&#x2713</button>
+                                </div>
+                            }
+
                         }
                         else
                         {
-                            <div style="display: flex;">
-                                <input type="text" @bind="userProfile.username" />
-                                <button @onclick="CheckUsername">&#x2713</button>
+                            <div class="verified-account">
+                                <h2 style="color:black">@userProfile.username</h2>
+                                @if (@isProfileVerified)
+                                {
+                                    <img class="verified-icon"
+                                         src="https://cdn2.iconfinder.com/data/icons/business-finance-170/48/identity-badge-verified-approved-man-minority-256.png"
+                                         alt="Verified Icon"
+                                         title="Ви підтверджений користувач.">
+                                }
+                            </div>
+
+                        }
+
+
+                        @if (isEditMode)
+                        {
+                            <div class="form-group">
+                                <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate" />
+                                <label for="profilePrivacy">Зробити профіль приватним</label>
+                            </div>
+                            <div class="profile-picture-edit">
+                                <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                             </div>
                         }
 
+                        else
+                        {
+                            <div class="profile-picture">
+                                <img src="@userProfile.photoUrl" alt="Немає фото профілю">
+                            </div>
+                        }
+                    </div>
+                    <div class="three">
+                        <h1>Мій розклад</h1>
+
+                        @if (errorMessage != null)
+                        {
+                            <p class="text-danger">@errorMessage</p>
+                        }
+
+                        @if (schedule == null)
+                        {
+                            <p>Loading...</p>
+                        }
+
+                        else if (schedule.Count == 0)
+                        {
+                            <p>Розклад пустий</p>
+                        }
+
+                        else
+                        {
+
+                            <table class="table">
+
+                                <thead>
+                                    <tr>
+                                        <th>День тижня</th>
+                                        <th>Час</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+
+
+                                    @if (isEditMode)
+                                    {
+
+                                        @foreach (var kvp in schedule)
+                                        {
+                                            var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
+                                            var tasks = kvp.Value;
+                                            <tr>
+
+                                                <td>@dayOfWeek</td>
+                                                <td>
+
+                                                    @for (int index = 0; index < tasks.Count; index++)
+                                                    {
+                                                        var task = tasks[index];
+                                                        <div>
+                                                            <input type="time" @bind-value="task.StartTime" @bind-value:event="oninput" />
+                                                            -
+                                                            <input type="time" @bind-value="task.EndTime" @bind-value:event="oninput" />
+                                                            <button @onclick="() => RemoveTask(tasks, index -1 )">Видалити</button>
+                                                        </div>
+                                                    }
+                                                    <button @onclick="() => AddNewTask(tasks)">Додати час</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+
+                                    {
+
+                                        @foreach (var kvp in schedule)
+                                        {
+                                            var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
+                                            var tasks = kvp.Value;
+                                            <tr>
+                                                <td>@dayOfWeek</td>
+                                                <td>
+                                                    @foreach (var task in tasks)
+                                                    {
+                                                        <div>
+                                                            @task.StartString - @task.EndString
+                                                        </div>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+
+
+
+                    @if (isEditMode)
+                    {
+
+                        <div class="form-group">
+                            <label for="name">Ініціали:</label>
+                            <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
+                        </div>
                     }
                     else
                     {
-                        <div class="verified-account">
-                            <h2 style="color:black">@userProfile.username</h2>
-                            @if (@isProfileVerified)
-                            {
-                                <img class="verified-icon"
-                                     src="https://cdn2.iconfinder.com/data/icons/business-finance-170/48/identity-badge-verified-approved-man-minority-256.png"
-                                     alt="Verified Icon"
-                                     title="Ви підтверджений користувач.">
-                            }
+                        <div class="form-group">
+                            <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
+                            <p id="name" class="form-control-plaintext">@userProfile.name</p>
                         </div>
-
                     }
+
 
 
                     @if (isEditMode)
                     {
                         <div class="form-group">
-                            <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate" />
-                            <label for="profilePrivacy">Зробити профіль приватним</label>
+                            <label for="faculty">Факультет:</label>
+                            <select id="faculty" class="form-control" @onchange="SelectFaculty">
+                                @if (allFaculties != null)
+                                {
+                                    @foreach (var faculty in allFaculties)
+                                    {
+                                        @if (userProfile.faculty == faculty)
+                                        {
+                                            <option value="@faculty" selected>@faculty</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@faculty">@faculty</option>
+                                        }
+                                    }
+                                }
+                            </select>
                         </div>
-                        <div class="profile-picture-edit">
-                            <input type="text" @bind="userProfile.photoUrl" class="form-control" />
+
+                        <div class="five">
+                            <label for="description">Опис:</label>
+                            <textarea id="description" class="form-control" @bind="@userProfile.description"></textarea>
                         </div>
                     }
-
-                    else
-                    {
-                        <div class="profile-picture">
-                            <img src="@userProfile.photoUrl" alt="Немає фото профілю">
-                        </div>
-                    }
-                </div>
-                <div class="three">
-                    <h1>Мій розклад</h1>
-
-                    @if (errorMessage != null)
-                    {
-                        <p class="text-danger">@errorMessage</p>
-                    }
-
-                    @if (schedule == null)
-                    {
-                        <p>Loading...</p>
-                    }
-
-                    else if (schedule.Count == 0)
-                    {
-                        <p>Розклад пустий</p>
-                    }
-
                     else
                     {
 
-                        <table class="table">
-
-                            <thead>
-                                <tr>
-                                    <th>День тижня</th>
-                                    <th>Час</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-
-
-                                @if (isEditMode)
-                                {
-
-                                    @foreach (var kvp in schedule)
-                                    {
-                                        var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
-                                        var tasks = kvp.Value;
-                                        <tr>
-
-                                            <td>@dayOfWeek</td>
-                                            <td>
-
-                                                @for (int index = 0; index < tasks.Count; index++)
-                                                {
-                                                    var task = tasks[index];
-                                                    <div>
-                                                        <input type="time" @bind-value="task.StartTime" @bind-value:event="oninput" />
-                                                        -
-                                                        <input type="time" @bind-value="task.EndTime" @bind-value:event="oninput" />
-                                                        <button @onclick="() => RemoveTask(tasks, index -1 )">Видалити</button>
-                                                    </div>
-                                                }
-                                                <button @onclick="() => AddNewTask(tasks)">Додати час</button>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                                else
-
-                                {
-
-                                    @foreach (var kvp in schedule)
-                                    {
-                                        var dayOfWeek = DayOfWeekLocal[(int)kvp.Key];
-                                        var tasks = kvp.Value;
-                                        <tr>
-                                            <td>@dayOfWeek</td>
-                                            <td>
-                                                @foreach (var task in tasks)
-                                                {
-                                                    <div>
-                                                        @task.StartString - @task.EndString
-                                                    </div>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-
-                            </tbody>
-                        </table>
+                        <div class="five">
+                            <div class="button-content">
+                                <label for="faculty">Факультет:</label>
+                                <span>@userProfile.faculty</span>
+                            </div>
+                            <label for="description">Опис:</label>
+                            <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                        </div>
                     }
-                </div>
+                    @if (isEditMode)
+                    {
+                        <div class="form-group">
+                            <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate" />
+                            <label for="socialPrivacy">Зробити соціальні мережі приватними</label>
+                        </div>
 
-
-
-                @if (isEditMode)
-                {
-
-                    <div class="form-group">
-                        <label for="name">Ініціали:</label>
-                        <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
-                    </div>
-                }
-                else
-                {
-                    <div class="form-group">
-                        <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
-                        <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                    </div>
-                }
-
-
-
-                @if (isEditMode)
-                {
-                    <div class="form-group">
-                        <label for="faculty">Факультет:</label>
-                        <select id="faculty" class="form-control" @onchange="SelectFaculty">
-                            @if (allFaculties != null)
+                    }
+                    <div class="soc">
+                        @foreach (var socialLink in userProfile.social)
+                        {
+                            @if (isEditMode)
                             {
-                                @foreach (var faculty in allFaculties)
+                                <div class="form-group">
+                                    <label for="@socialLink.Key">@socialLink.Key:</label>
+                                    <input type="text" id="@socialLink.Key" class="form-control" @bind="userProfile.social[socialLink.Key]" />
+                                </div>
+                            }
+                            else
+                            {
+                                @if (!string.IsNullOrEmpty(socialLink.Value))
                                 {
-                                    @if (userProfile.faculty == faculty)
+                                    <div class="social">
+                                        <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                                    </div>
+                                }
+
+                            }
+                        }
+
+
+                    </div>
+
+
+
+                    @if (isEditMode)
+                    {
+                        <div class="subjectSearch">
+                            <label for="subjectSearch">Пошук предмету:</label>
+                            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+
+                            <label>Обрані предмети:</label>
+                            @if (selectedSubjects.Any())
+                            {
+                                <ul>
+                                    @foreach (var subject in selectedSubjects)
                                     {
-                                        <option value="@faculty" selected>@faculty</option>
+                                        <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+
+                    }
+
+                    @if (isEditMode)
+                    {
+
+
+                        <div class="searchSubject">
+
+                            <label>Оберіть предмет(и):</label>
+                            <select @onchange="OnSubjectsSelected" multiple>
+                                @if (filteredSubjects != null)
+                                {
+                                    @foreach (var subject in filteredSubjects)
+                                    {
+                                        <option selected=@selectedSubjects.Contains(subject)>@subject</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="subject-group">
+                            <label for="subject">Предмети:</label>
+                            @if (userProfile.subjects != null && userProfile.subjects.Any())
+                            {
+                                foreach (var subject in userProfile.subjects)
+                                {
+                                    if (subject != userProfile.subjects[^1])
+                                    {
+                                        <span>@subject - </span>
                                     }
                                     else
                                     {
-                                        <option value="@faculty">@faculty</option>
+                                        <span>@subject</span>
                                     }
                                 }
                             }
-                        </select>
-                    </div>
-
-                    <div class="five">
-                        <label for="description">Опис:</label>
-                        <textarea id="description" class="form-control" @bind="@userProfile.description"></textarea>
-                    </div>
-                }
-                else
-                {
-
-                    <div class="five">
-                        <div class="button-content">
-                            <label for="faculty">Факультет:</label>
-                            <span>@userProfile.faculty</span>
+                            else
+                            {
+                                <span>Немає предметів.</span>
+                            }
                         </div>
-                        <label for="description">Опис:</label>
-                        <p id="description" class="form-control-plaintext">@userProfile.description</p>
-                    </div>
-                }
-                @if (isEditMode)
-                {
-                    <div class="form-group">
-                        <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate" />
-                        <label for="socialPrivacy">Зробити соціальні мережі приватними</label>
-                    </div>
+                    }
 
-                }
-                <div class="soc">
-                    @foreach (var socialLink in userProfile.social)
-                    {
+                    <div class="edit">
                         @if (isEditMode)
                         {
-                            <div class="form-group">
-                                <label for="@socialLink.Key">@socialLink.Key:</label>
-                                <input type="text" id="@socialLink.Key" class="form-control" @bind="userProfile.social[socialLink.Key]" />
+                            <div class="editButtons">
+                                <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
+                                <button type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
+                            </div>
+
+                        }
+                        else
+                        {
+
+                            <div class="blueButton">
+                                <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
                             </div>
                         }
-                        else
-                        {
-                            @if (!string.IsNullOrEmpty(socialLink.Value))
-                            {
-                                <div class="social">
-                                    <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
-                                </div>
-                            }
-
-                        }
-                    }
-
-
+                    </div>
                 </div>
-
-
-
-                @if (isEditMode)
-                {
-                    <div class="subjectSearch">
-                        <label for="subjectSearch">Пошук предмету:</label>
-                        <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
-
-                        <label>Обрані предмети:</label>
-                        @if (selectedSubjects.Any())
-                        {
-                            <ul>
-                                @foreach (var subject in selectedSubjects)
-                                {
-                                    <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
-                                }
-                            </ul>
-                        }
-                    </div>
-                }
-                else
-                {
-
-                }
-
-                @if (isEditMode)
-                {
-
-
-                    <div class="searchSubject">
-
-                        <label>Оберіть предмет(и):</label>
-                        <select @onchange="OnSubjectsSelected" multiple>
-                            @if (filteredSubjects != null)
-                            {
-                                @foreach (var subject in filteredSubjects)
-                                {
-                                    <option selected=@selectedSubjects.Contains(subject)>@subject</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                }
-                else
-                {
-                    <div class="subject-group">
-                        <label for="subject">Предмети:</label>
-                        @if (userProfile.subjects != null && userProfile.subjects.Any())
-                        {
-                            foreach (var subject in userProfile.subjects)
-                            {
-                                if (subject != userProfile.subjects[^1])
-                                {
-                                    <span>@subject - </span>
-                                }
-                                else
-                                {
-                                    <span>@subject</span>
-                                }
-                            }
-                        }
-                        else
-                        {
-                            <span>Немає предметів.</span>
-                        }
-                    </div>
-                }
-
-                <div class="edit">
-                    @if (isEditMode)
-                    {
-                        <div class="editButtons">
-                            <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
-                            <button type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
-                        </div>
-
-                    }
-                    else
-                    {
-
-                        <div class="blueButton">
-                            <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
-                        </div>
-                    }
-                </div>
-            </div>
-        </body>
+            </body>
+        }
+        else
+        {
+            <span class="loader"></span>
+        }
     }
     else
     {
-        <span class="loader"></span>
+
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
     }
 }
-else
-{
-
-    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
-}
-
 @* evgeniypoklov@gmail.com *@
 @* Myparol2017 *@
 @* evgeniypoklov@gmail.com *@
@@ -393,7 +400,7 @@ else
         "П'ятниця",
         "Субота"
     };
-
+   bool isLoaded;
     private List<string> selectedSubjects = new List<string>();
     private List<string> allSubjects = new List<string>();
     private string _subjectSearch = string.Empty;
@@ -505,7 +512,7 @@ else
     {
         try
         {
-
+            isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
             {
@@ -520,6 +527,7 @@ else
             {
                 errorMessage = "Failed to load user info";
             }
+            isLoaded = true;
         }
         catch (Exception ex)
         {
@@ -750,6 +758,18 @@ else
             }
         }
         return false;
+    }
+    private bool showMessagePopup = false;
+
+    private void ShowMessagePopup()
+    {
+        showMessagePopup = true;
+
+    }
+
+    private void HandleClose(bool isClosed)
+    {
+        showMessagePopup = false;
     }
     /// <summary>
     /// Метод для видалення проміжку часу.
