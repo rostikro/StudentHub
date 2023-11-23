@@ -53,10 +53,19 @@
                     }
                     else
                     {
-                        <h2 style="color:black">@userProfile.username</h2>
+                        <div class="verified-account">
+                            <h2 style="color:black">@userProfile.username</h2>
+                            @if (@isProfileVerified)
+                            {
+                                <img class="verified-icon"
+                                     src="https://cdn2.iconfinder.com/data/icons/business-finance-170/48/identity-badge-verified-approved-man-minority-256.png"
+                                     alt="Verified Icon"
+                                     title="Ви підтверджений користувач.">
+                            }
+                        </div>
 
                     }
-                    
+
 
                     @if (isEditMode)
                     {
@@ -228,7 +237,7 @@
                         <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate" />
                         <label for="socialPrivacy">Зробити соціальні мережі приватними</label>
                     </div>
-                    
+
                 }
                 <div class="soc">
                     @foreach (var socialLink in userProfile.social)
@@ -350,7 +359,7 @@
 }
 else
 {
-    
+
     <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
 }
 
@@ -360,18 +369,18 @@ else
 @* 33 *@
 @code {
     const int MAX_RANGES = 4;
-    
+
     private string errorMessage;
 
     private bool isUserAuthenticated;
-    
+    private bool isProfileVerified;
+
     private UpdateProfile originalProfile;
     private UpdateProfile userProfile;
     private string originalUsername;
     private string facultySearch;
     private List<string> allFaculties;
     private IEnumerable<string> filteredFaculties;
-
 
     public delegate Task UpdateScheduleDelegate(DayOfWeek dayOfWeek, List<string> tasks);
     private Dictionary<DayOfWeek, List<TimeRange>> schedule;
@@ -393,7 +402,7 @@ else
     private bool isEditMode = false;
     private bool isUsernameEdit = false;
     private string ButtonText => isEditMode ? "Cancel Edit" : "Edit";
-    private string timeValidationError;
+    private string timeValidationError = string.Empty;
 
     private void CheckTimeValidity()
     {
@@ -435,6 +444,7 @@ else
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
             LoadSchedule();
+            errorMessage = string.Empty;
             StateHasChanged();
             Console.WriteLine("Edits canceled, changes reverted.");
         }
@@ -485,7 +495,7 @@ else
     }
 
 
-    
+
 
     /// <summary>
     /// Метод, який викликається під час ініціалізації сторінки.
@@ -652,6 +662,7 @@ else
             userProfile = await UserProfileService.GetProfileAsync();
             originalProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(userProfile));
             selectedSubjects = userProfile.subjects;
+            isProfileVerified = userProfile.isProfileVerified;
         }
         catch (Exception ex)
         {

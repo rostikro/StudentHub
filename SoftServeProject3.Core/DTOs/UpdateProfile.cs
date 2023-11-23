@@ -16,6 +16,9 @@ namespace SoftServeProject3.Core.DTOs
 
         public string description { get; set; }
         public bool isprofileprivate { get; set; }
+
+        public bool isProfileVerified { get; set; }
+
         public bool isfriendsprivate { get; set; }
         public List<string> subjects { get; set; }
 

@@ -328,7 +328,7 @@ else
     private async Task Register()
     {
         ErrorPulseClass = "";
-
+        isRegDisabled = true;
         var registerRequest = new UserModel
             {
                 Username = regModel.Username.Trim(),
@@ -363,6 +363,7 @@ else
                 IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                 IsProfilePrivate = false,
                 IsFriendsPrivate = false,
+                IsProfileVerified = regModel.Email.Trim().EndsWith("knu.ua") ? true : false
             };
 
 
