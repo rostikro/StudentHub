@@ -22,15 +22,7 @@
 
         <body>
             <div class="wrapper">
-                <div class="one">
-                    <div class="left-links">
-                        <a href="#">Home</a>
-                        <a href="UserSearch">Пошук студентів</a>
-                    </div>
-                    <div class="right-links">
-                        <a href="UserProfile">Профіль</a>
-                    </div>
-                </div>
+            <SoftServeProject3.UI.wwwroot.navbar.Navbar/>
 
                 <div class="two">
                     @if (isEditMode)
@@ -347,6 +339,9 @@
                         <div class="blueButton">
                             <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
                         </div>
+                        <NavLink class="nav-link" href="" @onclick="Logout">
+                            <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+                        </NavLink>
                     }
                 </div>
             </div>
@@ -361,6 +356,7 @@ else
 {
 
     <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+    <span class="loader"></span>
 }
 
 @* evgeniypoklov@gmail.com *@
@@ -772,7 +768,11 @@ else
         tasks.RemoveAt(index);
         StateHasChanged();
     }
-
+    private async Task Logout()
+    {
+        await TokenService.RemoveToken();
+        Navigation.NavigateTo("/login");
+    }
 }
 
 

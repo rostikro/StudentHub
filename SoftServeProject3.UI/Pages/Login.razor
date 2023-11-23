@@ -8,6 +8,9 @@
 @using SoftServeProject3.Core.DTOs;
 @using System.ComponentModel.DataAnnotations;
 
+<head>
+    <PageTitle>Checking mail</PageTitle>
+</head>
 
 @if (!isUserAuthenticated)
 {
@@ -18,66 +21,72 @@
     </head>
 
     <body>
-        <div class="container">
-            <h1>Вхід</h1>
-            <p>Будь ласка, заповніть наступні поля, щоб увійти на сайт.</p>
-            <hr>
-            <EditForm OnValidSubmit="@AttemptLogin" EditContext="@editContext">
-                <DataAnnotationsValidator />
-                <label><b>Ім'я користувача або пошта</b></label>
-                <StyledInputText placeholder="Введіть ім'я користувача або пошту" maxLength="50" @bind-Value="loginModel.EmailorUsername"
-                @oninput="EventCallback.Factory.Create(this, HandleEmailOrUsernameInput)" />
-                <p id="field-error-message">@EmailOrUsernameFieldError</p>
-                <label for="password"><b>Пароль:</b></label>
-                <StyledInputText type="password" placeholder="Введіть пароль" @bind-Value="loginModel.Password"
-                @oninput="EventCallback.Factory.Create(this, HandlePasswordInput)" />
-                <p id="field-error-message">@PasswordFieldError</p>
-                @if (errorMessage != "")
-                {
-                    <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
-                }
-                <button type="submit" disabled="@isLoginDisabled" class="@loginButtonClass">Увійти</button>
-            </EditForm>
+        <div class="wrapper">
+            <div class="box box1"></div>
+            <div class="box box3"></div>
+            <div class="box box2">
 
-            <p></p>
-            <div style="display: flex; justify-content: center;">
-                <div id="g_id_onload"
-                     data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
-                     data-context="signin"
-                     data-ux_mode="popup"
-                     data-login_uri="https://localhost:7292/Users/login/google"
-                     data-nonce=""
-                     data-auto_prompt="false">
-                </div>
+                <div class="container">
+                    <h1>Вхід</h1>
+                    <p>Будь ласка, заповніть наступні поля, щоб увійти на сайт.</p>
+                    <hr>
+                    <EditForm OnValidSubmit="@AttemptLogin" EditContext="@editContext">
+                        <DataAnnotationsValidator />
+                        <label><b>Ім'я користувача або пошта</b></label>
+                        <StyledInputText placeholder="Введіть ім'я користувача або пошту" maxLength="50" @bind-Value="loginModel.EmailorUsername"
+                        @oninput="EventCallback.Factory.Create(this, HandleEmailOrUsernameInput)" />
+                        <p id="field-error-message">@EmailOrUsernameFieldError</p>
+                        <label for="password"><b>Пароль:</b></label>
+                        <StyledInputText type="password" placeholder="Введіть пароль" @bind-Value="loginModel.Password"
+                        @oninput="EventCallback.Factory.Create(this, HandlePasswordInput)" />
+                        <p id="field-error-message">@PasswordFieldError</p>
+                        @if (errorMessage != "")
+                        {
+                            <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
+                        }
+                        <button type="submit" disabled="@isLoginDisabled" class="@loginButtonClass">Увійти</button>
+                    </EditForm>
 
-                <div style="align-content:center">
-                    <div class="g_id_signin"
-                         data-type="standard"
-                         data-shape="rectangular"
-                         data-theme="filled_blue"
-                         data-text="continue_with"
-                         data-size="large"
-                         data-logo_alignment="center"
-                         data-width="420">
+                    <p></p>
+                    <div style="display: flex; justify-content: center;">
+                        <div id="g_id_onload"
+                             data-client_id="357565124142-s9gtqe39vomlthcsqgorb32ltq65i3o8.apps.googleusercontent.com"
+                             data-context="signin"
+                             data-ux_mode="popup"
+                             data-login_uri="https://localhost:7292/Users/login/google"
+                             data-nonce=""
+                             data-auto_prompt="false">
+                        </div>
+
+                        <div style="align-content:center">
+                            <div class="g_id_signin"
+                                 data-type="standard"
+                                 data-shape="rectangular"
+                                 data-theme="filled_blue"
+                                 data-text="continue_with"
+                                 data-size="large"
+                                 data-logo_alignment="center"
+                                 data-width="420">
+                            </div>
+                        </div>
                     </div>
+                    <div class="registration-link">
+                        <p>Ще не зареєстровані? <a href="/RegistrationPage">Зареєструватися</a></p>
+                    </div>
+
+                    <div class="forgot-password-link">
+                        <p>Забули пароль? <a href="/checking_mail">Скидання паролю</a></p>
+                    </div>
+
+                    <hr>
+
                 </div>
+
+                <script>
+                    // preventSpace();
+                </script>
             </div>
-
-
-            <hr>
-
         </div>
-
-        <div class="registration-link">
-            <p>Ще не зареєстровані? <a href="/RegistrationPage">Зареєструватися</a></p>
-        </div>
-
-        <div class="forgot-password-link">
-            <p>Забули пароль? <a href="/checking_mail">Скидання паролю</a></p>
-        </div>
-        <script>
-            // preventSpace();
-         </script>
     </body>
 }
 else
@@ -255,5 +264,4 @@ else
 
     }
 }
-
 
