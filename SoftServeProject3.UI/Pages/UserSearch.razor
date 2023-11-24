@@ -12,15 +12,15 @@
 
 
 
-        
+
 @if (isLoaded)
 {
     @if (isUserAuthenticated)
     {
         <body>
-            
+
             <div class="wrapper">
-                    <SoftServeProject3.UI.wwwroot.navbar.Navbar/>
+                <SoftServeProject3.UI.wwwroot.navbar.Navbar />
             </div>
 
 
@@ -161,19 +161,19 @@
                             <td colspan="3">Користувачів не знайдено</td>
                         </tr>
                     }
-                    
-           
+
+
                 </tbody>
             </table>
         </body>
     }
 
-else
-{
-    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
-    <span class="loader"></span>
+    else
+    {
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+        <span class="loader"></span>
+    }
 }
-
 @code {
     const int MAX_SUBJECTS = 3;
 

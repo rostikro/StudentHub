@@ -1,4 +1,13 @@
-﻿
+﻿@inject HttpClient Http
+@inject TokenService TokenService
+@inject NavigationManager Navigation
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using SoftServeProject3.UI.Pages;
+@using System.Globalization
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
 <style>
     .wrapper {
     max-width: 940px;
@@ -65,6 +74,15 @@
             width: 100%;
             height: 100%;
         }
+
+    .friend-requests-indicator {
+        background-color: red;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 0.8em;
+        margin-left: 5px;
+    }
 </style>
 
 
@@ -75,11 +93,46 @@
             <a href="MainPage">Friends</a>
         </div>
         <div class="right-links">
-            <a href="MainPage">About</a>
+        <button @onclick="ShowMessagePopup">
+            Повідомлення @if (incomingRequests?.Any() == true)
+            {
+                <span class="friend-requests-indicator">@incomingRequests.Count</span>
+            }
+        </button>
+            @if (showMessagePopup)
+            {
+                <MessagePopupComponent IsVisible="@showMessagePopup" OnClose="HandleClose" />
+            }
             <a href="UserProfile">Профіль</a>
         </div>
     </div>
 
 @code {
+    string errorMessage;
+    List<Friend> incomingRequests = new List<Friend>();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+                var token = await TokenService.GetToken();
+                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
+                errorMessage = "Failed to load user info";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+    private bool showMessagePopup = false;
 
+    private void ShowMessagePopup()
+    {
+        showMessagePopup = true;
+
+    }
+    private void HandleClose(bool isClosed)
+    {
+        showMessagePopup = false;
+    }
 }

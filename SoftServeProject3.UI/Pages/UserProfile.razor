@@ -24,20 +24,9 @@
 
             <body>
                 <div class="wrapper">
-                    <div class="one">
-                        <div class="left-links">
-                            <a href="#">Home</a>
-                            <a href="UserSearch">Пошук студентів</a>
-                        </div>
-                        <div class="right-links">
-                            <button @onclick="ShowMessagePopup">Повідомлення @if(incomingRequests.Any()) {<span class="friend-requests-indicator">@incomingRequests.Count</span>}</button>
-                            @if (showMessagePopup)
-                            {
-                                <MessagePopupComponent IsVisible="@showMessagePopup" OnClose="HandleClose" />
-                            }
-                            <a href="UserProfile">Профіль</a>
-                        </div>
-                    </div>
+                    
+                        <SoftServeProject3.UI.wwwroot.navbar.Navbar />
+                    
 
                     <div class="two">
                         @if (isEditMode)
@@ -351,29 +340,29 @@
                         else
                         {
 
-                        <div class="blueButton">
-                            <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
-                        </div>
-                        <NavLink class="nav-link" href="" @onclick="Logout">
-                            <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
-                        </NavLink>
-                    }
+                            <div class="blueButton">
+                                <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
+                            </div>
+                            <NavLink class="nav-link" href="" @onclick="Logout">
+                                <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+                            </NavLink>
+                        }
+                    </div>
                 </div>
-            </div>
-        </body>
+            </body>
+        }
+        else
+        {
+            <span class="loader"></span>
+        }
     }
     else
     {
+
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
         <span class="loader"></span>
     }
 }
-else
-{
-
-    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
-    <span class="loader"></span>
-}
-
 @* evgeniypoklov@gmail.com *@
 @* Myparol2017 *@
 @* evgeniypoklov@gmail.com *@
@@ -604,7 +593,7 @@ else
             }
             else
             {
-                
+
                 selectedSubjects.AddRange(newSelections.Take(availableSlots));
                 errorMessage = $"Можна обрати максимум {MAX_SUBJECTS} предметів";
             }
