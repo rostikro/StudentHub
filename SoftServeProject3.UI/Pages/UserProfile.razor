@@ -7,7 +7,7 @@
 @using System.Globalization
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
-
+@using System.Net.Http.Headers;
 
 
 <head>
@@ -30,7 +30,7 @@
                             <a href="UserSearch">Пошук студентів</a>
                         </div>
                         <div class="right-links">
-                            <button @onclick="ShowMessagePopup">Повідомлення</button>
+                            <button @onclick="ShowMessagePopup">Повідомлення @if(incomingRequests.Any()) {<span class="friend-requests-indicator">@incomingRequests.Count</span>}</button>
                             @if (showMessagePopup)
                             {
                                 <MessagePopupComponent IsVisible="@showMessagePopup" OnClose="HandleClose" />
@@ -401,7 +401,7 @@
         "П'ятниця",
         "Субота"
     };
-   bool isLoaded;
+    bool isLoaded;
     private List<string> selectedSubjects = new List<string>();
     private List<string> allSubjects = new List<string>();
     private string _subjectSearch = string.Empty;
@@ -503,7 +503,7 @@
     }
 
 
-
+    List<Friend> incomingRequests;
 
     /// <summary>
     /// Метод, який викликається під час ініціалізації сторінки.
@@ -517,6 +517,9 @@
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
             {
+                var token = await TokenService.GetToken();
+                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
                 allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
                 allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties");
                 filteredSubjects = allSubjects;
