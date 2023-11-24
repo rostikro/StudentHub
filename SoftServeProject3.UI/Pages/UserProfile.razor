@@ -376,6 +376,7 @@
 @* 33 *@
 @code {
     const int MAX_RANGES = 4;
+    const int MAX_SUBJECTS = 3;
 
     private string errorMessage;
 
@@ -588,7 +589,18 @@
         var options = e.Value as IEnumerable<string>;
         if (options is not null)
         {
-            selectedSubjects.AddRange(options.Except(selectedSubjects));
+            var newSelections = options.Except(selectedSubjects);
+            var availableSlots = MAX_SUBJECTS - selectedSubjects.Count;
+            if (newSelections.Count() <= availableSlots)
+            {
+                selectedSubjects.AddRange(newSelections);
+            }
+            else
+            {
+                
+                selectedSubjects.AddRange(newSelections.Take(availableSlots));
+                errorMessage = $"Можна обрати максимум {MAX_SUBJECTS} предметів";
+            }
         }
     }
 

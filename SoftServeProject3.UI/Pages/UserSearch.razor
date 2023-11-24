@@ -15,11 +15,7 @@
     @if (isUserAuthenticated)
     {
         <body>
-            @* @if (errorMessage != null)
-    {
-    <p class="text-danger">@errorMessage</p>
-    }
-    *@
+            
             <div class="wrapper">
                 <div class="one">
                     <div class="left-links">
@@ -68,7 +64,10 @@
                         </select>
                     </div>
                 </div>
-
+                @if (errorMessage != null)
+                {
+                    <p class="text-danger">@errorMessage</p>
+                }
                 <div class="left-side">
                     <div>
                         <label for="usernameSearch">Пошук користувача за нікнеймом:</label>
@@ -81,14 +80,15 @@
                         <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
                     </div>
 
-                    <div>
+                    <div class="searchSubject">
+
                         <label>Оберіть предмет(и):</label>
                         <select @onchange="OnSubjectsSelected" multiple>
                             @if (filteredSubjects != null)
                             {
                                 @foreach (var subject in filteredSubjects)
                                 {
-                                    <option @onclick="() => SelectSubject(subject)">@subject</option>
+                                    <option selected=@selectedSubjects.Contains(subject)>@subject</option>
                                 }
                             }
                         </select>
@@ -166,6 +166,8 @@
                             <td colspan="3">Користувачів не знайдено</td>
                         </tr>
                     }
+                    
+           
                 </tbody>
             </table>
         </body>
@@ -178,6 +180,8 @@
 }
 
 @code {
+    const int MAX_SUBJECTS = 3;
+
     private UserListModel[] users = new UserListModel[0];
     private string usernameSearch = string.Empty;
     private TimeOnly? startTimeInput;
@@ -314,7 +318,18 @@
         var options = e.Value as IEnumerable<string>;
         if (options is not null)
         {
-            selectedSubjects.AddRange(options.Except(selectedSubjects));
+            var newSelections = options.Except(selectedSubjects);
+            var availableSlots = MAX_SUBJECTS - selectedSubjects.Count;
+            if (newSelections.Count() <= availableSlots)
+            {
+                selectedSubjects.AddRange(newSelections);
+            }
+            else
+            {
+
+                selectedSubjects.AddRange(newSelections.Take(availableSlots));
+                errorMessage = $"Можна обрати максимум {MAX_SUBJECTS} предметів";
+            }
         }
     }
 
@@ -333,6 +348,8 @@
     private async Task ApplyFilters()
     {
         var queryParameters = new List<string>();
+        var defaultStartTime = new TimeOnly(0, 0);
+        var defaultEndTime = new TimeOnly(23, 59);
         try
         {
             if (startTimeInput.HasValue && endTimeInput.HasValue)
@@ -344,6 +361,13 @@
 
                 TimeSpan startTime = startTimeInput.Value.ToTimeSpan();
                 TimeSpan endTime = endTimeInput.Value.ToTimeSpan();
+                queryParameters.Add($"startTime={startTime:hh\\:mm\\:ss}");
+                queryParameters.Add($"endTime={endTime:hh\\:mm\\:ss}");
+            }
+            else
+            {
+                TimeSpan startTime = defaultStartTime.ToTimeSpan();
+                TimeSpan endTime = defaultEndTime.ToTimeSpan();
                 queryParameters.Add($"startTime={startTime:hh\\:mm\\:ss}");
                 queryParameters.Add($"endTime={endTime:hh\\:mm\\:ss}");
             }
