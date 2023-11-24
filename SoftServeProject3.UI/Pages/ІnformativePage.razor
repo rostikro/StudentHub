@@ -1,0 +1,28 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="wrapper">
+    <div class="vsc-title">VSC</div>
+    <div class="box box1">
+        <div class="information-text">
+            <h2 class="info-heading">З допомогою нашого сервісу</h2>
+            <p class="info-paragraph">
+                Ви можете поспілкуватися зі студентами з різних університетів і спеціальностей.
+                Наша платформа дозволяє знаходити співрозмовників, обмінюватися досвідом та знаннями,
+                розвивати мережу контактів та здобувати нові навички.
+            </p>
+            <button class="login-button" @onclick="GoToLogin">Увійти</button>
+        </div>
+    </div>
+    <div class="box box2">
+        <img src="https://i.postimg.cc/zGg51n0c/3511596.jpg" alt="Site Photo" class="site-photo">
+    </div>
+</div>
+
+@code {
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}
