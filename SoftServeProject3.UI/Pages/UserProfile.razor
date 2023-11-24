@@ -351,25 +351,29 @@
                         else
                         {
 
-                            <div class="blueButton">
-                                <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
-                            </div>
-                        }
-                    </div>
+                        <div class="blueButton">
+                            <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
+                        </div>
+                        <NavLink class="nav-link" href="" @onclick="Logout">
+                            <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+                        </NavLink>
+                    }
                 </div>
-            </body>
-        }
-        else
-        {
-            <span class="loader"></span>
-        }
+            </div>
+        </body>
     }
     else
     {
-
-        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+        <span class="loader"></span>
     }
 }
+else
+{
+
+    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+    <span class="loader"></span>
+}
+
 @* evgeniypoklov@gmail.com *@
 @* Myparol2017 *@
 @* evgeniypoklov@gmail.com *@
@@ -807,7 +811,11 @@
         tasks.RemoveAt(index);
         StateHasChanged();
     }
-
+    private async Task Logout()
+    {
+        await TokenService.RemoveToken();
+        Navigation.NavigateTo("/login");
+    }
 }
 
 

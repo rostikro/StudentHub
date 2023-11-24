@@ -10,6 +10,9 @@
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
 
+
+
+        
 @if (isLoaded)
 {
     @if (isUserAuthenticated)
@@ -17,15 +20,7 @@
         <body>
             
             <div class="wrapper">
-                <div class="one">
-                    <div class="left-links">
-                        <a href="#">Home</a>
-                        <a href="UserSearch">Пошук студентів</a>
-                    </div>
-                    <div class="sidebarlinks">
-                        <a href="UserProfile">Профіль</a>
-                    </div>
-                </div>
+                    <SoftServeProject3.UI.wwwroot.navbar.Navbar/>
             </div>
 
 
@@ -173,10 +168,10 @@
         </body>
     }
 
-    else
-    {
-        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
-    }
+else
+{
+    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+    <span class="loader"></span>
 }
 
 @code {

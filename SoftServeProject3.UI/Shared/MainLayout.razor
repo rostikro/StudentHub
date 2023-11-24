@@ -8,7 +8,7 @@
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 
-<div style="@sidebarWidth" class="sidebar">
+@* <div style="@sidebarWidth" class="sidebar">
     <a class="closebtn" @onclick="CloseNav">&times;</a>
 
     <div class="top-row ps-3 navbar navbar-dark">
@@ -25,7 +25,7 @@
                 <NavLink class="nav-link" href="">
                     <span class="oi oi-home" aria-hidden="true"></span> Головна сторінка
                 </NavLink>
-            </div>
+            </div> *@
             @* <div class="nav-item px-3">
             <NavLink class="nav-link" href="checking_mail">
             <span class="oi oi-main-page" aria-hidden="true"></span> Скидання паролю
@@ -41,7 +41,7 @@
             <span class="oi oi-reset-password" aria-hidden="true"></span> Set New Password
             </NavLink>
             </div> *@
-            @if (!isUserAuthenticated)
+@*             @if (!isUserAuthenticated)
             {
                 <li class="nav-item px-3">
                     <NavLink class="nav-link" href="login">
@@ -74,8 +74,8 @@
     </div>
 
 </div>
-
-<div style="@mainMargin">
+ *@
+@* <div style="@mainMargin">
     @if (width == 0)
     {
         <button class="openbtn" @onclick="OpenNav">&#9776; Open Sidebar</button>
@@ -83,43 +83,43 @@
     else
     {
 
-    }
+    } *@
     <p>@Body</p>
-</div>
+@* </div> *@
 
 @code {
-    int width = 0;
-    string sidebarWidth => $"width: {width}px;";
-    string mainMargin => $"margin-left: {width}px;";
-    void OpenNav() => width = 250;
-    void CloseNav() => width = 0;
-    private bool collapseNavMenu = true;
+    // int width = 0;
+    // string sidebarWidth => $"width: {width}px;";
+    // string mainMargin => $"margin-left: {width}px;";
+    // void OpenNav() => width = 250;
+    // void CloseNav() => width = 0;
+    // private bool collapseNavMenu = true;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    // private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
-    private bool isUserAuthenticated;
+    // private bool isUserAuthenticated;
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-    protected override async Task OnInitializedAsync()
-    {
-        await IsUserAuthenticatedAsync();
-    }
-    private async Task Logout()
-    {
+    // private void ToggleNavMenu()
+    // {
+    //     collapseNavMenu = !collapseNavMenu;
+    // }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await IsUserAuthenticatedAsync();
+    // }
+    // private async Task Logout()
+    // {
 
-        await TokenService.RemoveToken();
-        Navigation.NavigateTo("/login");
-    }
+    //     await TokenService.RemoveToken();
+    //     Navigation.NavigateTo("/login");
+    // }
 
-    private async Task IsUserAuthenticatedAsync()
-    {
-        var token = await TokenService.GetToken();
-        isUserAuthenticated = TokenService.IsTokenValid(token);
-        StateHasChanged();
-    }
+    // private async Task IsUserAuthenticatedAsync()
+    // {
+    //     var token = await TokenService.GetToken();
+    //     isUserAuthenticated = TokenService.IsTokenValid(token);
+    //     StateHasChanged();
+    // }
 
 
 
