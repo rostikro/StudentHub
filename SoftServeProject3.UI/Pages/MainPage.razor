@@ -1,10 +1,23 @@
 ﻿@page "/MainPage"
 @inject HttpClient Http
+@inject TokenService TokenService
 @inject NavigationManager Navigation
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using System.Net
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
+@using System.Net.Http.Json;
 
 <head>
     <PageTitle>Checking mail</PageTitle>
 </head>
+@if (isLoaded)
+{
+    @if (isUserAuthenticated)
+    {
         <body>
             <div class="wrapper">
             <SoftServeProject3.UI.wwwroot.navbar.Navbar/>
@@ -15,96 +28,98 @@
             <div class="oval">предмети</div>
 
         </div>
-        <div class="three">
-            <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
-            <div class="oval">Нікнейм</div>
-            <div class="oval">Факультет</div>
-            <div class="oval">предмети</div>
-
+        <p>Список Друзів:</p>
+        <div>
+            @if (myFriends != null && myFriends.Any())
+            {
+                <ul>
+                    @foreach (var friend in myFriends)
+                    {
+                        <li>
+                            <img src="@friend.photoUrl" />
+                            <a href="UserProfile/@friend.username">@friend.username</a>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>Немає друзів ((((((((((((((((((((((((((</p>
+            }
         </div>
-        <div class="four">
-            <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
-            <div class="oval">Нікнейм</div>
-            <div class="oval">Факультет</div>
-            <div class="oval">предмети</div>
-
-        </div>
-        <div class="five">
-            <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
-            <div class="oval">Нікнейм</div>
-            <div class="oval">Факультет</div>
-            <div class="oval">предмети</div>
-
-        </div>
-    </div>
-
-
-
-
-
-
-
-
-
-
-    @* <div class="container">
-        <div class="button">
-            <div class="button-content">
-                <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
-                <div class="oval">Василенко Василь Васильович</div>
-                <div class="oval">КНУ ім Тараса Шевченка 122 інформатика (2 курс)</div>
-                <div class="oval">ООП, Мат логіка, Диф рівняння, Теор йм...</div>
+        
+                <p>Список відпралених запитів</p>
+        @if (myOutgoingRequests != null && myOutgoingRequests.Any())
+        {
+            <ul>
+                @foreach (var friendRequest in myOutgoingRequests)
+                {
+                    
+                    <li>
+                        <img src="@friendRequest.photoUrl" />
+                        <a href="UserProfile/@friendRequest.username">@friendRequest.username</a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            //<p>Немає відпарвлених</p>
+        }
             </div>
-        </div>
-        <div class="button">
-            <div class="button-content">
-                <div class="circle2"></div>
-                <div class="oval">Rosikss</div>
-                <div class="oval">КНУ ім Тараса Шевченка 122 інформатика (2 курс)</div>
-                <div class="oval">ООП, Мат логіка, Диф рівняння, Теор йм...</div>
-            </div>
-        </div>
-        <div class="button">
-            <div class="button-content">
-                <div class="circle3"></div>
-                <div class="oval">IvanAxe-Dev</div>
-                <div class="oval">КНУ ім Тараса Шевченка 122 інформатика (2 курс)</div>
-                <div class="oval">ООП, Мат логіка, Диф рівняння, Теор йм...</div>
-            </div>
-        </div>
-        <div class="button">
-            <div class="button-content">
-                <div class="circle4"><a href="#"></a></div>
-                <div class="oval">Жбобик спенжик</div>
-                <div class="oval">Default</div>
-                <div class="oval">Default</div>
-            </div>
-        </div>
-        <div class="button">
-            <div class="button-content">
-                <div class="circle5"></div>
-                <div class="oval">Default</div>
-                <div class="oval">Default</div>
-                <div class="oval">Default</div>
-            </div>
-        </div>
-        <div class="button">
-            <div class="button-content">
-                <div class="circle5"></div>
-                <div class="oval">Default</div>
-                <div class="oval">Default</div>
-                <div class="oval">Default</div>
-            </div>
-        </div>
-    </div> *@
+        </body>
+    }
+    else
+    {
 
-
-
-<p>@errorMessage</p>
-@code {
-    
-    string errorMessage = ""; 
+    <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
     }
 
-</body>
+}
+else
+{
+    <p>@errorMessage</p>
+}
+@code {
+    bool isLoaded;
+    string errorMessage = "";
+    private List<Friend> myFriends = new List<Friend>();
+    private List<Friend> myOutgoingRequests = new List<Friend>();
+    bool isUserAuthenticated;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isUserAuthenticated = await IsUserAuthenticatedAsync();
+            if (isUserAuthenticated)
+            {
+                isLoaded = false;
+                var token = await TokenService.GetToken();
+                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                myFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends");
+                myOutgoingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/outgoingRequests");
+                
+
+            }
+            else
+            {
+                errorMessage = "Failed to load user info";
+            }
+            isLoaded = true;
+
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+    }
+}
+    
+
 
