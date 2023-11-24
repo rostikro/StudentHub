@@ -12,11 +12,5 @@ namespace SoftServeProject3.Core.DTOs
         public List<string> Subjects { get; set; }
         public string Faculty { get; set; }
     }
-    public class PaginatedResponse<T>
-    {
-        public List<T> Items { get; set; }
-        public int TotalPages { get; set; }
-        public int TotalItems { get; set; }
-        // Other pagination-related fields...
-    }
+   
 }
