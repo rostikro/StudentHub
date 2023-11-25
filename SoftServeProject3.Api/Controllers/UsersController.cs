@@ -8,7 +8,7 @@ using SoftServeProject3.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
 using MongoDB.Driver;
-using Microsoft.AspNetCore.SignalR;
+
 
 
 namespace SoftServeProject3.Api.Controllers
@@ -169,7 +169,7 @@ namespace SoftServeProject3.Api.Controllers
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
                 var incomingFriendRequests = await _userRepository.GetIncomingFriendRequestsAsync(email);
-
+                
                 return Ok(incomingFriendRequests);
             }
             catch (Exception e)
@@ -200,18 +200,18 @@ namespace SoftServeProject3.Api.Controllers
 
         [HttpPost("addFriend")]
         [Authorize]
-        public async Task<IActionResult> AddFriendAsync(string target, [FromServices] IHubContext<NotificationHubService> hubContext)
+        public async Task<IActionResult> AddFriendAsync(string target)
         {
             try
             {
                 if (string.IsNullOrEmpty(target))
                     throw new KeyNotFoundException("Target user is null");
                 
-                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
+                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
                 await _userRepository.AddFriendRequest(senderUsername, target);
 
-                await hubContext.Clients.User(target).SendAsync("ReceiveFriendRequestUpdate", target);
+                
 
                 return Ok("Success");
             }

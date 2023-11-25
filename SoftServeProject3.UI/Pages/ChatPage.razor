@@ -1,0 +1,101 @@
+﻿@page "/chat"
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.SignalR.Client
+@inject HttpClient Http
+@inject TokenService TokenService
+
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using System.Net
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
+@using System.Net.Http.Json;
+<h3>Chat</h3>
+
+<div>
+    @foreach (var user in users)
+    {
+        <button @onclick="() => StartChatWith(user.Username)">@user.Username</button>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(selectedUser))
+{
+    <div>
+        <textarea @bind="messageInput"></textarea>
+        <button @onclick="SendMessage">Send</button>
+    </div>
+}
+
+@if (messages != null)
+{
+    foreach (var message in messages)
+    {
+        <p>@message</p>
+    }
+}
+
+@code {
+    private HubConnection hubConnection;
+    private List<string> messages = new List<string>();
+    private string messageInput;
+    private UserListModel[] users = new UserListModel[0];
+    private string selectedUser;
+
+    private void StartChatWith(string username)
+    {
+        selectedUser = username;
+        messages.Clear(); 
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await TokenService.GetToken();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+            {
+                options.AccessTokenProvider = () => Task.FromResult(token);
+            })
+            .Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            messages.Add($"{user}: {message}");
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+
+        
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await Http.GetAsync("https://localhost:7292/Users/list");
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<UserSearchResultModel>();
+            users = result.Users;
+            
+        }
+    }
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrEmpty(selectedUser) && !string.IsNullOrEmpty(messageInput))
+        {
+            await hubConnection.SendAsync("SendMessageToUser", selectedUser, messageInput);
+            messages.Add($"You: {messageInput}"); 
+            messageInput = string.Empty;
+        }
+    }
+    
+
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

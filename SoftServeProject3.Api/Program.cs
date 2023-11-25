@@ -10,7 +10,8 @@ using SoftServeProject3.Api.Interfaces;
 using SoftServeProject3.Api.Repositories;
 using SoftServeProject3.Api.Services;
 using SoftServeProject3.Api.Configurations;
-
+using Microsoft.AspNetCore.SignalR;
+using MongoDB.Driver;
 
 namespace SoftServeProject3.Api
 {
@@ -47,6 +48,8 @@ namespace SoftServeProject3.Api
             ConfigureSwagger(builder);
 
             builder.Services.AddSignalR();
+            
+            builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
         }
 
         #region Service Configuration Methods
@@ -57,7 +60,7 @@ namespace SoftServeProject3.Api
             {
                 options.AddDefaultPolicy(policyBuilder =>
                 {
-                    policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                    policyBuilder.WithOrigins("https://localhost:7182").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
                 });
             });
         }
@@ -125,6 +128,21 @@ namespace SoftServeProject3.Api
                     RequireExpirationTime = false,
                     ValidateLifetime = true
                 };
+                x.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/chatHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+
             })
             .AddGoogle(googleOptions =>
             {
@@ -161,10 +179,11 @@ namespace SoftServeProject3.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.MapHub<ChatHub>("/chatHub");
 
-            app.MapHub<NotificationHubService>("/notificationHub");
             app.UseHttpsRedirection();
             app.UseCors();
+            
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();

@@ -11,6 +11,7 @@
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
 
+
 <head>
     <PageTitle>Перегляд профілю</PageTitle>
 </head>
@@ -307,7 +308,7 @@
             _ => string.Empty,
         };
     }
-
+    
     /// <summary>
     /// Метод для часу до розкладу на конкретний день.
     /// </summary>
@@ -315,7 +316,7 @@
     {
         try
         {
-
+            
             isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
