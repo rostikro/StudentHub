@@ -12,4 +12,5 @@ namespace SoftServeProject3.Core.DTOs
         public List<string> Subjects { get; set; }
         public string Faculty { get; set; }
     }
+   
 }

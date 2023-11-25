@@ -1,0 +1,83 @@
+﻿.wrapper {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    gap: 10px;
+    align-items: center;
+    height: 100vh;
+    position: relative;
+    justify-content: flex-end; /* Змінюємо властивість justify-content для вирівнювання вправо */
+}
+
+
+/* Новий стиль для заголовка VSC */
+.vsc-title {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 50px; /* Збільшуємо розмір шрифту */
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    color: black; /* Змінюємо колір тексту на чорний */
+}
+
+.box1 {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-left: 40px;
+    max-width: 130%; /* Збільшуємо максимальну ширину для box1 */
+    margin: 0 auto; /* Центруємо блок box1 по горизонталі */
+}
+
+
+.box2 {
+    grid-column: 2;
+    display: flex;
+    justify-content: flex-end; /* Праворуч */
+    align-items: center;
+    height: 100vh;
+}
+
+.information-text {
+    text-align: center;
+    padding-left: 30px;
+    max-width: 100%; /* Ширина текстового блоку пристосується до ширини box1 */
+    margin: 0 auto; /* Центруємо блок тексту по горизонталі всередині box1 */
+}
+
+.info-heading {
+    font-size: 36px; /* Збільшуємо розмір шрифту */
+    font-weight: bold; /* Виділяємо жирним */
+    margin-bottom: 10px;
+}
+
+.info-paragraph {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.login-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+    width: 200px; /* Збільшуємо ширину кнопки */
+}
+
+    .login-button:hover {
+        background-color: #45a049;
+    }
+
+
+.site-photo {
+    max-width: 80%; /* Зменшуємо розмір фотографії */
+    height: auto;
+    max-height: 100%; /* Зберігаємо пропорції */
+    object-fit: contain;
+}
