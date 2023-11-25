@@ -338,7 +338,9 @@ namespace SoftServeProject3.Api.Controllers
         /// <returns>Список користувачів.</returns>
         [HttpGet("list")]
         [Authorize]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 5)
         {
             var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
             
@@ -353,7 +355,13 @@ namespace SoftServeProject3.Api.Controllers
                                          Faculty = u.Faculty
                                      }).ToList();
 
-            return Ok(userSummaries);
+            int totalUserCount = userSummaries.Count();
+            var pagedUsers = userSummaries
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(new { TotalCount = totalUserCount, Users = pagedUsers });
         }
 
         /// <summary>
@@ -393,7 +401,9 @@ namespace SoftServeProject3.Api.Controllers
         [FromQuery] List<string> subjects = null,
         [FromQuery] string faculty = "Пусто",
         [FromQuery] List<string> days = null,
-        [FromQuery] string username = null)
+        [FromQuery] string username = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 5)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
             var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
@@ -443,8 +453,12 @@ namespace SoftServeProject3.Api.Controllers
 
             if (!filteredUsers.Any())
                 return NotFound("No users found matching the criteria.");
-
-            return Ok(filteredUsers);
+            int totalUserCount = filteredUsers.Count();
+            var pagedUsers = filteredUsers
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            return Ok(new { TotalCount = totalUserCount, Users = pagedUsers });
         }
 
 
