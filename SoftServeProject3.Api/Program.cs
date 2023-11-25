@@ -45,6 +45,8 @@ namespace SoftServeProject3.Api
 
             // Свагер
             ConfigureSwagger(builder);
+
+            builder.Services.AddSignalR();
         }
 
         #region Service Configuration Methods
@@ -160,6 +162,7 @@ namespace SoftServeProject3.Api
                 app.UseSwaggerUI();
             }
 
+            app.MapHub<NotificationHubService>("/notificationHub");
             app.UseHttpsRedirection();
             app.UseCors();
             app.UseAuthentication();

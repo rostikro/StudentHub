@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Utils;
 using Newtonsoft.Json;
-using SoftServeProject3.Api.Configurations;
+using SoftServeProject3.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
 using MongoDB.Driver;
+using Microsoft.AspNetCore.SignalR;
 
 
 namespace SoftServeProject3.Api.Controllers
@@ -199,7 +200,7 @@ namespace SoftServeProject3.Api.Controllers
 
         [HttpPost("addFriend")]
         [Authorize]
-        public async Task<IActionResult> AddFriendAsync(string target)
+        public async Task<IActionResult> AddFriendAsync(string target, [FromServices] IHubContext<NotificationHubService> hubContext)
         {
             try
             {
@@ -209,6 +210,8 @@ namespace SoftServeProject3.Api.Controllers
                 string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.AddFriendRequest(senderUsername, target);
+
+                await hubContext.Clients.User(target).SendAsync("ReceiveFriendRequestUpdate", target);
 
                 return Ok("Success");
             }

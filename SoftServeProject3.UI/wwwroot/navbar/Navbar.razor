@@ -8,6 +8,8 @@
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
+@using Microsoft.AspNetCore.SignalR.Client
+
 <style>
     .wrapper {
     max-width: 940px;
@@ -106,18 +108,30 @@
             <a href="UserProfile">Профіль</a>
         </div>
     </div>
-
+    
 @code {
     string errorMessage;
     List<Friend> incomingRequests = new List<Friend>();
+    private HubConnection hubConnection;
     protected override async Task OnInitializedAsync()
     {
         try
         {
-                var token = await TokenService.GetToken();
-                Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
-                errorMessage = "Failed to load user info";
+            hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/notificationHub"))
+            .Build();
+
+            hubConnection.On("ReceiveFriendRequestUpdate", () =>
+            {
+                // Логіка для оновлення індикатора повідомлень
+                UpdateFriendRequestsIndicator();
+            });
+
+            await hubConnection.StartAsync();
+            var token = await TokenService.GetToken();
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
+            errorMessage = "Failed to load user info";
         }
         catch (Exception ex)
         {
@@ -125,7 +139,10 @@
         }
     }
     private bool showMessagePopup = false;
-
+    private async Task UpdateFriendRequestsIndicator()
+    {
+        incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
+    }
     private void ShowMessagePopup()
     {
         showMessagePopup = true;
