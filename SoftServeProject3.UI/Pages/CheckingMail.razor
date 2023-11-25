@@ -8,8 +8,6 @@
 
 <head>
     <PageTitle>Checking mail</PageTitle>
-
-
 </head>
 
 
@@ -56,7 +54,7 @@
         private bool showCodeInput = false;
         private string errorMessage = "";
 
-        //TODO: В body додати два поля: пароль і повтор пароля, зробити їх активними/неактивними(активне після підтверження коду) як в реєстрації, + логіка 'забули пароль'
+        
 
         /// <summary>
         /// Відправляє запит на сервер для отримання коду верифікації на електронну пошту користувача.
@@ -100,7 +98,5 @@
                     errorMessage = content;
             }
         }
-
-
     }
 </body>

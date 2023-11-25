@@ -41,15 +41,14 @@ namespace SoftServeProject3.Api
             // MongoDB
             ConfigureMongoDB(builder);
 
-            //Токін і автентифікація
+            // Токін і автентифікація
             ConfigureAuthentication(builder);
 
             // Свагер
             ConfigureSwagger(builder);
 
-            builder.Services.AddSignalR();
-            
-            builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+            // SignalR
+            ConfigureSignalR(builder);
         }
 
         #region Service Configuration Methods
@@ -169,7 +168,11 @@ namespace SoftServeProject3.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
         }
-
+        private static void ConfigureSignalR(WebApplicationBuilder builder)
+        {
+            builder.Services.AddSignalR();
+            builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+        }
         #endregion
 
         private static void ConfigureHttpPipeline(WebApplication app)

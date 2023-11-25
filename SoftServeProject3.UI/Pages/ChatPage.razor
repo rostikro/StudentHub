@@ -1,17 +1,14 @@
 ﻿@page "/chat"
 @inject NavigationManager Navigation
-@using Microsoft.AspNetCore.SignalR.Client
 @inject HttpClient Http
 @inject TokenService TokenService
-
-@inject UserProfileService UserProfileService
+@using Microsoft.AspNetCore.SignalR.Client
 @using SoftServeProject3.UI.Services;
-@using System.Globalization
 @using System.Net
-@using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
-@using System.Net.Http.Json;
+
+
 <h3>Chat</h3>
 
 <div>
@@ -43,6 +40,7 @@
     private string messageInput;
     private UserListModel[] users = new UserListModel[0];
     private string selectedUser;
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
 
     private void StartChatWith(string username)
     {
@@ -78,6 +76,7 @@
             
         }
     }
+
     private async Task SendMessage()
     {
         if (!string.IsNullOrEmpty(selectedUser) && !string.IsNullOrEmpty(messageInput))
@@ -88,9 +87,6 @@
         }
     }
     
-
-    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
-
     public async ValueTask DisposeAsync()
     {
         if (hubConnection is not null)
