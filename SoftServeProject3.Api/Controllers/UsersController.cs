@@ -336,14 +336,7 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-        [HttpGet("chat/history")]
-        [Authorize]
-        public async Task<IActionResult> GetChatHistory(string user2)
-        {
-            var authUser = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
-            var messages = await _messageRepository.GetMessagesAsync(authUser, user2);
-            return Ok(messages);
-        }
+        
         /// <summary>
         /// Отримує список всіх користувачів.
         /// </summary>

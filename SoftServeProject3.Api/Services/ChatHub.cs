@@ -20,7 +20,6 @@ public class ChatHub : Hub
 
     public async Task SendMessageToUser(string receiverUserId, string message)
     {
-
         var senderUsername = Context.UserIdentifier;
         var currentTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
         var newMessage = new Message
@@ -28,10 +27,23 @@ public class ChatHub : Hub
             SenderUsername = senderUsername,
             ReceiverUsername = receiverUserId,
             Text = message,
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTime.Now
         };
 
-        await _messageRepository.SaveMessageAsync(newMessage);
+        await _messageRepository.SaveMessageAsync(newMessage, senderUsername, receiverUserId);
         await Clients.User(receiverUserId).SendAsync("ReceiveMessage", senderUsername, message, currentTime);
+    }
+
+    public async Task UserTyping(string receiverUserId)
+    {
+        var senderUsername = Context.UserIdentifier;
+        await Clients.User(receiverUserId).SendAsync("UserTyping", senderUsername);
+    }
+
+
+    public async Task MessageRead(string receiverUserId, string messageId)
+    {
+        var senderUsername = Context.UserIdentifier;
+        await Clients.User(receiverUserId).SendAsync("MessageRead", senderUsername, messageId);
     }
 }

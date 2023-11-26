@@ -144,8 +144,8 @@
                     <div class="form-group">
                         <label for="name">Призвіще Ім'я:</label>
                         <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                    </div
-
+                    </div>
+                    <button class="btn btn-primary" @onclick="NavigateToChat">Чат</button>
                     <div class="five">
                         <div class="button-content">
                             <label for="faculty">Факультет:</label>
@@ -506,7 +506,10 @@
             errorMessage = "Error occured while interacting with friend";
         }
     }
-
+    private void NavigateToChat()
+    {
+        Navigation.NavigateTo($"/chat/{userProfile.username}");
+    }
 }
 
 
