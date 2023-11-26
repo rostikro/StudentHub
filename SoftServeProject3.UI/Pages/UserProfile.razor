@@ -803,7 +803,7 @@
     private async Task Logout()
     {
         await TokenService.RemoveToken();
-        Navigation.NavigateTo("/login");
+        Navigation.NavigateTo("/");
     }
 }
 

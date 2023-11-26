@@ -1,7 +1,18 @@
 ﻿@page "/"
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject TokenService TokenService
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
 
+@if (isUserAuthenticated)
+{
+    Navigation.NavigateTo("/UserProfile");
+}
 <div class="wrapper">
     <div class="vsc-title">VSC</div>
     <div class="box box1">
@@ -21,6 +32,28 @@
 </div>
 
 @code {
+    private bool isUserAuthenticated;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            
+            isUserAuthenticated = await IsUserAuthenticatedAsync();
+            
+               
+
+            
+        }
+        catch (Exception ex)
+        {
+            
+        }
+    }
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+    }
     private void GoToLogin()
     {
         Navigation.NavigateTo("/login");

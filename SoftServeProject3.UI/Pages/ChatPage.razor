@@ -42,14 +42,17 @@
     private string selectedUser;
     public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
 
-    private void StartChatWith(string username)
+
+    private async void StartChatWith(string username)
     {
         selectedUser = username;
-        messages.Clear(); 
+        await LoadChatHistory(selectedUser);
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
     {
+        
         var token = await TokenService.GetToken();
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
@@ -58,10 +61,14 @@
             })
             .Build();
 
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        hubConnection.On<string, string, string>("ReceiveMessage", (user, message, timestamp) =>
         {
-            messages.Add($"{user}: {message}");
-            StateHasChanged();
+            // Додавати повідомлення лише якщо воно від обраного користувача
+            if (user == selectedUser)
+            {
+                messages.Add($"{timestamp} {user}: {message}");
+                StateHasChanged();
+            }
         });
 
         await hubConnection.StartAsync();
@@ -76,22 +83,44 @@
             
         }
     }
-
+    private async Task LoadChatHistory(string selectedUser)
+    {
+        var token = await TokenService.GetToken();
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await Http.GetAsync($"https://localhost:7292/Users/chat/history?user2={selectedUser}");
+        if (response.IsSuccessStatusCode)
+        {
+            var chatHistory = await response.Content.ReadFromJsonAsync<List<Message>>();
+            messages.Clear();
+            messages.AddRange(chatHistory.Select(m => FormatMessage(m)));
+        }
+    }
     private async Task SendMessage()
     {
         if (!string.IsNullOrEmpty(selectedUser) && !string.IsNullOrEmpty(messageInput))
         {
             await hubConnection.SendAsync("SendMessageToUser", selectedUser, messageInput);
-            messages.Add($"You: {messageInput}"); 
+
+            // Форматування поточного часу
+            var formattedDateTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            messages.Add($"{formattedDateTime} You: {messageInput}");
+
             messageInput = string.Empty;
         }
     }
-    
+   
     public async ValueTask DisposeAsync()
     {
         if (hubConnection is not null)
         {
             await hubConnection.DisposeAsync();
         }
+    }
+    private string FormatMessage(Message message)
+    {
+        // Форматує дату і час у формат "день/місяць/рік година:хвилина"
+        var formattedDateTime = message.Timestamp.ToString("dd/MM/yyyy HH:mm");
+        var sender = message.SenderUsername != selectedUser ? $"You" : message.SenderUsername;
+        return $"{formattedDateTime} {sender}: {message.Text}";
     }
 }

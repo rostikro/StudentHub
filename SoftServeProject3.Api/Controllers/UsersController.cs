@@ -21,6 +21,7 @@ namespace SoftServeProject3.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IMessageRepository _messageRepository;
         private readonly IVerificationRepository _verRepository;
         private readonly IJwtService _jwtService;
         private readonly IWebHostEnvironment _env;
@@ -33,12 +34,13 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="userRepository">Репозиторій користувачів.</param>
         /// <param name="jwtService">Служба JWT.</param>
         /// <exception cref="ArgumentNullException">Викидається, коли userRepository або jwtService дорівнює null.</exception>
-        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env, IVerificationRepository verRepository)
+        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env, IVerificationRepository verRepository, IMessageRepository messageRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
             _env = env;
             _verRepository = verRepository;
+            _messageRepository = messageRepository;
         }
 
         /// <summary>
@@ -334,7 +336,14 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-
+        [HttpGet("chat/history")]
+        [Authorize]
+        public async Task<IActionResult> GetChatHistory(string user2)
+        {
+            var authUser = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
+            var messages = await _messageRepository.GetMessagesAsync(authUser, user2);
+            return Ok(messages);
+        }
         /// <summary>
         /// Отримує список всіх користувачів.
         /// </summary>

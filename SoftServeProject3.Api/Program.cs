@@ -84,6 +84,7 @@ namespace SoftServeProject3.Api
 
             builder.Services.AddSingleton<IUserRepository>(sp => new UserRepository(mongoDBConnectionString));
             builder.Services.AddSingleton<IVerificationRepository>(sp => new VerificationRepository(mongoDBConnectionString));
+            builder.Services.AddSingleton<IMessageRepository>(sp => new MessageRepository(mongoDBConnectionString));
             builder.Services.AddControllers();
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Local));

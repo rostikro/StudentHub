@@ -2,7 +2,15 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @using SoftServeProject3.Core.DTOs;
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject TokenService TokenService
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using Newtonsoft.Json;
 
+@using System.Net.Http.Headers;
 
 
 
@@ -10,7 +18,8 @@
     <PageTitle>Checking mail</PageTitle>
 </head>
 
-
+@if (!isUserAuthenticated)
+{
 <body>
     <div class="form">
         <h3>Скидання паролю</h3>
@@ -43,8 +52,12 @@
             }
         </div>
     </div>
-
-
+    </body>
+}
+else
+{
+    Navigation.NavigateTo("/UserProfile");
+}
 
 
 
@@ -77,7 +90,28 @@
             }
 
         }
+        private bool isUserAuthenticated;
+        protected override async Task OnInitializedAsync()
+        {
+            try
+            {
 
+                isUserAuthenticated = await IsUserAuthenticatedAsync();
+
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+        private async Task<bool> IsUserAuthenticatedAsync()
+        {
+            var token = await TokenService.GetToken();
+            return TokenService.IsTokenValid(token);
+        }
         /// <summary>
         /// Перевіряє введений користувачем код та здійснює подальші дії на основі результату перевірки.
         /// </summary>
@@ -99,4 +133,4 @@
             }
         }
     }
-</body>
+
