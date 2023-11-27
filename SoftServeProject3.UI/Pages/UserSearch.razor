@@ -10,7 +10,7 @@
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
 @using System.Diagnostics;
-
+@using System.Timers;
 
 
 @if (isLoaded)
@@ -107,7 +107,7 @@
                                 @if (showSearchUsernameInput)
                                 {
                                     <StyledSearchInput placeholder="Пошук" type="text" id="usernameSearch" @bind-Value="usernameSearch"
-                                    @oninput="EventCallback.Factory.Create(this, HandleUsernameInput)" />
+                                    @oninput="EventCallback.Factory.Create(this, (ChangeEventArgs e) => HandleUsernameInput(e))" />
                                     <button @onclick="ToggleSearchUsernameInput" class="closebtn">X</button>
                                 }
                             }
@@ -231,6 +231,7 @@
     private int totalPages;
     private UserListModel[] users = new UserListModel[0];
     private string usernameSearch = string.Empty;
+    private Timer myTimer;
 
     private bool showSearchUsernameInput;
     private bool showSearchFacultyInput;
@@ -307,13 +308,34 @@
             StateHasChanged();
         }
     }
+    private void StartTimer()
+    {
+        if (myTimer != null)
+        {
+            myTimer.Stop();
+            myTimer.Dispose();
+        }
 
+        myTimer = new Timer(1000);
+        myTimer.Elapsed += async (sender, e) => await OnTimedEvent(sender, e);
+        myTimer.Start();
+    }
+
+    private async Task OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        myTimer.Stop();
+        myTimer.Dispose();
+        myTimer = null;
+
+        await ApplyFilters();
+        await InvokeAsync(StateHasChanged);
+    }
+
+   
     private async Task HandleUsernameInput(ChangeEventArgs e)
     {
-        string input = e.Value.ToString();
-        usernameSearch = input.Replace(" ", "");
-        await ApplyFilters();
-        StateHasChanged();
+        usernameSearch = e.Value.ToString().Replace(" ", "");
+        StartTimer();
     }
 
     private async Task SelectFaculty(ChangeEventArgs e)
