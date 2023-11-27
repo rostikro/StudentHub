@@ -40,7 +40,7 @@ public class ChatHub : Hub
         await Clients.User(receiverUserId).SendAsync("UserTyping", senderUsername);
     }
 
-
+    //індикатор прочитаного повідомлення, мб додам пізніше
     public async Task MessageRead(string receiverUserId, string messageId)
     {
         var senderUsername = Context.UserIdentifier;

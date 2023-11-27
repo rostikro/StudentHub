@@ -16,12 +16,13 @@
     @if (!string.IsNullOrEmpty(selectedUser))
     {
         <h3>@selectedUser</h3>
+        @if (typingUsers.Contains(selectedUser))
+        {
+            <p class="typing-indicator">@selectedUser пише...</p>
+        }
     }
-    @* @if (typingUsers.Contains(selectedUser))
-    {
-        <p>@selectedUser пише...</p>
-    } *@
 </div>
+
 
 
 
@@ -38,20 +39,21 @@
         @foreach (var message in messages)
         {
             <div class="@GetMessageClass(message)">
-                @message
+                @FormatMessage(message)
             </div>
         }
     </div>
 
     <div class="message-input-area">
-        @* <textarea @bind="messageInput" @oninput="UserTypingAsync"></textarea> *@
+        <textarea @bind="messageInput" @oninput="OnInput"></textarea>
         <button @onclick="SendMessage">Send</button>
     </div>
 </div>
 
 @code {
+    UpdateProfile myProfile;
     private HubConnection hubConnection;
-    private List<string> messages = new List<string>();
+    private List<Message> messages = new List<Message>();
     private string messageInput;
     List<string> recentContactUsernames = new();
     private List<string> typingUsers = new();
@@ -60,8 +62,8 @@
     [Parameter]
     public string Username { get; set; }
     string sender;
-    // private Timer typingTimer;
-    // private readonly int typingTimeout = 200;
+    private Dictionary<string, Timer> typingTimers = new Dictionary<string, Timer>();
+    private readonly int typingTimeout = 5000;
 
     private async void StartChatWith(string username)
     {
@@ -87,10 +89,17 @@
 
         hubConnection.On<string, string, string>("ReceiveMessage", (user, message, timestamp) =>
         {
-            
+
             if (user == selectedUser)
             {
-                messages.Add($"{timestamp} {user}: {message}");
+                var newMessage = new Message
+                    {
+                        SenderUsername = user,
+                        Text = message,
+                        Timestamp = DateTime.Parse(timestamp) 
+                    };
+
+                messages.Add(newMessage);
                 StateHasChanged();
             }
         });
@@ -100,18 +109,35 @@
         if (!typingUsers.Contains(username))
         {
             typingUsers.Add(username);
-            StateHasChanged();
         }
+
+        if (typingTimers.ContainsKey(username))
+        {
+            typingTimers[username].Change(typingTimeout, Timeout.Infinite);
+        }
+        else
+        {
+            var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
+            typingTimers.Add(username, timer);
+        }
+
+        StateHasChanged();
         });
         await hubConnection.StartAsync();
 
 
         Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var responseProfile = await Http.GetAsync("https://localhost:7292/Users/profile");
+        responseProfile.EnsureSuccessStatusCode();
+
+        myProfile = await responseProfile.Content.ReadFromJsonAsync<UpdateProfile>();
+
         var response = await Http.GetAsync("https://localhost:7292/Chat/recent-contacts");
         if (response.IsSuccessStatusCode)
         {
             recentContactUsernames = await response.Content.ReadFromJsonAsync<List<string>>();
-            
+
         }
         // typingTimer = new Timer(TypingTimerElapsed, selectedUser, Timeout.Infinite, Timeout.Infinite);
     }
@@ -124,7 +150,7 @@
         {
             var chatHistory = await response.Content.ReadFromJsonAsync<List<Message>>();
             messages.Clear();
-            messages.AddRange(chatHistory.Select(m => FormatMessage(m)));
+            messages.AddRange(chatHistory);
         }
     }
     private async Task SendMessage()
@@ -137,7 +163,13 @@
 
             
             var formattedDateTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-            messages.Add($"{formattedDateTime} You: {messageInput}");
+            var newMessage = new Message
+                {
+                    SenderUsername = myProfile.username, 
+                    Text = messageInput,
+                    Timestamp = DateTime.Now
+                };
+            messages.Add(newMessage);
 
             messageInput = string.Empty;
             await hubConnection.SendAsync("MessageRead", selectedUser, newMessageId); 
@@ -150,37 +182,42 @@
         {
             await hubConnection.DisposeAsync();
         }
-        // typingTimer?.Dispose();
+
+        foreach (var timer in typingTimers.Values)
+        {
+            timer.Dispose();
+        }
     }
     private string FormatMessage(Message message)
     {
-       
         var formattedDateTime = message.Timestamp.ToString("dd/MM/yyyy HH:mm");
-        sender = message.SenderUsername != selectedUser ? $"You" : message.SenderUsername;
+        var sender = message.SenderUsername != selectedUser ? "You" : message.SenderUsername;
         return $"{formattedDateTime} {sender}: {message.Text}";
     }
 
-    // private async Task UserTypingAsync(ChangeEventArgs e)
-    // {
-    //     await hubConnection.SendAsync("UserTyping", selectedUser);
-    //     // Перезапускаємо таймер
-    //     typingTimer.Change(typingTimeout, Timeout.Infinite);
-    // }
-
-    // private void TypingTimerElapsed(object state)
-    // {
-    //     var userWhoWasTyping = state as string; 
-    //     InvokeAsync(() =>
-    //     {
-    //         typingUsers.Remove(userWhoWasTyping); 
-    //         StateHasChanged();
-    //     });
-    // }
-
-    private string GetMessageClass(string senderUsername)
+    private void TypingTimerElapsed(string username)
     {
-        return senderUsername == "You" ? "message-sent" : "message-received";
+        InvokeAsync(() =>
+        {
+            typingUsers.Remove(username);
+            if (typingTimers.TryGetValue(username, out var timer))
+            {
+                timer.Dispose();
+                typingTimers.Remove(username);
+            }
+            StateHasChanged();
+        });
     }
 
+    private string GetMessageClass(Message message)
+    {
+        return message.SenderUsername == myProfile.username ? "message-sent" : "message-received";
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        messageInput = e.Value.ToString();
+        await hubConnection.SendAsync("UserTyping", selectedUser);
+    }
 
 }
