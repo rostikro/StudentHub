@@ -316,7 +316,7 @@
             myTimer.Dispose();
         }
 
-        myTimer = new Timer(1000);
+        myTimer = new Timer(200);
         myTimer.Elapsed += async (sender, e) => await OnTimedEvent(sender, e);
         myTimer.Start();
     }
