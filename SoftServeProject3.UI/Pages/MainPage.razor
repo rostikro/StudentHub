@@ -21,51 +21,130 @@
         <body>
             <div class="wrapper">
             <SoftServeProject3.UI.wwwroot.navbar.Navbar/>
-        <div class="two">   
+                <div class="two">
+
+           
+
+                    <div class="slideshow-container">
+                        <img class="mySlides" src="https://i.postimg.cc/LsVpNYFp/1-3232323png.png" alt="Слайд 1">
+                        <img class="mySlides" src="https://i.postimg.cc/DwcrPpGC/21122-11111111111111111-1.png" alt="Слайд 2">
+                        <img class="mySlides" src="https://i.postimg.cc/gc3G7VTF/11111.png" alt="Слайд 3">
+@* 
+                         720x720:  https://i.postimg.cc/mrxcvYGv/112.png;
+                        1920x720:  https://i.postimg.cc/brVggDb6/11111111111111111-1.png;
+                        1920x1080: https://i.postimg.cc/gc3G7VTF/11111.png; *@
+
+
+                        <div class="w3-left w3-hover-text-khaki" onclick="plusDivs(-1)">&#10094;</div>
+                        <div class="w3-right w3-hover-text-khaki" onclick="plusDivs(1)">&#10095;</div>
+
+                        <div style="text-align:center">
+                            <span class="w3-badge demo w3-border w3-transparent w3-hover-white" onclick="currentDiv(1)"></span>
+                            <span class="w3-badge demo w3-border w3-transparent w3-hover-white" onclick="currentDiv(2)"></span>
+                            <span class="w3-badge demo w3-border w3-transparent w3-hover-white" onclick="currentDiv(3)"></span>
+                        </div>
+                    </div>
+                    <script>
+                        var slideIndex = 1;
+                        showDivs(slideIndex);
+
+                        function plusDivs(n) {
+                            showDivs(slideIndex += n);
+                        }
+
+                        function currentDiv(n) {
+                            showDivs(slideIndex = n);
+                        }
+
+                        function showDivs(n) {
+                            var i;
+                            var x = document.getElementsByClassName("mySlides");
+                            var dots = document.getElementsByClassName("demo");
+                            if (n > x.length) { slideIndex = 1 }
+                            if (n < 1) { slideIndex = x.length }
+                            for (i = 0; i < x.length; i++) {
+                                x[i].style.display = "none";
+                            }
+                            for (i = 0; i < dots.length; i++) {
+                                dots[i].className = dots[i].className.replace(" w3-white", "");
+                            }
+                            x[slideIndex - 1].style.display = "block";
+                            dots[slideIndex - 1].className += " w3-white";
+                        }
+                    </script>
+
+                </div>
+                <div class="three">
+                    <h3>Список відпралених запитів:</h3>
+                    <table class="table">
+                        @if (myOutgoingRequests != null && myOutgoingRequests.Any())
+                        {
+                            @for (int i = 0; i < myOutgoingRequests.Count; i += 3)
+                            {
+                                <tr>
+                                    @for (int j = i; j < i + 3 && j < myOutgoingRequests.Count; j++)
+                                    {
+                                        <td style="text-align: center;">
+                                            <div>
+                                                <img src="@(!string.IsNullOrEmpty(myOutgoingRequests[j].photoUrl) ? myOutgoingRequests[j].photoUrl : "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg")" class="rounded-image" />
+                                            </div>
+                                            <div>
+                                                <a href="UserProfile/@myOutgoingRequests[j].username">@myOutgoingRequests[j].username</a>
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <p>Немає відпарвлених</p>
+                        }
+                    </table>
+                </div>
+
+                <div class="four">
+                    <h3>Список Друзів:</h3>
+                    <table class="table">
+                        @if (myFriends != null && myFriends.Any())
+                        {
+                            @for (int i = 0; i < myFriends.Count; i += 3)
+                            {
+                                <tr>
+                                    @for (int j = i; j < i + 3 && j < myFriends.Count; j++)
+                                    {
+                                        <td style="text-align: center;">
+                                            <div>
+                                                <img src="@myFriends[j].photoUrl" class="rounded-image" />
+                                            </div>
+                                            <div>
+                                                <a href="UserProfile/@myFriends[j].username">@myFriends[j].username</a>
+                                            </div>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <p>Немає друзів ((((((((((((((((((((((((((</p>
+                        }
+                    </table>
+                </div>
+
+@*         <div class="two">   
             <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
             <div class="oval">Нікнейм</div>
             <div class="oval">Факультет</div>
             <div class="oval">предмети</div>
 
-        </div>
-        <p>Список Друзів:</p>
+        </div> *@
+
         <div>
-            @if (myFriends != null && myFriends.Any())
-            {
-                <ul>
-                    @foreach (var friend in myFriends)
-                    {
-                        <li>
-                            <img src="@friend.photoUrl" />
-                            <a href="UserProfile/@friend.username">@friend.username</a>
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p>Немає друзів ((((((((((((((((((((((((((</p>
-            }
+
         </div>
         
-                <p>Список відпралених запитів</p>
-        @if (myOutgoingRequests != null && myOutgoingRequests.Any())
-        {
-            <ul>
-                @foreach (var friendRequest in myOutgoingRequests)
-                {
-                    
-                    <li>
-                        <img src="@friendRequest.photoUrl" />
-                        <a href="UserProfile/@friendRequest.username">@friendRequest.username</a>
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            //<p>Немає відпарвлених</p>
-        }
+
             </div>
         </body>
     }
