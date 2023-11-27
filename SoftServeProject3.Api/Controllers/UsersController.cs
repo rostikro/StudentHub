@@ -48,8 +48,8 @@ namespace SoftServeProject3.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginModel loginModel)
         {
-            
-            var userInDb = loginModel.EmailorUsername.Contains("@") ? 
+
+            var userInDb = loginModel.EmailorUsername.Contains("@") ?
                 await _userRepository.GetUserByEmailAsync(loginModel.EmailorUsername) :
                 await _userRepository.GetUserByUsernameAsync(loginModel.EmailorUsername);
 
@@ -147,7 +147,7 @@ namespace SoftServeProject3.Api.Controllers
             try
             {
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
-                
+
                 var friends = await _userRepository.GetFriendsAsync(email);
 
                 return Ok(friends);
@@ -205,7 +205,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 if (string.IsNullOrEmpty(target))
                     throw new KeyNotFoundException("Target user is null");
-                
+
                 string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.AddFriendRequest(senderUsername, target);
@@ -232,7 +232,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 if (string.IsNullOrEmpty(target))
                     throw new KeyNotFoundException("Target user is null");
-                
+
                 string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.RemoveFriendRequest(senderUsername, target);
@@ -259,9 +259,9 @@ namespace SoftServeProject3.Api.Controllers
             {
                 if (string.IsNullOrEmpty(target))
                     throw new KeyNotFoundException("Target user is null");
-                
+
                 string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
-                
+
                 await _userRepository.RemoveFriendRequest(target, senderUsername);
 
                 return Ok("Success");
@@ -286,7 +286,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 if (string.IsNullOrEmpty(target))
                     throw new KeyNotFoundException("Target user is null");
-                
+
                 string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.AddFriend(senderUsername, target);
@@ -313,7 +313,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 if (string.IsNullOrEmpty(target))
                     throw new KeyNotFoundException("Target user is null");
-                
+
                 string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.RemoveFriend(senderUsername, target);
@@ -343,7 +343,7 @@ namespace SoftServeProject3.Api.Controllers
             [FromQuery] int pageSize = 5)
         {
             var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
-            
+
             var users = await _userRepository.GetAllUsersAsync();
 
             var userSummaries = users.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username &&
@@ -399,28 +399,14 @@ namespace SoftServeProject3.Api.Controllers
         TimeSpan? startTime,
         TimeSpan? endTime,
         [FromQuery] List<string> subjects = null,
-        [FromQuery] string faculty = "Пусто",
+        [FromQuery] string faculty = "Немає",
         [FromQuery] List<string> days = null,
-        [FromQuery] string username = null,
+        [FromQuery] string? username = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 5)
         {
             var allUsers = await _userRepository.GetAllUsersAsync();
             var authUser = await _userRepository.GetUserByUsernameAsync(_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username);
-
-            if (!string.IsNullOrEmpty(username))
-            {
-                var user = allUsers.FirstOrDefault(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
-                if (user != null && !user.IsProfilePrivate &&
-                                         (authUser.IsProfileVerified || !user.IsProfileVerified))
-                {
-                    return Ok(new[] { user });
-                }
-                else
-                {
-                    return NotFound("User not found.");
-                }
-            }
 
             var filteredUsers = allUsers.Where(u => !u.IsProfilePrivate && u.Username != authUser.Username &&
                                          (authUser.IsProfileVerified || !u.IsProfileVerified)).AsEnumerable();
@@ -429,7 +415,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 filteredUsers = filteredUsers.Where(u => u.Subjects != null && u.Subjects.Intersect(subjects, StringComparer.OrdinalIgnoreCase).Any());
             }
-            if (!string.IsNullOrEmpty(faculty) && faculty != "Пусто")
+            if (!string.IsNullOrEmpty(faculty) && faculty != "Немає")
             {
                 filteredUsers = filteredUsers.Where(u => u.Faculty != null && u.Faculty.Equals(faculty, StringComparison.OrdinalIgnoreCase));
             }
@@ -440,7 +426,7 @@ namespace SoftServeProject3.Api.Controllers
                     {
                         User = u,
                         MatchingTimeRanges = u.Schedule
-                            .Where(sch => days.Count == 0 || days.Contains(sch.Key)) 
+                            .Where(sch => days.Count == 0 || days.Contains(sch.Key))
                             .SelectMany(sch => sch.Value)
                             .Count(tr => (tr.Start.TimeOfDay <= startTime.Value && tr.End.TimeOfDay > startTime.Value) ||
                                          (tr.Start.TimeOfDay < endTime.Value && tr.End.TimeOfDay >= endTime.Value) ||
@@ -453,6 +439,27 @@ namespace SoftServeProject3.Api.Controllers
 
             if (!filteredUsers.Any())
                 return NotFound("No users found matching the criteria.");
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                var users = filteredUsers.ToList();
+
+                for (int i = users.Count - 1; i >= 0; i--)
+                {
+                    if (UsernameSearch.SearchDirectly(users[i].Username, username) == 0)
+                        users.RemoveAt(i);
+                }
+
+                int totalCount = users.Count();
+
+                if (totalCount == 0)
+                {
+                    return BadRequest();
+                }
+
+                filteredUsers = users.AsEnumerable();
+            }
+
             int totalUserCount = filteredUsers.Count();
             var pagedUsers = filteredUsers
                 .Skip((page - 1) * pageSize)

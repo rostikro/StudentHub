@@ -9,8 +9,8 @@
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
-
-
+@using System.Diagnostics;
+@using System.Timers;
 
 
 @if (isLoaded)
@@ -44,31 +44,12 @@
 
                     <label for="endTime">Час завершення:</label>
                     <input type="time" id="endTime" @bind="endTimeInput" />
-
-                    <div class="form-group">
-                        <label for="faculty">Факультет:</label>
-                        <select id="faculty" class="form-control" @onchange="SelectFaculty">
-
-                            @if (allFaculties != null)
-                            {
-                                @foreach (var faculty in allFaculties)
-                                {
-                                    <option value="@faculty">@faculty</option>
-                                }
-                            }
-                        </select>
-                    </div>
                 </div>
                 @if (errorMessage != null)
                 {
                     <p class="text-danger">@errorMessage</p>
                 }
                 <div class="left-side">
-                    <div>
-                        <label for="usernameSearch">Пошук користувача за нікнеймом:</label>
-                        <input type="text" id="usernameSearch" @bind="usernameSearch" />
-                        <button @onclick="SearchByUsername">Пошук</button>
-                    </div>
 
                     <div>
                         <label for="subjectSearch">Пошук предмету:</label>
@@ -88,7 +69,6 @@
                             }
                         </select>
                     </div>
-
                     <div class="selected-subjects-container">
                         @if (selectedSubjects.Any())
                         {
@@ -104,7 +84,6 @@
                         }
                     </div>
 
-
                 </div>
 
                 <div class="buttons">
@@ -117,9 +96,51 @@
                 <caption>Список студентів</caption>
                 <thead>
                     <tr>
-                        <th>Ім'я користувача</th>
+                        <th>
+                            Ім'я користувача
+                            @if (currentPage == 1)
+                            {
+                                @if (!showSearchUsernameInput)
+                                {
+                                    <button class="search-btn" @onclick="ToggleSearchUsernameInput">🔍</button>
+                                }
+                                @if (showSearchUsernameInput)
+                                {
+                                    <StyledSearchInput placeholder="Пошук" type="text" id="usernameSearch" @bind-Value="usernameSearch"
+                                    @oninput="EventCallback.Factory.Create(this, (ChangeEventArgs e) => HandleUsernameInput(e))" />
+                                    <button @onclick="ToggleSearchUsernameInput" class="closebtn">X</button>
+                                }
+                            }
+
+                        </th>
                         <th>Предмети</th>
-                        <th>Факультет</th>
+                        <th>
+                            Факультет
+                            @if (currentPage == 1)
+                            {
+                                @if (!showSearchFacultyInput)
+                                {
+                                    <button class="search-btn" @onclick="ToggleSearchFacultyInput">🔍</button>
+
+                                }
+                                @if (showSearchFacultyInput)
+                                {
+                                    <div style="display:flex; justify-content: center;">
+                                        <select id="faculty" class="form-control" @onchange="SelectFaculty">
+
+                                            @if (allFaculties != null)
+                                            {
+                                                @foreach (var faculty in allFaculties)
+                                                {
+                                                    <option value="@faculty">@faculty</option>
+                                                }
+                                            }
+                                        </select>
+                                        <button @onclick="ToggleSearchFacultyInput" class="closebtn">X</button>
+                                    </div>
+                                }
+                            }
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -148,15 +169,18 @@
                                     }
                                     else
                                     {
-                                        <span>Немає предметів</span>
+                                        <span>Не вказані.</span>
                                     }
                                 </td>
-                                <td>@user.Faculty</td>
+                                <td>
+                                    @(!string.IsNullOrEmpty(user.Faculty) ? user.Faculty : "Не вказаний.")
+                                </td>
                             </tr>
                         }
                     }
                     else
                     {
+                        totalPages = 1;
                         <tr>
                             <td colspan="3">Користувачів не знайдено</td>
                         </tr>
@@ -165,23 +189,33 @@
 
                 </tbody>
             </table>
-            <nav aria-label="Page navigation">
-                <ul class="pagination">
-                    <li class="page-item">
-                        <button class="page-link" @onclick="PreviousPage" >Previous</button>
-                    </li>
-                    @for (int i = 1; i <= totalPages; i++)
-                    {
-                        int localPage = i;
-                        <li class="page-item @((localPage == currentPage) ? "active" : "")">
-                            <button class="page-link" @onclick="@(() => GoToPage(localPage))">@localPage</button>
-                        </li>
-                    }
-                    <li class="page-item">
-                        <button class="page-link" @onclick="NextPage" >Next</button>
-                    </li>
-                </ul>
-            </nav>
+            @if (totalPages != 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        @if (currentPage != 1)
+                        {
+                            <li class="page-item">
+                                <button class="page-link" @onclick="PreviousPage">Назад</button>
+                            </li>
+                        }
+
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            int localPage = i;
+                            <li class="page-item @((localPage == currentPage) ? "active" : "passive")">
+                                <button class="page-link" @onclick="@(() => GoToPage(localPage))">@localPage</button>
+                            </li>
+                        }
+                        @if (currentPage != totalPages)
+                        {
+                            <li class="page-item">
+                                <button class="page-link" @onclick="NextPage">Вперед</button>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
         </body>
     }
 
@@ -197,6 +231,11 @@
     private int totalPages;
     private UserListModel[] users = new UserListModel[0];
     private string usernameSearch = string.Empty;
+    private Timer myTimer;
+
+    private bool showSearchUsernameInput;
+    private bool showSearchFacultyInput;
+
     private TimeOnly? startTimeInput;
     private TimeOnly? endTimeInput;
     private List<string> selectedSubjects = new List<string>();
@@ -205,7 +244,7 @@
     private IEnumerable<string> filteredSubjects = Enumerable.Empty<string>();
     private bool isUserAuthenticated;
     private string errorMessage;
-    private string selectedFaculty = "Пусто";
+    private string selectedFaculty = "Немає";
     private List<string> allFaculties;
     private string[] daysOfWeek = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
     private Dictionary<string, bool> selectedDays = new Dictionary<string, bool>
@@ -248,39 +287,61 @@
         }
     }
 
-    private async Task SearchByUsername()
+    private async void ToggleSearchUsernameInput()
     {
-        ResetFilters();
-        var queryParams = new Dictionary<string, string>();
-        errorMessage = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(usernameSearch))
+        showSearchUsernameInput = !showSearchUsernameInput;
+        if (!showSearchUsernameInput)
         {
-            errorMessage = "Будь ласка, введіть нікнейм користувача для пошуку.";
-            return;
+            usernameSearch = string.Empty;
+            await ApplyFilters();
+            StateHasChanged();
         }
-        if (!string.IsNullOrWhiteSpace(usernameSearch))
-        {
-            var url = $"https://localhost:7292/Users/search?username={Uri.EscapeDataString(usernameSearch)}";
-            var response = await Http.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                users = await response.Content.ReadFromJsonAsync<UserListModel[]>();
-                totalPages = 1;
-            }
-            else
-            {
-                users = Array.Empty<UserListModel>();
-                errorMessage = "Користувача не знайдено.";
-            }
-        }
-        usernameSearch = string.Empty;
     }
 
-    private void SelectFaculty(ChangeEventArgs e)
+    private async void ToggleSearchFacultyInput()
+    {
+        showSearchFacultyInput = !showSearchFacultyInput;
+        if (!showSearchFacultyInput)
+        {
+            selectedFaculty = "Немає";
+            await ApplyFilters();
+            StateHasChanged();
+        }
+    }
+    private void StartTimer()
+    {
+        if (myTimer != null)
+        {
+            myTimer.Stop();
+            myTimer.Dispose();
+        }
+
+        myTimer = new Timer(200);
+        myTimer.Elapsed += async (sender, e) => await OnTimedEvent(sender, e);
+        myTimer.Start();
+    }
+
+    private async Task OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        myTimer.Stop();
+        myTimer.Dispose();
+        myTimer = null;
+
+        await ApplyFilters();
+        await InvokeAsync(StateHasChanged);
+    }
+
+   
+    private async Task HandleUsernameInput(ChangeEventArgs e)
+    {
+        usernameSearch = e.Value.ToString().Replace(" ", "");
+        StartTimer();
+    }
+
+    private async Task SelectFaculty(ChangeEventArgs e)
     {
         selectedFaculty = e.Value?.ToString();
+        await ApplyFilters();
     }
     /// <summary>
     /// Фільтрує список предметів в залежності від того що ввів користувач у пошуку.
@@ -393,7 +454,7 @@
                 queryParameters.Add($"startTime={startTime:hh\\:mm\\:ss}");
                 queryParameters.Add($"endTime={endTime:hh\\:mm\\:ss}");
             }
-            
+
         }
         catch (ArgumentException ex)
         {
@@ -422,6 +483,11 @@
             queryParameters.Add($"startTime={startTimeInput.Value:hh\\:mm}");
             queryParameters.Add($"endTime={endTimeInput.Value:hh\\:mm}");
         }
+        if (string.IsNullOrWhiteSpace(usernameSearch))
+            usernameSearch = string.Empty;
+        else
+            queryParameters.Add($"username={Uri.EscapeDataString(usernameSearch)}");
+
         var queryString = queryParameters.Any() ? $"?{string.Join("&", queryParameters)}" : "";
         var url = $"https://localhost:7292/Users/search{queryString}";
 
@@ -475,9 +541,10 @@
         startTimeInput = null;
         endTimeInput = null;
         selectedSubjects.Clear();
-        selectedFaculty = "Пусто";
+        selectedFaculty = "Немає";
         subjectSearch = string.Empty;
         filteredSubjects = allSubjects;
+        usernameSearch = null;
         foreach (var day in daysOfWeek)
         {
             selectedDays[day] = false;

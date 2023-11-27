@@ -1,14 +1,14 @@
 ﻿body {
     background-color: #B4C6D0;
-    overflow: auto; 
+    overflow: auto;
 }
+
 * {
     box-sizing: border-box;
 }
 
 .wrapper {
-    max-width: 940px;
-    margin: 0 auto;
+
 }
 
     .wrapper > div {
@@ -20,7 +20,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-    grid-auto-rows: minmax(100px, auto);
+
 }
 
 .one {
@@ -103,13 +103,13 @@ select {
     }
 
     .subject-item > button {
-        background-color: #b30000; 
+        background-color: #b30000;
         color: white;
         border: none;
         border-radius: 20px;
         padding: 5px 10px;
         cursor: pointer;
-        margin-left: 5px; 
+        margin-left: 5px;
     }
 
 
@@ -171,7 +171,7 @@ ul {
     margin-top: 20px;
     margin-bottom: 30px;
     position: relative;
-    table-layout: fixed; 
+    table-layout: fixed;
 }
 
     .user-table th,
@@ -179,7 +179,6 @@ ul {
         border: 1px solid #ddd;
         padding: 12px;
         text-align: center;
-       
     }
 
     .user-table th {
@@ -257,9 +256,68 @@ ul {
         animation: paging 1s linear infinite;
     }
 
+.closebtn {
+    border-radius: 0px;
+    background-color: lightgray;
+}
+
+.search-btn {
+    cursor: pointer;
+    color: lightblue;
+    margin-left: 5px;
+    background-color: azure;
+}
+
+    .search-btn:hover {
+        background-color: #0064C8;
+        transition: background-color 0.3s ease-in-out;
+    }
+
+.form-control{
+    border-radius:0px;
+    width:50%;
+}
 
 @keyframes paging {
     to {
         transform: rotateY( -180deg );
     }
 }
+
+.pagination {
+    text-align: center;
+    margin: 0 auto;
+    width: fit-content;
+    gap: 10px;
+}
+
+/* Style the pagination buttons */
+.page-link {
+    background-color: #0069d9;
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 0%; /* Remove circular shape */
+    transition: background-color 0.2s ease-in-out; /* Smooth transition on hover */
+}
+
+    /* Hover effect for pagination buttons */
+    .page-link:hover {
+        background-color: #0092ff;
+        color: #fff;
+    }
+
+    /* Active state for pagination buttons */
+    .page-link.active {
+        background-color: #0069d9;
+        color: #fff;
+    }
+
+    .page-link.passive {
+        background-color: #0092ff;
+        color: #fff;
+    }

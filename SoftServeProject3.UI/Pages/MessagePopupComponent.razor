@@ -14,7 +14,7 @@
                 foreach (var friend in incomingRequests)
                 {
                     <div>
-                        <img src="@friend.photoUrl" alt="Profile Picture" />
+                        <img src="@friend.photoUrl" alt="Profile Picture" class="round-profile-picture" />
                         <a href="UserProfile/@friend.username">@friend.username</a>
                     </div>
                 }
@@ -27,7 +27,6 @@
         </div>
     </div>
 }
-
 @code {
     [Parameter]
     public bool IsVisible { get; set; }
