@@ -8,10 +8,12 @@
 
   <ItemGroup>
     <None Remove="Pages\Checking mail - Copy.razor.css.jpg" />
+    <None Remove="Pages\StyledSearchInput.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Pages\RegistrationPage.razor.css.jpg" />
+    <Content Include="Pages\StyledSearchInput.razor.css" />
   </ItemGroup>
 
   <ItemGroup>

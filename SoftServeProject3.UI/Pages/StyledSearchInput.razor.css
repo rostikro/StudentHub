@@ -1,0 +1,22 @@
+﻿* {
+    box-sizing: border-box
+}
+
+.container {
+    padding: 16px;
+}
+
+.inputfld {
+    width: 80%;
+    padding: 9px;
+    
+    margin: 5px 0 22px 0;
+    display: inline-block;
+    border: none;
+    background: #f1f1f1;
+}
+
+    .inputfld:focus {
+        background-color: #ddd;
+        outline: none;
+    }
