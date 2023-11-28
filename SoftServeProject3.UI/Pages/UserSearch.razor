@@ -158,8 +158,7 @@
                     </tr>
                 </thead>
                 <tbody class="table-content">
-                    @if (searchStarted)
-                    {
+                   
                         @if (users != null && users.Length > 0)
                         {
                             @foreach (var user in users)
@@ -201,19 +200,12 @@
                                 <td colspan="3"><b>Користувачів не знайдено</b></td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr id="no-users">
-                            <td colspan="3"><b>Почніть пошук користувача...</b></td>
-                        </tr>
-                    }
+                    
 
 
                 </tbody>
             </table>
-            @if (searchStarted)
-            {
+            
                 @if (totalPages != 1)
                 {
                     <nav aria-label="Page navigation">
@@ -241,7 +233,7 @@
                         </ul>
                     </nav>
                 }
-            }
+            
         </body>
     }
 
@@ -259,7 +251,7 @@
     private string usernameSearch = string.Empty;
     private Timer myTimer;
 
-    private bool searchStarted = false;
+    
     private bool showSearchUsernameInput;
     private bool showSearchFacultyInput;
     private bool showSearchSubjectsInput;
@@ -418,6 +410,13 @@
             allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
             allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties");
             filteredSubjects = allSubjects;
+            var response = await Http.GetAsync("https://localhost:7292/Users/list");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<UserSearchResultModel>();
+                users = result.Users;
+                totalPages = (int)Math.Ceiling((double)result.TotalCount / 5);
+            }
         }
         else
         {
@@ -466,10 +465,7 @@
     /// </summary>
     private async Task ApplyFilters()
     {
-        if (string.IsNullOrEmpty(usernameSearch) && selectedFaculty == "Немає" && !selectedSubjects.Any())
-            searchStarted = false;
-        else
-            searchStarted = true;
+        
         TimeSpan startTime;
         TimeSpan endTime;
         var queryParameters = new List<string>();
@@ -580,7 +576,6 @@
     /// </summary>
     private async Task ResetFilters()
     {
-        searchStarted = false;
         startTimeInput = null;
         endTimeInput = null;
         selectedSubjects.Clear();
