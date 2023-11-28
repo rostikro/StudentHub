@@ -24,10 +24,9 @@
             </div>
 
 
-            <div>
-                <div class="right-side">
+            <div class="time-filter">
+                <div>
                     <div>
-                        <label>Оберіть дні:</label>
                         <div>
                             @foreach (var day in daysOfWeek)
                             {
@@ -45,53 +44,18 @@
                     <label for="endTime">Час завершення:</label>
                     <input type="time" id="endTime" @bind="endTimeInput" />
                 </div>
-                @if (errorMessage != null)
-                {
-                    <p class="text-danger">@errorMessage</p>
-                }
-                <div class="left-side">
 
-                    <div>
-                        <label for="subjectSearch">Пошук предмету:</label>
-                        <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
-                    </div>
 
-                    <div class="searchSubject">
-
-                        <label>Оберіть предмет(и):</label>
-                        <select @onchange="OnSubjectsSelected" multiple>
-                            @if (filteredSubjects != null)
-                            {
-                                @foreach (var subject in filteredSubjects)
-                                {
-                                    <option selected=@selectedSubjects.Contains(subject)>@subject</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="selected-subjects-container">
-                        @if (selectedSubjects.Any())
-                        {
-                            <div class="subject-items">
-                                @foreach (var subject in selectedSubjects)
-                                {
-                                    <div class="subject-item">
-                                        <span>@subject</span>
-                                        <button @onclick="@(() => RemoveSubject(subject))">Видалити</button>
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-
-                </div>
-
-                <div class="buttons">
+                <div class="filter-btns">
                     <button @onclick="ApplyFilters">Фільтрувати</button>
-                    <button @onclick="ResetFilters">Скинути фільтри</button>
+                    <button @onclick="ResetFilters">Скинути фільтр</button>
                 </div>
             </div>
 
+            @* @if (errorMessage != null)
+            {
+                <p class="text-danger">@errorMessage</p>
+            } *@
             <table class="user-table">
                 <caption>Список студентів</caption>
                 <thead>
@@ -113,7 +77,58 @@
                             }
 
                         </th>
-                        <th>Предмети</th>
+                        <th>
+                            Предмети
+                            @{
+                                if (showSearchSubjectsInput)
+                                {
+                                    <text>(Максимум 3)</text>
+                                }
+                            }
+                            @if (currentPage == 1)
+                            {
+                                @if (!showSearchSubjectsInput)
+                                {
+                                    <button class="search-btn" @onclick="ToggleSearchSubjectsInput">🔍</button>
+                                }
+                                else
+                                {
+                                    <div class="searchSubject">
+                                        <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+                                        <button @onclick="ToggleSearchSubjectsInput" class="closebtn">X</button>
+                                    </div>
+                                    <div class="searchSubject">
+                                        <select @onchange="OnSubjectsSelected" multiple>
+                                            @if (filteredSubjects != null)
+                                            {
+                                                @foreach (var subject in filteredSubjects)
+                                                {
+                                                    <option selected=@selectedSubjects.Contains(subject)>@subject</option>
+                                                }
+                                            }
+                                        </select>
+                                        <div class="subject-items">
+
+                                            @if (selectedSubjects.Any())
+                                            {
+                                                @foreach (var subject in selectedSubjects)
+                                                {
+                                                    <div class="subject-item">
+                                                        <span>@subject</span>
+                                                        <button @onclick="@(() => RemoveSubject(subject))">х</button>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+
+                                    </div>
+
+
+                                }
+
+                            }
+
+                        </th>
                         <th>
                             Факультет
                             @if (currentPage == 1)
@@ -121,9 +136,8 @@
                                 @if (!showSearchFacultyInput)
                                 {
                                     <button class="search-btn" @onclick="ToggleSearchFacultyInput">🔍</button>
-
                                 }
-                                @if (showSearchFacultyInput)
+                                else
                                 {
                                     <div style="display:flex; justify-content: center;">
                                         <select id="faculty" class="form-control" @onchange="SelectFaculty">
@@ -143,78 +157,90 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody>
-                    @if (users != null && users.Length > 0)
+                <tbody class="table-content">
+                    @if (searchStarted)
                     {
-                        @foreach (var user in users)
+                        @if (users != null && users.Length > 0)
                         {
-                            <tr>
-                                <td>
-                                    <a href="UserProfile/@user.Username">@user.Username</a>
-                                </td>
-                                <td>
-                                    @if (user.Subjects != null && user.Subjects.Any())
-                                    {
-                                        @foreach (var subject in user.Subjects)
+                            @foreach (var user in users)
+                            {
+                                <tr @onclick="() => GoToUserProfile(user.Username)">
+                                    <td class="table-content">
+                                        <b>@user.Username</b>
+                                    </td>
+                                    <td>
+                                        @if (user.Subjects != null && user.Subjects.Any())
                                         {
-                                            if (subject != user.Subjects[^1])
+                                            @foreach (var subject in user.Subjects)
                                             {
-                                                <span>@subject, </span>
-                                            }
-                                            else
-                                            {
-                                                <span>@subject</span>
+                                                if (subject != user.Subjects[^1])
+                                                {
+                                                    <span>@subject, </span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@subject</span>
+                                                }
                                             }
                                         }
-                                    }
-                                    else
-                                    {
-                                        <span>Не вказані.</span>
-                                    }
-                                </td>
-                                <td>
-                                    @(!string.IsNullOrEmpty(user.Faculty) ? user.Faculty : "Не вказаний.")
-                                </td>
+                                        else
+                                        {
+                                            <span>Не вказані.</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @(!string.IsNullOrEmpty(user.Faculty) ? user.Faculty : "Не вказаний.")
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            totalPages = 1;
+                            <tr id="no-users">
+                                <td colspan="3"><b>Користувачів не знайдено</b></td>
                             </tr>
                         }
                     }
                     else
                     {
-                        totalPages = 1;
-                        <tr>
-                            <td colspan="3">Користувачів не знайдено</td>
+                        <tr id="no-users">
+                            <td colspan="3"><b>Почніть пошук користувача...</b></td>
                         </tr>
                     }
 
 
                 </tbody>
             </table>
-            @if (totalPages != 1)
+            @if (searchStarted)
             {
-                <nav aria-label="Page navigation">
-                    <ul class="pagination">
-                        @if (currentPage != 1)
-                        {
-                            <li class="page-item">
-                                <button class="page-link" @onclick="PreviousPage">Назад</button>
-                            </li>
-                        }
+                @if (totalPages != 1)
+                {
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            @if (currentPage != 1)
+                            {
+                                <чli class="page-item">
+                                    <button class="page-link" @onclick="PreviousPage">Назад</button>
+                                </чli>
+                            }
 
-                        @for (int i = 1; i <= totalPages; i++)
-                        {
-                            int localPage = i;
-                            <li class="page-item @((localPage == currentPage) ? "active" : "passive")">
-                                <button class="page-link" @onclick="@(() => GoToPage(localPage))">@localPage</button>
-                            </li>
-                        }
-                        @if (currentPage != totalPages)
-                        {
-                            <li class="page-item">
-                                <button class="page-link" @onclick="NextPage">Вперед</button>
-                            </li>
-                        }
-                    </ul>
-                </nav>
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                int localPage = i;
+                                <li class="page-item @((localPage == currentPage) ? "active" : "passive")">
+                                    <button class="page-link" @onclick="@(() => GoToPage(localPage))">@localPage</button>
+                                </li>
+                            }
+                            @if (currentPage != totalPages)
+                            {
+                                <li class="page-item">
+                                    <button class="page-link" @onclick="NextPage">Вперед</button>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
             }
         </body>
     }
@@ -233,8 +259,10 @@
     private string usernameSearch = string.Empty;
     private Timer myTimer;
 
+    private bool searchStarted = false;
     private bool showSearchUsernameInput;
     private bool showSearchFacultyInput;
+    private bool showSearchSubjectsInput;
 
     private TimeOnly? startTimeInput;
     private TimeOnly? endTimeInput;
@@ -270,6 +298,12 @@
             }
         }
     }
+
+    private void GoToUserProfile(string username)
+    {
+        Navigation.NavigateTo($"UserProfile/{username}");
+    }
+
     private async Task<bool> IsUserAuthenticatedAsync()
     {
         var token = await TokenService.GetToken();
@@ -293,8 +327,7 @@
         if (!showSearchUsernameInput)
         {
             usernameSearch = string.Empty;
-            await ApplyFilters();
-            StateHasChanged();
+            StartApplyTimer();
         }
     }
 
@@ -304,11 +337,22 @@
         if (!showSearchFacultyInput)
         {
             selectedFaculty = "Немає";
-            await ApplyFilters();
-            StateHasChanged();
+            StartApplyTimer();
         }
     }
-    private void StartTimer()
+
+    private async void ToggleSearchSubjectsInput()
+    {
+        showSearchSubjectsInput = !showSearchSubjectsInput;
+        if (!showSearchFacultyInput)
+        {
+            selectedSubjects.Clear();
+            subjectSearch = string.Empty;
+            StartApplyTimer();
+        }
+    }
+
+    private void StartApplyTimer()
     {
         if (myTimer != null)
         {
@@ -331,17 +375,17 @@
         await InvokeAsync(StateHasChanged);
     }
 
-   
-    private async Task HandleUsernameInput(ChangeEventArgs e)
+
+    private void HandleUsernameInput(ChangeEventArgs e)
     {
         usernameSearch = e.Value.ToString().Replace(" ", "");
-        StartTimer();
+        StartApplyTimer();
     }
 
-    private async Task SelectFaculty(ChangeEventArgs e)
+    private void SelectFaculty(ChangeEventArgs e)
     {
         selectedFaculty = e.Value?.ToString();
-        await ApplyFilters();
+        StartApplyTimer();
     }
     /// <summary>
     /// Фільтрує список предметів в залежності від того що ввів користувач у пошуку.
@@ -374,13 +418,6 @@
             allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
             allFaculties = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/faculties");
             filteredSubjects = allSubjects;
-            var response = await Http.GetAsync("https://localhost:7292/Users/list");
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<UserSearchResultModel>();
-                users = result.Users;
-                totalPages = (int)Math.Ceiling((double)result.TotalCount / 5);
-            }
         }
         else
         {
@@ -409,8 +446,8 @@
             {
 
                 selectedSubjects.AddRange(newSelections.Take(availableSlots));
-                errorMessage = $"Можна обрати максимум {MAX_SUBJECTS} предметів";
             }
+            StartApplyTimer();
         }
     }
 
@@ -418,9 +455,10 @@
     /// Видаляє вибраний предмет зі списку обраних предметів.
     /// </summary>
     /// <param name="subject">Предмет, який потрібно видалити.</param>
-    private void RemoveSubject(string subject)
+    private async void RemoveSubject(string subject)
     {
         selectedSubjects.Remove(subject);
+        StartApplyTimer();
     }
 
     /// <summary>
@@ -428,6 +466,10 @@
     /// </summary>
     private async Task ApplyFilters()
     {
+        if (string.IsNullOrEmpty(usernameSearch) && selectedFaculty == "Немає" && !selectedSubjects.Any())
+            searchStarted = false;
+        else
+            searchStarted = true;
         TimeSpan startTime;
         TimeSpan endTime;
         var queryParameters = new List<string>();
@@ -538,6 +580,7 @@
     /// </summary>
     private async Task ResetFilters()
     {
+        searchStarted = false;
         startTimeInput = null;
         endTimeInput = null;
         selectedSubjects.Clear();
