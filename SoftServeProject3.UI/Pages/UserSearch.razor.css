@@ -8,7 +8,6 @@
 }
 
 .wrapper {
-
 }
 
     .wrapper > div {
@@ -20,7 +19,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-
 }
 
 .one {
@@ -84,34 +82,38 @@ select {
 
 .subject-items {
     display: flex;
+    align-items: flex-end;
+    flex-direction: column;
     flex-wrap: wrap;
-    gap: 10px;
 }
 
 .subject-item {
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
+    margin-bottom: -5px;
 }
 
     .subject-item > span {
         background-color: #757575;
         color: white;
         padding: 5px 10px;
-        border-radius: 20px;
-        margin-right: 5px;
+        margin-right: 0px;
     }
 
     .subject-item > button {
-        background-color: #b30000;
-        color: white;
+        background-color: lightgray;
         border: none;
-        border-radius: 20px;
+        border-radius: 0px;
         padding: 5px 10px;
         cursor: pointer;
-        margin-left: 5px;
+        margin-left: 0px;
     }
 
+.searchSubject {
+    display: flex;
+    justify-content: center;
+    gap:5px;
+}
 
 
 button {
@@ -154,15 +156,25 @@ ul {
     padding-left: 20px;
 }
 
-.buttons {
-    padding-left: 20px;
+.filter-btns {
+    float: left;
 }
 
-.right-side {
+.time-filter {
     width: 50%;
-    float: right;
+    float: left;
+    margin-left: 25%;
 }
 
+#no-users{
+    animation: pulse 1s;
+}
+
+.table-content tr:hover:not(#no-users) {
+    background-color: #f1f1f1;
+    cursor: pointer;
+    transform: scale(1.05);
+}
 
 .user-table {
     width: 85%;
@@ -170,23 +182,29 @@ ul {
     border-collapse: collapse;
     margin-top: 20px;
     margin-bottom: 30px;
+    border: 1px solid #ddd;
     position: relative;
     table-layout: fixed;
 }
 
     .user-table th,
     .user-table td {
-        border: 1px solid #ddd;
         padding: 12px;
         text-align: center;
     }
+
+    .user-table tr {
+        border-bottom: 3px solid #ddd;
+    }
+
+    .user-table thead:hover {
+    }   
 
     .user-table th {
         background-color: #757575;
         color: white;
         font-weight: bold;
         padding: 12px;
-        text-align: center;
     }
 
     .user-table td a {
@@ -194,10 +212,6 @@ ul {
         text-decoration: none;
         font-weight: bold;
     }
-
-        .user-table td a:hover {
-            color: #007bff;
-        }
 
     .user-table caption {
         caption-side: top;
@@ -273,14 +287,28 @@ ul {
         transition: background-color 0.3s ease-in-out;
     }
 
-.form-control{
-    border-radius:0px;
-    width:50%;
+.form-control {
+    border-radius: 0px;
+    width: 50%;
 }
 
 @keyframes paging {
     to {
         transform: rotateY( -180deg );
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
     }
 }
 
