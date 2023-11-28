@@ -10,7 +10,7 @@
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
 @using System.Net.Http.Json;
-
+@using Microsoft.AspNetCore.SignalR.Client;
 
 <head>
     <PageTitle>Перегляд профілю</PageTitle>
@@ -145,7 +145,13 @@
                         <label for="name">Призвіще Ім'я:</label>
                         <p id="name" class="form-control-plaintext">@userProfile.name</p>
                     </div>
-                    <button class="btn btn-primary" @onclick="NavigateToChat">Чат</button>
+                    
+                    @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
+                    {
+                        <button class="btn btn-primary" @onclick="NavigateToChat">Чат</button>
+                    }
+                    
+                    
                     <div class="five">
                         <div class="button-content">
                             <label for="faculty">Факультет:</label>
@@ -274,27 +280,27 @@
         return TokenService.IsTokenValid(token);
     }
 
-    private void setFriendStatusString(FriendStatus status)
-    {
-        switch (status)
-        {
-            case FriendStatus.NOT_FRIEND:
-                FriendStatusStr = "Ви поки не знайомі з цим користувачем.";
-                break;
-            case FriendStatus.FRIEND:
-                FriendStatusStr = "Ви співпрацюєте з цим користувачем.";
+    // private void setFriendStatusString(FriendStatus status)
+    // {
+    //     switch (status)
+    //     {
+    //         case FriendStatus.NOT_FRIEND:
+    //             FriendStatusStr = "Ви поки не знайомі з цим користувачем.";
+    //             break;
+    //         case FriendStatus.FRIEND:
+    //             FriendStatusStr = "Ви співпрацюєте з цим користувачем.";
 
-                break;
-            case FriendStatus.INCOMING_REQUEST:
-                FriendStatusStr = "Користувач запитує дозвіл на дружбу з вами.";
+    //             break;
+    //         case FriendStatus.INCOMING_REQUEST:
+    //             FriendStatusStr = "Користувач запитує дозвіл на дружбу з вами.";
 
-                break;
-            case FriendStatus.OUTGOING_REQUEST:
-                FriendStatusStr = "Запит на дружбу надіслано.";
+    //             break;
+    //         case FriendStatus.OUTGOING_REQUEST:
+    //             FriendStatusStr = "Запит на дружбу надіслано.";
 
-                break;
-        }
-    }
+    //             break;
+    //     }
+    // }
 
     private string GetSocialClass(string key)
     {
@@ -308,15 +314,29 @@
             _ => string.Empty,
         };
     }
-    
+    private HubConnection hubConnection;
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
     /// <summary>
     /// Метод для часу до розкладу на конкретний день.
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
+
         try
         {
-            
+            var token = await TokenService.GetToken();
+            hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+            {
+                options.AccessTokenProvider = () => Task.FromResult(token);
+            })
+            .Build();
+            hubConnection.On<string>("UpdateOutgoingList", (username) =>
+            {
+                LoadUserProfile();
+                StateHasChanged();
+            });
+            await hubConnection.StartAsync();
             isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
@@ -339,6 +359,7 @@
             errorMessage = $"An error occurred: {ex.Message}";
         }
     }
+
 
     /// <summary>
     /// Метод для завантаження розкладу з сервера.
@@ -402,11 +423,16 @@
             {
                 friendStatus = FriendStatus.INCOMING_REQUEST;
             }
+            else
+            {
+                friendStatus = FriendStatus.NOT_FRIEND;
+            }
 
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
             isProfileVerified = userProfile.isProfileVerified;
-           await FriendStatusString();
+            StateHasChanged();
+            await FriendStatusString();
         }
         catch (Exception ex)
         {
@@ -417,6 +443,7 @@
 
     private async Task FriendStatusString()
     {
+        
         switch (friendStatus)
         {
             case FriendStatus.NOT_FRIEND:
@@ -442,7 +469,8 @@
         {
             var token = await TokenService.GetToken();
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
+            string username = userProfile.username;
+            
             switch (friendStatus)
             {
                 case FriendStatus.NOT_FRIEND:
@@ -450,6 +478,7 @@
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         friendStatus = FriendStatus.OUTGOING_REQUEST;
+                        
                     }
                     break;
 
@@ -458,6 +487,7 @@
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         friendStatus = FriendStatus.NOT_FRIEND;
+                       
                     }
                     break;
 
@@ -466,6 +496,7 @@
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         friendStatus = FriendStatus.NOT_FRIEND;
+                        
                     }
                     break;
 
@@ -474,9 +505,11 @@
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         friendStatus = FriendStatus.FRIEND;
+                        
                     }
                     break;
             }
+            await hubConnection.SendAsync("UpdateOutgoingList", username);
             await FriendStatusString();
 
         }
@@ -491,6 +524,7 @@
     {
         try
         {
+            string username = userProfile.username;
             var token = await TokenService.GetToken();
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -498,7 +532,11 @@
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 friendStatus = FriendStatus.NOT_FRIEND;
+                
             }
+            await hubConnection.SendAsync("UpdateOutgoingList", username);
+            await FriendStatusString();
+
         }
         catch (Exception e)
         {

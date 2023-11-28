@@ -103,7 +103,7 @@
                 StateHasChanged();
             }
         });
-
+        
         hubConnection.On<string>("UserTyping", (username) =>
         {
         if (!typingUsers.Contains(username))

@@ -46,4 +46,10 @@ public class ChatHub : Hub
         var senderUsername = Context.UserIdentifier;
         await Clients.User(receiverUserId).SendAsync("MessageRead", senderUsername, messageId);
     }
+
+    public async Task UpdateOutgoingList(string receiverUserId)
+    {
+        var senderUsername = Context.UserIdentifier;
+        await Clients.User(receiverUserId).SendAsync("UpdateOutgoingList", senderUsername);
+    }
 }

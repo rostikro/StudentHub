@@ -209,7 +209,7 @@ namespace SoftServeProject3.Api.Controllers
                 if (string.IsNullOrEmpty(target))
                     throw new KeyNotFoundException("Target user is null");
                 
-                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.AddFriendRequest(senderUsername, target);
 

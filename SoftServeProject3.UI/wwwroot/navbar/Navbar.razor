@@ -8,7 +8,7 @@
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
-
+@using Microsoft.AspNetCore.SignalR.Client;
 
 <style>
     .wrapper {
@@ -96,7 +96,7 @@
         </div>
         <div class="right-links">
         <button @onclick="ShowMessagePopup">
-            Повідомлення @if (incomingRequests?.Any() == true)
+            Запити в друзі @if (incomingRequests?.Any() == true)
             {
                 <span class="friend-requests-indicator">@incomingRequests.Count</span>
             }
@@ -112,13 +112,30 @@
 @code {
     string errorMessage;
     List<Friend> incomingRequests = new List<Friend>();
-   
+    private HubConnection hubConnection;
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+
+    
     protected override async Task OnInitializedAsync()
     {
+        var token = await TokenService.GetToken();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+            {
+                options.AccessTokenProvider = () => Task.FromResult(token);
+            })
+            .Build();
+        hubConnection.On<string>("UpdateOutgoingList", (username) =>
+        {
+
+            UpdateIndicator();
+            StateHasChanged();
+        });
+        await hubConnection.StartAsync();
         try
         {
-            
-            var token = await TokenService.GetToken();
+
+
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
             errorMessage = "Failed to load user info";
@@ -129,14 +146,23 @@
         }
     }
     private bool showMessagePopup = false;
-    
-    private void ShowMessagePopup()
+
+    private async Task ShowMessagePopup()
     {
+        // string username = "Rosik13";
+        // await hubConnection.SendAsync("UpdateOutgoingList", username);
         showMessagePopup = true;
 
     }
-    private void HandleClose(bool isClosed)
+    private async Task HandleClose(bool isClosed)
     {
         showMessagePopup = false;
+        
+    }
+
+    private async Task UpdateIndicator()
+    {
+        incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
+        StateHasChanged();
     }
 }
