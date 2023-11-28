@@ -489,6 +489,7 @@
                     break;
             }
             await hubConnection.SendAsync("UpdateOutgoingList", username);
+            await hubConnection.SendAsync("UpdateOutgoingList", myProfile.Username);
             await FriendStatusString();
 
         }
@@ -514,6 +515,7 @@
                 
             }
             await hubConnection.SendAsync("UpdateOutgoingList", username);
+            await hubConnection.SendAsync("UpdateOutgoingList", myProfile.Username);
             await FriendStatusString();
 
         }
