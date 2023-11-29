@@ -1,27 +1,124 @@
 ﻿@page "/"
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject TokenService TokenService
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using Newtonsoft.Json;
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
 
-<div class="wrapper">
-    <div class="vsc-title">VSC</div>
-    <div class="box box1">
+
+@if (isUserAuthenticated)
+{
+    Navigation.NavigateTo("/UserProfile");
+}
+
+<head>
+    <PageTitle>Інформаційна сторінка</PageTitle>
+</head>
+
+<div class="outside-wrapper">
+    <div class="wrapper">
+        <div class="vsc-title">VSC</div>
+        <button class="login-button" @onclick="GoToLogin">Увійти</button>
+
+
+
         <div class="information-text">
-            <h2 class="info-heading">З допомогою нашого сервісу</h2>
-            <p class="info-paragraph">
-                Ви можете поспілкуватися зі студентами з різних університетів і спеціальностей.
-                Наша платформа дозволяє знаходити співрозмовників, обмінюватися досвідом та знаннями,
-                розвивати мережу контактів та здобувати нові навички.
-            </p>
-            <button class="login-button" @onclick="GoToLogin">Увійти</button>
+            <div class="info-text">
+                <h2 class="info-heading">Вітаємо на платформі VSC/SoftServe!</h2>
+                <p class="info-paragraph">
+                    Ви можете поспілкуватися зі студентами з різних університетів і спеціальностей.
+                    Наша платформа дозволяє знаходити співрозмовників, обмінюватися досвідом та знаннями,
+                    розвивати мережу контактів та здобувати нові навички.
+                </p>
+                <button class="login-button-new" @onclick="GoToLoginNew">Увійти</button>
+            </div>
+            <h3 class="about-us">Про Нас</h3>
+            <img src="https://i.postimg.cc/vHfD0qdf/Down-Arrow.jpg" alt="Down Arrow" class="arrow-left">
+            <img src="https://i.postimg.cc/vHfD0qdf/Down-Arrow.jpg" alt="Down Arrow" class="arrow-right">
+        </div>
+        <div class="box2">
+            <img src="https://i.postimg.cc/zGg51n0c/3511596.jpg" alt="Site Photo" class="site-photo">
         </div>
     </div>
-    <div class="box box2">
-        <img src="https://i.postimg.cc/zGg51n0c/3511596.jpg" alt="Site Photo" class="site-photo">
+    <div class="other-info">
+        <div class="bottom-content">
+            <div class="bottom-text">
+                <h3 class="bottom-heading">Знайомтесь із майбутніми друзями<br>та співрозмовниками з університетського життя!</h3>
+                <p class="bottom-paragraph">
+                    Наш сервіс дозволяє майбутнім абітурієнтам отримати безпосередню інсайтову<br>
+                    інформацію від студентів різних університетів та спеціальностей.Запитуйте,<br>
+                    обговорюйте та діліться досвідом безпосередньо з тими, хто вже навчається <br>
+                    у вищих навчальних закладах вашого вибору.
+                </p>
+                <h3 class="bottom-heading">Де це може бути корисним?</h3>
+                <p class="bottom-paragraph">
+                    Якщо ви маєте бажання отримати більше інформації про конкретний університет<br>
+                    чи спеціальність, наш сервіс допоможе вам знайти та поспілкуватися зі студентами <br>
+                    цих закладів. Без необхідності особистого візиту до університету, ви зможете <br>
+                    знайти співрозмовників, які поділять свій досвід та відповідатимуть на ваші <br>
+                    запитання.
+                </p>
+                <h3 class="bottom-heading">Навчальна складова:</h3>
+                <p class="bottom-paragraph">
+                    У нас ви знайдете осіб, що зацікавлені у тих самих навчальних темах, що й ви. Разом<br>
+                    ви зможете засвоїти складні предмети та розкрити їх суть через обмін знаннями <br>
+                    та досвідом.
+                </p>
+                <h3 class="bottom-heading">Огляд:</h3>
+                <p class="bottom-paragraph">
+                    Наша платформа допомагає студентам подолати труднощі самостійного навчання,<br>
+                    зберегти мотивацію та зрозуміти складні теми. Взаємодія з однолітками, які<br>
+                    вивчають схожі предмети, розширює можливості обміну знаннями та перспективами.
+                </p>
+                <h3 class="bottom-heading">Основні можливості:</h3>
+                <p class="bottom-paragraph">
+                    <strong>Створення профілю:</strong> Розкажіть про свої навчальні предмети та цілі.<br>
+                    <strong>Система підбору:</strong> Ми забезпечимо вибір студентів, які поділяють ваші інтереси та навчальні потреби.<br>
+                    <strong>Чат та відеоконференції:</strong> Спілкуйтеся у режимі реального часу для обговорення та обміну думками.<br>
+                    <strong>Спільний доступ до ресурсів:</strong> Обмінюйтеся нотатками, матеріалами та корисними ресурсами.<br>
+                    <strong>Інтеграція з університетами:</strong> Взаємодія між студентами різних університетів для розширення можливостей навчання.<br>
+                </p>
+            </div>
+            <div class="bottom-photo">
+                <img src="https://i.postimg.cc/dVwWCNxx/1.png" alt="Bottom Photo">
+            </div>
+        </div>
     </div>
 </div>
 
 @code {
+    private bool isUserAuthenticated;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            
+            isUserAuthenticated = await IsUserAuthenticatedAsync();
+            
+               
+
+            
+        }
+        catch (Exception ex)
+        {
+            
+        }
+    }
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+    }
     private void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    private void GoToLoginNew()
     {
         Navigation.NavigateTo("/login");
     }

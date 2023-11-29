@@ -231,7 +231,7 @@
                     {
                         <div class="form-group">
                             <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate" />
-                            <label for="socialPrivacy">Зробити соціальні мережі приватними</label>
+                            <label for="socialPrivacy">Зробити соціальні мережі та чат приватними окрім друзів</label>
                         </div>
 
                     }
@@ -803,7 +803,7 @@
     private async Task Logout()
     {
         await TokenService.RemoveToken();
-        Navigation.NavigateTo("/login");
+        Navigation.NavigateTo("/");
     }
 }
 
