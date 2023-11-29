@@ -2,17 +2,24 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @using SoftServeProject3.Core.DTOs;
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject TokenService TokenService
+@inject UserProfileService UserProfileService
+@using SoftServeProject3.UI.Services;
+@using System.Globalization
+@using Newtonsoft.Json;
 
+@using System.Net.Http.Headers;
 
 
 
 <head>
     <PageTitle>Checking mail</PageTitle>
-
-
 </head>
 
-
+@if (!isUserAuthenticated)
+{
 <body>
     <div class="form">
         <h3>Скидання паролю</h3>
@@ -45,8 +52,12 @@
             }
         </div>
     </div>
-
-
+    </body>
+}
+else
+{
+    Navigation.NavigateTo("/UserProfile");
+}
 
 
 
@@ -56,7 +67,7 @@
         private bool showCodeInput = false;
         private string errorMessage = "";
 
-        //TODO: В body додати два поля: пароль і повтор пароля, зробити їх активними/неактивними(активне після підтверження коду) як в реєстрації, + логіка 'забули пароль'
+        
 
         /// <summary>
         /// Відправляє запит на сервер для отримання коду верифікації на електронну пошту користувача.
@@ -79,7 +90,28 @@
             }
 
         }
+        private bool isUserAuthenticated;
+        protected override async Task OnInitializedAsync()
+        {
+            try
+            {
 
+                isUserAuthenticated = await IsUserAuthenticatedAsync();
+
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+        private async Task<bool> IsUserAuthenticatedAsync()
+        {
+            var token = await TokenService.GetToken();
+            return TokenService.IsTokenValid(token);
+        }
         /// <summary>
         /// Перевіряє введений користувачем код та здійснює подальші дії на основі результату перевірки.
         /// </summary>
@@ -100,7 +132,5 @@
                     errorMessage = content;
             }
         }
-
-
     }
-</body>
+
