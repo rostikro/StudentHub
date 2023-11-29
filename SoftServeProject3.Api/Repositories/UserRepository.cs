@@ -4,6 +4,9 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using SoftServeProject3.Api.Interfaces;
 using SoftServeProject3.Core.DTOs;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Mvc;
+using SoftServeProject3.Api.Services;
 
 namespace SoftServeProject3.Api.Repositories
 {
@@ -131,6 +134,9 @@ namespace SoftServeProject3.Api.Repositories
 
                 await _users.UpdateOneAsync(u => u._id == targetId,
                     Builders<UserModel>.Update.AddToSet(u => u.IncomingFriendRequests, senderId));
+                string userId = senderId.ToString();
+                
+                
             }
             catch (Exception e)
             {

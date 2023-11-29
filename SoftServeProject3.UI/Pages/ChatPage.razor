@@ -1,0 +1,223 @@
+﻿@page "/chat"
+@page "/chat/{Username}"
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject TokenService TokenService
+@using Microsoft.AspNetCore.SignalR.Client
+@using SoftServeProject3.UI.Services;
+@using System.Net
+@using SoftServeProject3.Core.DTOs;
+@using System.Net.Http.Headers;
+
+
+<h3>Чат</h3>
+
+<div class="selected-user-name">
+    @if (!string.IsNullOrEmpty(selectedUser))
+    {
+        <h3>@selectedUser</h3>
+        @if (typingUsers.Contains(selectedUser))
+        {
+            <p class="typing-indicator">@selectedUser пише...</p>
+        }
+    }
+</div>
+
+
+
+
+<div class="chat-container">
+    <div class="user-list">
+        @foreach (var username in recentContactUsernames)
+        {
+            <button @onclick="() => StartChatWith(username)">@username</button>
+            
+        }
+    </div>
+
+    <div class="message-area" id="messageArea">
+        @foreach (var message in messages)
+        {
+            <div class="@GetMessageClass(message)">
+                @FormatMessage(message)
+            </div>
+        }
+    </div>
+
+    <div class="message-input-area">
+        <textarea @bind="messageInput" @oninput="OnInput"></textarea>
+        <button @onclick="SendMessage">Send</button>
+    </div>
+</div>
+
+@code {
+    UpdateProfile myProfile;
+    private HubConnection hubConnection;
+    private List<Message> messages = new List<Message>();
+    private string messageInput;
+    List<string> recentContactUsernames = new();
+    private List<string> typingUsers = new();
+    private string selectedUser;
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+    [Parameter]
+    public string Username { get; set; }
+    string sender;
+    private Dictionary<string, Timer> typingTimers = new Dictionary<string, Timer>();
+    private readonly int typingTimeout = 5000;
+
+    private async void StartChatWith(string username)
+    {
+        selectedUser = username;
+        await LoadChatHistory(selectedUser);
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Username))
+        {
+            selectedUser = Username;
+            await LoadChatHistory(selectedUser);
+        }
+        var token = await TokenService.GetToken();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+            {
+                options.AccessTokenProvider = () => Task.FromResult(token);
+            })
+            .Build();
+
+        hubConnection.On<string, string, string>("ReceiveMessage", (user, message, timestamp) =>
+        {
+
+            if (user == selectedUser)
+            {
+                var newMessage = new Message
+                    {
+                        SenderUsername = user,
+                        Text = message,
+                        Timestamp = DateTime.Parse(timestamp) 
+                    };
+
+                messages.Add(newMessage);
+                StateHasChanged();
+            }
+        });
+        
+        hubConnection.On<string>("UserTyping", (username) =>
+        {
+        if (!typingUsers.Contains(username))
+        {
+            typingUsers.Add(username);
+        }
+
+        if (typingTimers.ContainsKey(username))
+        {
+            typingTimers[username].Change(typingTimeout, Timeout.Infinite);
+        }
+        else
+        {
+            var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
+            typingTimers.Add(username, timer);
+        }
+
+        StateHasChanged();
+        });
+        await hubConnection.StartAsync();
+
+
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var responseProfile = await Http.GetAsync("https://localhost:7292/Users/profile");
+        responseProfile.EnsureSuccessStatusCode();
+
+        myProfile = await responseProfile.Content.ReadFromJsonAsync<UpdateProfile>();
+
+        var response = await Http.GetAsync("https://localhost:7292/Chat/recent-contacts");
+        if (response.IsSuccessStatusCode)
+        {
+            recentContactUsernames = await response.Content.ReadFromJsonAsync<List<string>>();
+
+        }
+        // typingTimer = new Timer(TypingTimerElapsed, selectedUser, Timeout.Infinite, Timeout.Infinite);
+    }
+    private async Task LoadChatHistory(string selectedUser)
+    {
+        var token = await TokenService.GetToken();
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await Http.GetAsync($"https://localhost:7292/Chat/history?user2={selectedUser}");
+        if (response.IsSuccessStatusCode)
+        {
+            var chatHistory = await response.Content.ReadFromJsonAsync<List<Message>>();
+            messages.Clear();
+            messages.AddRange(chatHistory);
+        }
+    }
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrEmpty(selectedUser) && !string.IsNullOrEmpty(messageInput))
+        {
+            var newMessageId = Guid.NewGuid().ToString();
+
+            await hubConnection.SendAsync("SendMessageToUser", selectedUser, messageInput);
+
+            
+            var formattedDateTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            var newMessage = new Message
+                {
+                    SenderUsername = myProfile.username, 
+                    Text = messageInput,
+                    Timestamp = DateTime.Now
+                };
+            messages.Add(newMessage);
+
+            messageInput = string.Empty;
+            await hubConnection.SendAsync("MessageRead", selectedUser, newMessageId); 
+        }
+    }
+   
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+
+        foreach (var timer in typingTimers.Values)
+        {
+            timer.Dispose();
+        }
+    }
+    private string FormatMessage(Message message)
+    {
+        var formattedDateTime = message.Timestamp.ToString("dd/MM/yyyy HH:mm");
+        var sender = message.SenderUsername != selectedUser ? "You" : message.SenderUsername;
+        return $"{formattedDateTime} {sender}: {message.Text}";
+    }
+
+    private void TypingTimerElapsed(string username)
+    {
+        InvokeAsync(() =>
+        {
+            typingUsers.Remove(username);
+            if (typingTimers.TryGetValue(username, out var timer))
+            {
+                timer.Dispose();
+                typingTimers.Remove(username);
+            }
+            StateHasChanged();
+        });
+    }
+
+    private string GetMessageClass(Message message)
+    {
+        return message.SenderUsername == myProfile.username ? "message-sent" : "message-received";
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        messageInput = e.Value.ToString();
+        await hubConnection.SendAsync("UserTyping", selectedUser);
+    }
+
+}

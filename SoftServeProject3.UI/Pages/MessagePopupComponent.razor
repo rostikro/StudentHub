@@ -4,6 +4,7 @@
 @using System.Net.Http.Headers;
 @using SoftServeProject3.UI.Services;
 @using SoftServeProject3.Core.DTOs;
+@using Microsoft.AspNetCore.SignalR.Client;
 
 @if (IsVisible)
 {
@@ -16,6 +17,8 @@
                     <div>
                         <img src="@friend.photoUrl" alt="Profile Picture" class="round-profile-picture" />
                         <a href="UserProfile/@friend.username">@friend.username</a>
+                        <button style="color:limegreen" @onclick="() => AddFriend(friend.username)">Прийняти</button>
+                        <button style="color:darkred" @onclick="() => IgnoreFriend(friend.username)">Ігнорувати</button>
                     </div>
                 }
             }
@@ -33,7 +36,9 @@
     [Parameter]
     public EventCallback<bool> OnClose { get; set; }
     private List<Friend> incomingRequests = new List<Friend>();
-    
+    private HubConnection hubConnection;
+    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+    UserModel myProfile;  
 
     public void Show()
     {
@@ -49,11 +54,49 @@
     protected override async Task OnInitializedAsync()
     {
         var token = await TokenService.GetToken();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+            {
+                options.AccessTokenProvider = () => Task.FromResult(token);
+            })
+            .Build();
+        hubConnection.On<string>("UpdateOutgoingList", (username) =>
+        {
+
+            UpdateIndicator();
+            StateHasChanged();
+        });
+        await hubConnection.StartAsync();
+        
         Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        myProfile = await Http.GetFromJsonAsync<UserModel>($"https://localhost:7292/Users/profile/");
         incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
     }
-    
+    private async Task UpdateIndicator()
+    {
+        incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
+        StateHasChanged();
+    }
 
+    private async Task AddFriend(string FriendUsername)
+    {
+        var token = await TokenService.GetToken();
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        await Http.PostAsync($"https://localhost:7292/Users/acceptFriendRequest?target={FriendUsername}", null);
+        UpdateIndicator();
+        await hubConnection.SendAsync("UpdateOutgoingList", FriendUsername);
+        await hubConnection.SendAsync("UpdateOutgoingList", myProfile.Username);
+    }
+
+    private async Task IgnoreFriend(string FriendUsername)
+    {
+        var token = await TokenService.GetToken();
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        await Http.PostAsync($"https://localhost:7292/Users/ignoreFriendRequest?target={FriendUsername}", null);
+        UpdateIndicator();
+        await hubConnection.SendAsync("UpdateOutgoingList", FriendUsername);
+        await hubConnection.SendAsync("UpdateOutgoingList", myProfile.Username);
+    }
     
     
 }

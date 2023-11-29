@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using SoftServeProject3.Api.Utils;
 using Newtonsoft.Json;
-using SoftServeProject3.Api.Configurations;
+using SoftServeProject3.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using SoftServeProject3.Core.DTOs;
 using MongoDB.Driver;
+
 
 
 namespace SoftServeProject3.Api.Controllers
@@ -20,6 +21,7 @@ namespace SoftServeProject3.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IMessageRepository _messageRepository;
         private readonly IVerificationRepository _verRepository;
         private readonly IJwtService _jwtService;
         private readonly IWebHostEnvironment _env;
@@ -32,12 +34,13 @@ namespace SoftServeProject3.Api.Controllers
         /// <param name="userRepository">Репозиторій користувачів.</param>
         /// <param name="jwtService">Служба JWT.</param>
         /// <exception cref="ArgumentNullException">Викидається, коли userRepository або jwtService дорівнює null.</exception>
-        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env, IVerificationRepository verRepository)
+        public UsersController(IUserRepository userRepository, IJwtService jwtService, IWebHostEnvironment env, IVerificationRepository verRepository, IMessageRepository messageRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
             _env = env;
             _verRepository = verRepository;
+            _messageRepository = messageRepository;
         }
 
         /// <summary>
@@ -168,7 +171,7 @@ namespace SoftServeProject3.Api.Controllers
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
                 var incomingFriendRequests = await _userRepository.GetIncomingFriendRequestsAsync(email);
-
+                
                 return Ok(incomingFriendRequests);
             }
             catch (Exception e)
@@ -209,6 +212,8 @@ namespace SoftServeProject3.Api.Controllers
                 string senderUsername = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
 
                 await _userRepository.AddFriendRequest(senderUsername, target);
+
+                
 
                 return Ok("Success");
             }
@@ -331,7 +336,7 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Internal error");
             }
         }
-
+        
         /// <summary>
         /// Отримує список всіх користувачів.
         /// </summary>
