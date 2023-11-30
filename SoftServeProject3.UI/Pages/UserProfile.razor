@@ -24,9 +24,9 @@
 
             <body>
                 <div class="wrapper">
-                    
-                        <SoftServeProject3.UI.wwwroot.navbar.Navbar />
-                    
+
+                    <SoftServeProject3.UI.wwwroot.navbar.Navbar />
+
 
                     <div class="two">
                         @if (isEditMode)
@@ -34,7 +34,7 @@
                             if (!isUsernameEdit)
                             {
                                 <div style="display: flex;">
-                                    <h2 style="margin-right: 0;">@userProfile.username</h2>
+                                    <h2 style="margin-right: 5px;">@userProfile.username</h2>
                                     <button @onclick="ToggleUsernameEdit">&#x270E</button>
                                 </div>
                             }
@@ -65,10 +65,6 @@
 
                         @if (isEditMode)
                         {
-                            <div class="form-group">
-                                <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate" />
-                                <label for="profilePrivacy">Зробити профіль приватним</label>
-                            </div>
                             <div class="profile-picture-edit">
                                 <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                             </div>
@@ -77,7 +73,7 @@
                         else
                         {
                             <div class="profile-picture">
-                                <img src="@userProfile.photoUrl" alt="Немає фото профілю">
+                                <img src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
                             </div>
                         }
                     </div>
@@ -96,7 +92,7 @@
 
                         else if (schedule.Count == 0)
                         {
-                            <p>Розклад пустий</p>
+                            <p>Розклад не вказаний.</p>
                         }
 
                         else
@@ -174,8 +170,8 @@
                     {
 
                         <div class="form-group">
-                            <label for="name">Ініціали:</label>
-                            <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
+                            <label for="name">Ваші ініціали:</label>
+                            <input type="text" maxlength="100" id="name" class="form-control" @bind="@userProfile.name" />
                         </div>
                     }
                     else
@@ -212,7 +208,7 @@
 
                         <div class="five">
                             <label for="description">Опис:</label>
-                            <textarea id="description" class="form-control" @bind="@userProfile.description"></textarea>
+                            <textarea id="description" class="edit-textarea" @bind="@userProfile.description"></textarea>
                         </div>
                     }
                     else
@@ -220,19 +216,31 @@
 
                         <div class="five">
                             <div class="button-content">
-                                <label for="faculty">Факультет:</label>
-                                <span>@userProfile.faculty</span>
+                                <h4>Ваш факультет</h4>
+                                @if (userProfile.faculty != "Немає")
+                                {
+                                    <span><b>@userProfile.faculty</b></span>
+                                }
+                                else
+                                {
+                                    <text>Не обраний</text>
+                                }
+
+                                
                             </div>
-                            <label for="description">Опис:</label>
-                            <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                            <hr>
+
+                            @if (!string.IsNullOrWhiteSpace(userProfile.description))
+                            {
+                                <div class="button-content">
+                                <h4>Опис Профілю</h4>
+                                <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                                </div>
+                            }
                         </div>
                     }
                     @if (isEditMode)
                     {
-                        <div class="form-group">
-                            <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate" />
-                            <label for="socialPrivacy">Зробити соціальні мережі та чат приватними окрім друзів</label>
-                        </div>
 
                     }
                     <div class="soc">
@@ -256,8 +264,6 @@
 
                             }
                         }
-
-
                     </div>
 
 
@@ -265,33 +271,33 @@
                     @if (isEditMode)
                     {
                         <div class="subjectSearch">
-                            <label for="subjectSearch">Пошук предмету:</label>
-                            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+                            <div style="display:flex; justify-content:center;">
+                                <img class="options-icon" src="https://www.freeiconspng.com/uploads/options-icon-11.png">
+                                <h3><b>Налаштування профілю</b></h3>
+                                <img class="options-icon" src="https://www.freeiconspng.com/uploads/options-icon-11.png">
+                            </div>
+                            <label class="container" for="profilePrivacy">
+                                Зробити профіль приватним
+                                <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate">
+                                <span class="checkmark"></span>
+                            </label>
+                            <label class="container" for="socialPrivacy">
+                                Зробити соціальні мережі та чат приватними окрім друзів
+                                <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate">
+                                <span class="checkmark"></span>
+                            </label>
 
-                            <label>Обрані предмети:</label>
-                            @if (selectedSubjects.Any())
-                            {
-                                <ul>
-                                    @foreach (var subject in selectedSubjects)
-                                    {
-                                        <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
-                                    }
-                                </ul>
-                            }
                         </div>
                     }
-                    else
-                    {
 
-                    }
 
                     @if (isEditMode)
                     {
 
 
                         <div class="searchSubject">
-
-                            <label>Оберіть предмет(и):</label>
+                            <label for="subjectSearch">Пошук предмету:</label>
+                            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
                             <select @onchange="OnSubjectsSelected" multiple>
                                 @if (filteredSubjects != null)
                                 {
@@ -301,6 +307,24 @@
                                     }
                                 }
                             </select>
+                            <p></p>
+                            @if (selectedSubjects.Any())
+                            {
+                                <label>Обрані предмети:</label>
+                            }
+                            <div class="chosen-subjects">
+                                @if (selectedSubjects.Any())
+                                {
+                                    @foreach (var subject in selectedSubjects)
+                                    {
+                                        <div id="subjects">
+                                            <b>@subject</b>
+                                            <button class="btn btn-outline-danger" id="subject-cancel" @onclick="@(() => RemoveSubject(subject))">Х</button>
+
+                                        </div>
+                                    }
+                                }
+                            </div>
                         </div>
                     }
                     else
@@ -313,7 +337,7 @@
                                 {
                                     if (subject != userProfile.subjects[^1])
                                     {
-                                        <span>@subject - </span>
+                                        <span>@subject, </span>
                                     }
                                     else
                                     {
@@ -332,19 +356,25 @@
                         @if (isEditMode)
                         {
                             <div class="editButtons">
-                                <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
-                                <button type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
+                                <button type="button" class="btn btn-success" id="change-success" @onclick="SaveAllChanges">Зберегти зміни</button>
+                                <button type="button" class="btn btn-outline-danger" id="change-cancel" @onclick="CancelEdit">Скасувати</button>
                             </div>
 
                         }
                         else
                         {
-
                             <div class="blueButton">
-                                <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
+                                <button class="btn btn-primary" id="edit-btn" type="button" @onclick="ToggleEditMode">
+                                    <b>Редагувати</b>
+                                    <img class="edit-icon" src="https://cdn-icons-png.flaticon.com/512/2740/2740651.png">
+
+                                </button>
                             </div>
-                            <NavLink class="nav-link" href="" @onclick="Logout">
-                                <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+                            <NavLink class="nav-link" @onclick="Logout">
+                                <button type="button" class="btn btn-outline-warning" id="logout-btn">
+                                    <b>Вийти з профілю</b>
+                                    <img class="logout-icon" src="https://cdn-icons-png.flaticon.com/512/1828/1828427.png">
+                                </button>
                             </NavLink>
                         }
                     </div>
