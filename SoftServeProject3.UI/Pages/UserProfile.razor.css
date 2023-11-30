@@ -1,6 +1,7 @@
 ﻿body {
     background-color: #B4C6D0;
     height: 150vh;
+    font-size: 18px;
 }
 
 * {
@@ -8,7 +9,6 @@
 }
 
 .wrapper {
-
 }
 
     .wrapper > div {
@@ -20,7 +20,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-
 }
 
 .one {
@@ -111,6 +110,7 @@
     grid-column: 1;
     grid-row: 5;
     background-color: #757575;
+    justify-content:center;
 }
 
 .six {
@@ -134,6 +134,10 @@
     align-items: center;
     overflow: hidden;
     justify-content: center;
+    flex-direction: column;
+    font-size: 20px;
+    margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .oval {
@@ -197,6 +201,19 @@ placeholder-shown {
 button {
     background-color: white;
     border-radius: 20px;
+}
+
+
+.edit-textarea {
+    width: 100%;
+    height: 150px;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    font-size: 16px;
+    resize: none;
 }
 
 .soc {
@@ -288,12 +305,16 @@ button {
     grid-row: 7/8;
     /*    grid-template-columns: 1fr 1fr 1fr;*/
 }
+    .subjectSearch>h3{
+        margin-bottom:1%;
+=    }
 
-.searchSubject {
-    background-color: #949494; /* Колір фотографії */
-    grid-column: 2/4;
-    grid-row: 6;
-}
+
+    .searchSubject {
+        background-color: #949494; /* Колір фотографії */
+        grid-column: 2/4;
+        grid-row: 6;
+    }
 
     .searchSubject select {
         cursor: pointer;
@@ -301,6 +322,7 @@ button {
     }
 
 .editButtons button {
+    display: flex;
     color: black;
     font-weight: bold;
 }
@@ -359,8 +381,68 @@ button {
     }
 }
 
-/*verified profile*/
+#logout-btn {
+    font-size: 18px;
+    width: 100%;
+    margin-top: 10px;
+}
 
+#subject-cancel {
+    border-radius: 0px;
+}
+
+.logout-icon {
+    margin-left: 10px;
+    width: 40px;
+    height: 40px;
+}
+
+.options-icon {
+    width: 25px;
+    height: 25px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 3px;
+}
+
+#edit-btn {
+    height: 45px;
+    margin-top: 1px;
+    font-size: 18px;
+}
+
+#change-success {
+    width: 100%;
+    justify-content: center;
+    font-size:18px;
+}
+
+#change-cancel {
+    width: 100%;
+    margin-top: 10px;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.chosen-subjects {
+    display: flex;
+    justify-content: left;
+    flex-direction: row;
+    gap: 10px;
+    margin-left: 5px;
+}
+
+#subjects {
+    justify-content: center;
+    margin-top:5px;
+}
+
+.edit-icon {
+    margin-left: 5px;
+    width: 25px;
+    height: 25px;
+}
+/*verified profile*/
 .verified-account {
     font-size: 20px;
     color: blue;
@@ -372,6 +454,7 @@ button {
     width: 50px;
     height: 45px;
 }
+
 .friend-requests-indicator {
     background-color: red;
     color: white;
@@ -379,4 +462,74 @@ button {
     padding: 2px 6px;
     font-size: 0.8em;
     margin-left: 5px;
+}
+
+/*checkbox*/
+
+/* The container */
+.container {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    justify-content: center;
+}
+
+    /* Hide the browser's default checkbox */
+    .container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.container input:checked ~ .checkmark {
+    background-color: #2196F3;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the checkmark when checked */
+.container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+/* Style the checkmark/indicator */
+.container .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
 }
