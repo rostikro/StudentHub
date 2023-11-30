@@ -556,11 +556,7 @@ namespace SoftServeProject3.Api.Controllers
             var userEmail = emailClaim.Value;
             var userInDb = await _userRepository.GetUserByEmailAsync(userEmail);
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, userInDb.Email),
-                new Claim(ClaimTypes.Name, userInDb.Username)
-            };
+
 
             if (userInDb == null)
             {
@@ -600,12 +596,20 @@ namespace SoftServeProject3.Api.Controllers
                     IsFriendsPrivate = false,
                     IsProfileVerified = userEmail.EndsWith("@knu.ua") ? true : false
                 };
-
+                var claimsReg = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, newUser.Email),
+                new Claim(ClaimTypes.Name, newUser.Username)
+            };
                 _userRepository.Register(newUser);
-                var RegToken = _jwtService.GenerateJwtToken(claims);
+                var RegToken = _jwtService.GenerateJwtToken(claimsReg);
                 return Redirect($"https://localhost:7182/login?token={RegToken}");
             }
-
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, userInDb.Email),
+                new Claim(ClaimTypes.Name, userInDb.Username)
+            };
             var token = _jwtService.GenerateJwtToken(claims);
             return Redirect($"https://localhost:7182/login?token={token}");
         }

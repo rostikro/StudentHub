@@ -1,6 +1,6 @@
 ﻿body {
-    background-color: #B4C6D0;
-    height: 150vh;
+    background-color: #FFF;
+    height: 240vh;
 }
 
 * {
@@ -23,46 +23,12 @@
 
 }
 
-.one {
-    grid-column: 1 / 4;
-    grid-row: 1;
-    list-style: none;
-    background-color: #b3b3b3;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    padding: 40px 20px;
-}
-
-    .one a {
-        background-color: #757575;
-        display: inline-block;
-        border: 10px solid #757575;
-        border-radius: 5px;
-        color: white;
-        text-decoration: none;
-        margin: 0 15px;
-        padding: 0px 5px;
-    }
-
-        .one a:hover {
-            background-color: peru;
-            border: 10px solid peru;
-        }
-
-.left-links a:first-child {
-    margin-left: 0;
-}
-
-.right-links a:last-child {
-    margin-right: 0;
-}
 
 .two {
     grid-column: 1;
     grid-row: 2;
     color: red;
-    background-color: #B4C6D0;
+    background-color: #FFF;
     display: flex;
     align-items: center; /* Центрує елементи по вертикалі */
     justify-content: center; /* Центрує елементи по горизонталі */
@@ -70,12 +36,13 @@
     height: auto; /* Робить контейнер повністю висоти вікна */
     width: auto;
     padding: 40px;
+
 }
 
 .profile-picture {
     background-color: pink;
-    width: 20vh;
-    height: 20vh;
+    width: 50vh;
+    height: 50vh;
     border-radius: 50%;
     overflow: hidden;
     margin-bottom: 20px; /* Перенесено до профільного зображення для зручності */
@@ -90,14 +57,14 @@
     text-align: center;
     grid-column: 2/4;
     grid-row: 2 / 6;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .four {
     grid-column: 1;
     grid-row: 3;
     text-align: center;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .username-container h3 {
@@ -110,25 +77,25 @@
 .five {
     grid-column: 1;
     grid-row: 5;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .six {
     grid-column: 1;
     grid-row: 5;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .Subject {
     grid-column: 2/4;
     grid-row: 6/8;
-    background-color: #757575;
+    background-color: #a5c2ff   ;
 }
 
 .button-content {
     grid-column: 1;
     grid-row: 6;
-    background-color: #757575;
+    background-color: #a5c2ff;
     font-size: 18px;
     display: flex;
     align-items: center;
@@ -147,18 +114,18 @@
 }
 
 tbody {
-    background-color: palegreen;
+    background-color: #a5c2ff;
 }
 
 tr {
-    background-color: #DFE1E0;
+    background-color: #dce6ff;
 }
 
 .day {
     color: red;
     height: 5vh; /* Робить контейнер повністю висоти вікна */
     width: 10vh;
-    border: 10px solid #757575;
+    border: 10px solid #a5c2ff;
     border-radius: 20px;
     display: flex;
     overflow: hidden;
@@ -167,11 +134,11 @@ tr {
 }
 
 td {
-    background-color: #DFE1E0;
+    background-color: #dce6ff;
 }
 
     td div {
-        background-color: #DFE1E0;
+        background-color: #dce6ff;
     }
 
         td div button {
@@ -204,7 +171,7 @@ button {
     color: white;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    background-color: #757575;
+    background-color: #a5c2ff;
     gap: 20px;
 }
 
@@ -269,7 +236,7 @@ button {
 }
 
 .subject-group {
-    background-color: #949494; /* Колір фотографії */
+    background-color: #a5c2ff; /* Колір фотографії */
     grid-column: 2/4;
     grid-row: 6/7;
 }
@@ -283,14 +250,14 @@ button {
 
 .subjectSearch {
     display: grid;
-    background-color: #949494; /* Колір фотографії */
+    background-color: #a5c2ff; /* Колір фотографії */
     grid-column: 2/4;
     grid-row: 7/8;
     /*    grid-template-columns: 1fr 1fr 1fr;*/
 }
 
 .searchSubject {
-    background-color: #949494; /* Колір фотографії */
+    background-color: #a5c2ff; /* Колір фотографії */
     grid-column: 2/4;
     grid-row: 6;
 }
@@ -309,7 +276,7 @@ button {
 .loader {
     width: 200px;
     height: 140px;
-    background: #979794;
+    background: #a5c2ff;
     box-sizing: border-box;
     position: relative;
     border-radius: 8px;
@@ -328,7 +295,7 @@ button {
         top: 10px;
         bottom: 10px;
         border-radius: 8px;
-        background: #f5f5f5 no-repeat;
+        background: #a5c2ff no-repeat;
         background-size: 60px 10px;
         background-image: linear-gradient(#ddd 100px, transparent 0), linear-gradient(#ddd 100px, transparent 0), linear-gradient(#ddd 100px, transparent 0), linear-gradient(#ddd 100px, transparent 0), linear-gradient(#ddd 100px, transparent 0), linear-gradient(#ddd 100px, transparent 0);
         background-position: 15px 30px, 15px 60px, 15px 90px, 105px 30px, 105px 60px, 105px 90px;
@@ -379,4 +346,15 @@ button {
     padding: 2px 6px;
     font-size: 0.8em;
     margin-left: 5px;
+}
+.photo {
+    background-image: url("https://i.postimg.cc/LsLZ8CWp/26568813-2204-w037-n003-325b-p1-325.jpg");
+    height: 60vh; /* Adjust as needed */
+    width: 100%; /* Adjust as needed */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    z-index: 1000;
+    bottom: 0;
+    display:flex;
 }

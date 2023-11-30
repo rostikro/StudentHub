@@ -10,22 +10,34 @@
 {
     <div class="message-popup">
         <div class="message-content">
-            @if (incomingRequests.Any())
-            {
-                foreach (var friend in incomingRequests)
+            <table>
+                @if (incomingRequests.Any())
                 {
-                    <div>
-                        <img src="@friend.photoUrl" alt="Profile Picture" class="round-profile-picture" />
-                        <a href="UserProfile/@friend.username">@friend.username</a>
-                        <button style="color:limegreen" @onclick="() => AddFriend(friend.username)">Прийняти</button>
-                        <button style="color:darkred" @onclick="() => IgnoreFriend(friend.username)">Ігнорувати</button>
-                    </div>
+                    foreach (var friend in incomingRequests)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(friend.photoUrl))
+                                {
+                                    <img src="@friend.photoUrl" alt="Фото профілю" class="round-profile-picture" />
+                                }
+                                else
+                                {
+                                    
+                                    <img src="https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg" alt="Фото профілю за замовчуванням" class="round-profile-picture" />
+                                }
+                            </td>
+                            <td><a href="UserProfile/@friend.username">@friend.username</a></td>
+                            <td><button class="reds" style="background-color: limegreen; color: white;" @onclick="() => AddFriend(friend.username)">Прийняти</button></td>
+                            <td><button style="color: darkred" @onclick="() => IgnoreFriend(friend.username)">Ігнорувати</button></td>
+                        </tr>
+                    }
                 }
-            }
-            else
-            {
-                <p>Немає запитів на дружбу</p>
-            }
+                else
+                {
+                    <p>Немає запитів на дружбу</p>
+                }
+            </table>
             <button @onclick="ClosePopup">Закрити</button>
         </div>
     </div>

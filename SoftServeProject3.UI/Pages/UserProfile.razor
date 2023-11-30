@@ -22,10 +22,11 @@
         @if (userProfile != null)
         {
 
+            
             <body>
                 <div class="wrapper">
-                    
                         <SoftServeProject3.UI.wwwroot.navbar.Navbar />
+                    
                     
 
                     <div class="two">
@@ -80,6 +81,24 @@
                                 <img src="@userProfile.photoUrl" alt="Немає фото профілю">
                             </div>
                         }
+                        @if (isEditMode)
+                        {
+
+                            <div class="form-group">
+                                <label for="name">Ініціали:</label>
+                                <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-group">
+                                <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
+                                <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                            </div>
+                        }
+
+
+
                     </div>
                     <div class="three">
                         <h1>Мій розклад</h1>
@@ -169,22 +188,6 @@
                     </div>
 
 
-
-                    @if (isEditMode)
-                    {
-
-                        <div class="form-group">
-                            <label for="name">Ініціали:</label>
-                            <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="form-group">
-                            <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
-                            <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                        </div>
-                    }
 
 
 
@@ -343,13 +346,14 @@
                             <div class="blueButton">
                                 <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
                             </div>
-                            <NavLink class="nav-link" href="" @onclick="Logout">
+@*                             <NavLink class="nav-link" href="" @onclick="Logout">
                                 <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
                             </NavLink>
-                        }
+ *@                      }
                     </div>
                 </div>
             </body>
+                <div class="photo"></div>
         }
         else
         {
