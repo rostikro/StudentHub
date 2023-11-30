@@ -8,7 +8,7 @@
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
-
+@using Microsoft.AspNetCore.SignalR.Client
 
 <head>
     <PageTitle>Профіль</PageTitle>
@@ -405,6 +405,8 @@
     private string ButtonText => isEditMode ? "Cancel Edit" : "Edit";
     private string timeValidationError = string.Empty;
 
+    private HubConnection hubConnection;
+
     private void CheckTimeValidity()
     {
         foreach (var daySchedule in schedule)
@@ -504,13 +506,22 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
+        var token = await TokenService.GetToken();
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+        {
+            options.AccessTokenProvider = () => Task.FromResult(token);
+        })
+        .Build();
+        
+        await hubConnection.StartAsync();
         try
         {
             isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
             {
-                var token = await TokenService.GetToken();
+               
                 Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
                 allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
@@ -731,6 +742,7 @@
                 {
                     LoadSchedule();
                     StateHasChanged();
+                    await hubConnection.SendAsync("UpdateSearchList");
 
                 }
                 else
