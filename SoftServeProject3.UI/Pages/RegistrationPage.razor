@@ -398,7 +398,6 @@ else
                 errorMessage = await response.Content.ReadAsStringAsync();
                 ErrorPulseClass = "pulse";
             }
-            errorMessageId = !string.IsNullOrEmpty(errorMessage) ? "error-message-display" : "error-message-nondisplay";
 
         }
         catch (Exception ex)
