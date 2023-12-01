@@ -1,4 +1,4 @@
-﻿body {
+body {
     background-color: #B4C6D0;
     height: 150vh;
     font-size: 18px;
@@ -20,6 +20,14 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
+}
+hr {
+    border: 1px;
+    clear: both;
+    display: block;
+    width: 96%;
+    background-color: black;
+    height: 1px;
 }
 
 .one {
@@ -532,4 +540,40 @@ button {
     -webkit-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
+}
+
+/*error message*/
+#error-message {
+    display: block !important;
+    font-weight: bold !important;
+    background-color: #fce4e4 !important;
+    border: 1px solid #fcc2c3 !important;
+    color: #B22222 !important;
+    padding: 20px 30px !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 18px !important;
+    margin: 10px 0 !important;
+    text-align: center !important;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse1 {
+    animation: pulse 1s;
+}
+
+.pulse2 {
+    animation: pulse1 1.01s;
 }

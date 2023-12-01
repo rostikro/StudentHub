@@ -1,4 +1,4 @@
-﻿@page "/UserProfile"
+@page "/UserProfile"
 @inject HttpClient Http
 @inject TokenService TokenService
 @inject NavigationManager Navigation
@@ -8,7 +8,7 @@
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
-
+@using System.ComponentModel.DataAnnotations;
 
 <head>
     <PageTitle>Профіль</PageTitle>
@@ -34,14 +34,14 @@
                             if (!isUsernameEdit)
                             {
                                 <div style="display: flex;">
-                                    <h2 style="margin-right: 5px;">@userProfile.username</h2>
+                                    <h2 style="margin-right: 5px;">&#64;@userProfile.username</h2>
                                     <button @onclick="ToggleUsernameEdit">&#x270E</button>
                                 </div>
                             }
                             else
                             {
                                 <div style="display: flex;">
-                                    <input type="text" @bind="userProfile.username" />
+                                    <input type="text" maxLength="20" @bind="userProfile.username" />
                                     <button @onclick="CheckUsername">&#x2713</button>
                                 </div>
                             }
@@ -50,7 +50,7 @@
                         else
                         {
                             <div class="verified-account">
-                                <h2 style="color:black">@userProfile.username</h2>
+                                <h2 style="color:black">&#64;@userProfile.username</h2>
                                 @if (@isProfileVerified)
                                 {
                                     <img class="verified-icon"
@@ -65,6 +65,8 @@
 
                         @if (isEditMode)
                         {
+                            <hr>
+                            <p style="color:black">Посилання на фото вашого профілю</p>
                             <div class="profile-picture-edit">
                                 <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                             </div>
@@ -73,18 +75,12 @@
                         else
                         {
                             <div class="profile-picture">
-                                <img src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
+                                <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
                             </div>
                         }
                     </div>
                     <div class="three">
                         <h1>Мій розклад</h1>
-
-                        @if (errorMessage != null)
-                        {
-                            <p class="text-danger">@errorMessage</p>
-                        }
-
                         @if (schedule == null)
                         {
                             <p>Loading...</p>
@@ -226,15 +222,15 @@
                                     <text>Не обраний</text>
                                 }
 
-                                
+
                             </div>
                             <hr>
 
                             @if (!string.IsNullOrWhiteSpace(userProfile.description))
                             {
                                 <div class="button-content">
-                                <h4>Опис Профілю</h4>
-                                <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                                    <h4>Про себе</h4>
+                                    <p id="description" class="form-control-plaintext">@userProfile.description</p>
                                 </div>
                             }
                         </div>
@@ -379,6 +375,10 @@
                         }
                     </div>
                 </div>
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
+                }
             </body>
         }
         else
@@ -402,6 +402,7 @@
     const int MAX_SUBJECTS = 3;
 
     private string errorMessage;
+    private string ErrorPulseClass = "";
 
     private bool isUserAuthenticated;
     private bool isProfileVerified;
@@ -457,21 +458,33 @@
         isUsernameEdit = !isUsernameEdit;
     }
 
+    void ErrorMessagePulse()
+    {
+        if (ErrorPulseClass.EndsWith("1"))
+            ErrorPulseClass = "pulse2";
+        else
+            ErrorPulseClass = "pulse1";
+        StateHasChanged();
+    }
+
     private async Task CheckUsername()
     {
+
         if (userProfile.username == originalUsername)
             ToggleUsernameEdit();
         else
         {
+
             await SaveAllChanges();
-            ToggleUsernameEdit();
+            if (string.IsNullOrEmpty(errorMessage))
+                ToggleUsernameEdit();
         }
+
     }
     private void CancelEdit()
     {
         if (originalProfile != null)
         {
-            errorMessage = "";
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
             LoadSchedule();
@@ -522,6 +535,7 @@
         else
         {
             errorMessage = $"Не можна додати більше {MAX_RANGES} проміжків";
+            ErrorMessagePulse();
         }
     }
 
@@ -552,13 +566,17 @@
             }
             else
             {
-                errorMessage = "Failed to load user info";
+                errorMessage = "Не вдалося завантажити інформацію :( Будь ласка, спробуйте перезагрузити сторінку";
+                ErrorMessagePulse();
+
             }
             isLoaded = true;
         }
         catch (Exception ex)
         {
-            errorMessage = $"An error occurred: {ex.Message}";
+            errorMessage = $"Виникла помилка: {ex.Message}";
+            ErrorMessagePulse();
+
         }
     }
     private void FilterFaculties()
@@ -600,13 +618,15 @@
             }
             else
             {
-                errorMessage = "User profile schedule is not available";
+                errorMessage = "Неможливо отримати доступ до вашого графіку :(";
+                ErrorMessagePulse();
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing schedule: {ex.Message}");
-            errorMessage = "Failed to process schedule";
+            errorMessage = "Неможливо завантажити графік :(";
+            ErrorMessagePulse();
         }
     }
 
@@ -626,6 +646,7 @@
 
                 selectedSubjects.AddRange(newSelections.Take(availableSlots));
                 errorMessage = $"Можна обрати максимум {MAX_SUBJECTS} предметів";
+                ErrorMessagePulse();
             }
         }
     }
@@ -713,7 +734,8 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing user information: {ex.Message}");
-            errorMessage = "Failed to process user information";
+            errorMessage = "Не вдалося завантажити ваш профіль :(";
+            ErrorMessagePulse();
         }
     }
 
@@ -721,6 +743,18 @@
     {
         try
         {
+            //username validation
+            var validationContext = new ValidationContext(userProfile) { MemberName = nameof(userProfile.username) };
+            var validationResults = new List<ValidationResult>();
+            Validator.TryValidateProperty(userProfile.username, validationContext, validationResults);
+            errorMessage = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                ErrorMessagePulse();
+                return;
+            }
+
             bool isOverlap = false;
             foreach (var daySchedule in schedule)
             {
@@ -734,6 +768,7 @@
             if (isOverlap)
             {
                 errorMessage = "У графіку є перетинаючі часові проміжки.";
+                ErrorMessagePulse();
                 return;
             }
 
@@ -752,6 +787,17 @@
 
                     userProfile.schedule[dayOfWeek] = dtoTimeRanges;
                 }
+                foreach (var socialLink in userProfile.social)
+                {
+                    if (!userProfile.social[socialLink.Key].Contains(socialLink.Key)
+                    && !string.IsNullOrWhiteSpace(userProfile.social[socialLink.Key]))
+                    {
+                        errorMessage = $"Посилання для {socialLink.Key} не є посиланням на сторінку цієї соцмережі."
+                        + " Будь ласка, замінь його на відповідне.";
+                        ErrorMessagePulse();
+                        return;
+                    }
+                }
                 userProfile.social = userProfile.social ?? new Dictionary<string, string>();
                 userProfile.subjects = selectedSubjects;
 
@@ -766,6 +812,7 @@
                 else
                 {
                     errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
+                    ErrorMessagePulse();
                     userProfile.username = originalUsername;
                     StateHasChanged();
 
@@ -776,13 +823,16 @@
             else
             {
                 errorMessage = $"Час завершення повинен бути пізніше часу початку.";
+                ErrorMessagePulse();
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"An error occurred while saving the schedule: {ex.Message}";
+            ErrorMessagePulse();
         }
     }
+
     private bool IsOverlapInDay(List<TimeRange> daySchedule)
     {
         for (int i = 0; i < daySchedule.Count; i++)
@@ -836,6 +886,3 @@
         Navigation.NavigateTo("/");
     }
 }
-
-
-
