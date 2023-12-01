@@ -189,7 +189,7 @@
         <div class="profile-dropdown">
             <a href="UserProfile" class="nav__link nav__link--active">
                 <i class="material-icons nav__icon">account_circle</i>
-                <span class="nav__text">Профіль</span>
+                <span class="nav__text">@(myProfile.Username)</span>
             </a>
             <div class="profile-dropdown-content">
 
@@ -207,8 +207,8 @@
     List<Friend> incomingRequests = new List<Friend>();
     private HubConnection hubConnection;
     public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+    private UserModel myProfile = new();
 
-    
     protected override async Task OnInitializedAsync()
     {
         var token = await TokenService.GetToken();
@@ -228,8 +228,9 @@
         try
         {
 
-
+            
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            myProfile = await Http.GetFromJsonAsync<UserModel>($"https://localhost:7292/Users/profile/");
             incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
             errorMessage = "Failed to load user info";
         }
