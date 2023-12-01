@@ -43,7 +43,10 @@
             </div>
         }
     </div>
-
+    @if (errorMessage != null)
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
     <div class="message-input-area">
         <textarea @bind="messageInput" @oninput="OnInput"></textarea>
         <button @onclick="SendMessage">Send</button>
@@ -64,6 +67,9 @@
     string sender;
     private Dictionary<string, Timer> typingTimers = new Dictionary<string, Timer>();
     private readonly int typingTimeout = 5000;
+    string errorMessage;
+    const int MESSAGE_LIMIT = 500;
+    const int WINDOW_OUTPUT_LIMIT = 83;
 
     private async void StartChatWith(string username)
     {
@@ -103,25 +109,25 @@
                 StateHasChanged();
             }
         });
-        
+
         hubConnection.On<string>("UserTyping", (username) =>
         {
-        if (!typingUsers.Contains(username))
-        {
-            typingUsers.Add(username);
-        }
+            if (!typingUsers.Contains(username))
+            {
+                typingUsers.Add(username);
+            }
 
-        if (typingTimers.ContainsKey(username))
-        {
-            typingTimers[username].Change(typingTimeout, Timeout.Infinite);
-        }
-        else
-        {
-            var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
-            typingTimers.Add(username, timer);
-        }
+            if (typingTimers.ContainsKey(username))
+            {
+                typingTimers[username].Change(typingTimeout, Timeout.Infinite);
+            }
+            else
+            {
+                var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
+                typingTimers.Add(username, timer);
+            }
 
-        StateHasChanged();
+            StateHasChanged();
         });
         await hubConnection.StartAsync();
 
@@ -155,9 +161,17 @@
     }
     private async Task SendMessage()
     {
+        // if (messageInput.Length > MESSAGE_LIMIT)
+        // {
+        //     errorMessage = $"Кількість символів більша за {MESSAGE_LIMIT}";
+        //     return;
+        // }
+
         if (!string.IsNullOrEmpty(selectedUser) && !string.IsNullOrEmpty(messageInput))
         {
             var newMessageId = Guid.NewGuid().ToString();
+
+
 
             await hubConnection.SendAsync("SendMessageToUser", selectedUser, messageInput);
 
@@ -217,6 +231,16 @@
     private async Task OnInput(ChangeEventArgs e)
     {
         messageInput = e.Value.ToString();
+
+        messageInput = messageInput.Replace("\n", "");
+
+        
+        for (int i = WINDOW_OUTPUT_LIMIT; i < messageInput.Length; i += WINDOW_OUTPUT_LIMIT)
+        {
+            messageInput = messageInput.Insert(i, "\n");
+            i++; 
+        }
+
         await hubConnection.SendAsync("UserTyping", selectedUser);
     }
 
