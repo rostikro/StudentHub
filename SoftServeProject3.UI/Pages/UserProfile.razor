@@ -743,6 +743,7 @@
                     LoadSchedule();
                     StateHasChanged();
                     await hubConnection.SendAsync("UpdateSearchList");
+                    await hubConnection.SendAsync("UpdateOtherProfile");
 
                 }
                 else

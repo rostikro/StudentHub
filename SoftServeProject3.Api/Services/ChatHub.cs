@@ -57,4 +57,9 @@ public class ChatHub : Hub
     {
         await Clients.All.SendAsync("UpdateSearchList");
     }
+
+    public async Task UpdateOtherProfile()
+    {
+        await Clients.All.SendAsync("UpdateOtherProfile");
+    }
 }

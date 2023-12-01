@@ -315,6 +315,13 @@
                 LoadUserProfile();
                 StateHasChanged();
             });
+
+            hubConnection.On("UpdateOtherProfile", () =>
+            {
+                LoadUserProfile();
+                StateHasChanged();
+            });
+
             await hubConnection.StartAsync();
             isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
@@ -323,7 +330,7 @@
                 allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
                 filteredSubjects = allSubjects;
                 await LoadUserProfile();
-                LoadSchedule();
+
             }
             else
             {
@@ -410,6 +417,7 @@
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
             isProfileVerified = userProfile.isProfileVerified;
+            LoadSchedule();
             StateHasChanged();
             await FriendStatusString();
         }
