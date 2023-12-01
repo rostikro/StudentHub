@@ -81,7 +81,14 @@
                         else
                         {
                             <div class="profile-picture">
-                                <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
+                                @if (!string.IsNullOrEmpty(userProfile.photoUrl))
+                                {
+                                    <img draggable="false" src="@userProfile.photoUrl" alt="Фото профілю">
+                                }
+                                else
+                                {
+                                    <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
+                                }
                             </div>
                         }
                         @if (isEditMode)
@@ -387,8 +394,8 @@
                 {
                     <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
                 }
-            </body>
                 <div class="photo"></div>
+            </body>
         }
         else
         {

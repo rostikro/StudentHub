@@ -2,7 +2,7 @@
 ﻿body {
 
     background-color: #FFF;
-    height: 240vh;
+    height: 270vh;
 }
 
 * {
@@ -461,7 +461,22 @@ button {
         cursor: pointer;
         height: 0;
         width: 0;
+        
     }
+
+.container {
+    margin-bottom: 10px;
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
 
 .checkmark {
     position: absolute;
@@ -472,29 +487,24 @@ button {
     background-color: #eee;
 }
 
-/* On mouse-over, add a grey background color */
 .container:hover input ~ .checkmark {
     background-color: #ccc;
 }
 
-/* When the checkbox is checked, add a blue background */
 .container input:checked ~ .checkmark {
     background-color: #2196F3;
 }
 
-/* Create the checkmark/indicator (hidden when not checked) */
 .checkmark:after {
     content: "";
     position: absolute;
     display: none;
 }
 
-/* Show the checkmark when checked */
 .container input:checked ~ .checkmark:after {
     display: block;
 }
 
-/* Style the checkmark/indicator */
 .container .checkmark:after {
     left: 9px;
     top: 5px;
@@ -502,8 +512,6 @@ button {
     height: 10px;
     border: solid white;
     border-width: 0 3px 3px 0;
-    -webkit-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
     transform: rotate(45deg);
 }
 

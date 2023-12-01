@@ -19,6 +19,7 @@
 {
     @if (isUserAuthenticated)
     {
+        @if (Username == myProfile.Username) { Navigation.NavigateTo("/UserProfile"); }
         @if (userProfile != null)
         {
 
