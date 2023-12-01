@@ -1,8 +1,8 @@
+
 ﻿body {
 
     background-color: #FFF;
     height: 240vh;
-
 }
 
 * {
@@ -21,6 +21,14 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
+}
+hr {
+    border: 1px;
+    clear: both;
+    display: block;
+    width: 96%;
+    background-color: black;
+    height: 1px;
 }
 
 
@@ -443,5 +451,95 @@ button {
     z-index: 1000;
     bottom: 0;
     display:flex;
+}
+
+
+    /* Hide the browser's default checkbox */
+    .container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.container input:checked ~ .checkmark {
+    background-color: #2196F3;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the checkmark when checked */
+.container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+/* Style the checkmark/indicator */
+.container .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+/*error message*/
+#error-message {
+    display: block !important;
+    font-weight: bold !important;
+    background-color: #fce4e4 !important;
+    border: 1px solid #fcc2c3 !important;
+    color: #B22222 !important;
+    padding: 20px 30px !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 18px !important;
+    margin: 10px 0 !important;
+    text-align: center !important;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse1 {
+    animation: pulse 1s;
+}
+
+.pulse2 {
+    animation: pulse1 1.01s;
 }
 
