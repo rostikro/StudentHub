@@ -22,8 +22,10 @@
         @if (userProfile != null)
         {
 
+            
             <body>
                 <div class="wrapper">
+
 
                     <SoftServeProject3.UI.wwwroot.navbar.Navbar />
 
@@ -78,6 +80,24 @@
                                 <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
                             </div>
                         }
+                        @if (isEditMode)
+                        {
+
+                            <div class="form-group">
+                                <label for="name">Ваші Ініціали:</label>
+                                <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-group">
+                                <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
+                                <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                            </div>
+                        }
+
+
+
                     </div>
                     <div class="three">
                         <h1>Мій розклад</h1>
@@ -162,21 +182,6 @@
 
 
 
-                    @if (isEditMode)
-                    {
-
-                        <div class="form-group">
-                            <label for="name">Ваші ініціали:</label>
-                            <input type="text" maxlength="100" id="name" class="form-control" @bind="@userProfile.name" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="form-group">
-                            <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
-                            <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                        </div>
-                    }
 
 
 
@@ -366,13 +371,12 @@
 
                                 </button>
                             </div>
-                            <NavLink class="nav-link" @onclick="Logout">
-                                <button type="button" class="btn btn-outline-warning" id="logout-btn">
-                                    <b>Вийти з профілю</b>
-                                    <img class="logout-icon" src="https://cdn-icons-png.flaticon.com/512/1828/1828427.png">
-                                </button>
+
+@*                             <NavLink class="nav-link" href="" @onclick="Logout">
+                                <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+
                             </NavLink>
-                        }
+ *@                      }
                     </div>
                 </div>
                 @if (!string.IsNullOrEmpty(errorMessage))
@@ -380,6 +384,7 @@
                     <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
                 }
             </body>
+                <div class="photo"></div>
         }
         else
         {

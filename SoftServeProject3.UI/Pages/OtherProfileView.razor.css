@@ -1,6 +1,6 @@
 ﻿body {
-    background-color: #B4C6D0;
-    height: 150vh;
+    background-color: white;
+    height: 160vh;
 }
 
 * {
@@ -8,8 +8,8 @@
 }
 
 .wrapper {
-    max-width: 940px;
-    margin: 0 auto;
+/*    max-width: 940px;
+    margin: 0 auto;*/
 }
 
     .wrapper > div {
@@ -21,49 +21,14 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
-    grid-auto-rows: minmax(100px, auto);
 }
 
-.one {
-    grid-column: 1 / 4;
-    grid-row: 1;
-    list-style: none;
-    background-color: #b3b3b3;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    padding: 40px 20px;
-}
-
-    .one a {
-        background-color: #757575;
-        display: inline-block;
-        border: 10px solid #757575;
-        border-radius: 5px;
-        color: white;
-        text-decoration: none;
-        margin: 0 15px;
-        padding: 0px 5px;
-    }
-
-        .one a:hover {
-            background-color: peru;
-            border: 10px solid peru;
-        }
-
-.left-links a:first-child {
-    margin-left: 0;
-}
-
-.right-links a:last-child {
-    margin-right: 0;
-}
 
 .two {
     grid-column: 1;
     grid-row: 2;
     color: red;
-    background-color: #B4C6D0;
+    background-color: #FFF;
     display: flex;
     align-items: center; /* Центрує елементи по вертикалі */
     justify-content: center; /* Центрує елементи по горизонталі */
@@ -74,9 +39,8 @@
 }
 
 .profile-picture {
-    background-color: pink;
-    width: 20vh;
-    height: 20vh;
+    width: 50vh;
+    height: 50vh;
     border-radius: 50%;
     overflow: hidden;
     margin-bottom: 20px; /* Перенесено до профільного зображення для зручності */
@@ -116,7 +80,7 @@
 
 .six {
     grid-column: 1;
-    grid-row: 5;
+    grid-row: 4;
     background-color: #757575;
 }
 

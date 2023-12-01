@@ -7,7 +7,7 @@
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
 }
-
+/*вікно в центрі екрану*/
 .message-content {
     position: absolute;
     top: 50%;
@@ -36,6 +36,7 @@
         color: white;
         border-radius: 5px;
         cursor: pointer;
+
     }
 
         .message-content button:hover {
@@ -48,4 +49,13 @@
     width: 50px; /* Adjust the size as needed */
     height: 50px; /* Adjust the size as needed */
     object-fit: cover;
+}
+.message-content button reds {
+    background-color: rebeccapurple;
+}
+.message-content table {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center
 }
