@@ -1,5 +1,5 @@
 ﻿body {
-    background-color: #B4C6D0;
+    background-color: #FFF;
     overflow: auto;
 }
 
@@ -21,40 +21,6 @@
     gap: 10px;
 }
 
-.one {
-    grid-column: 1 / 4;
-    grid-row: 1;
-    list-style: none;
-    background-color: #b3b3b3;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    padding: 40px 20px;
-}
-
-    .one a {
-        background-color: #757575;
-        display: inline-block;
-        border: 10px solid #757575;
-        border-radius: 5px;
-        color: white;
-        text-decoration: none;
-        margin: 0 15px;
-        padding: 0px 5px;
-    }
-
-        .one a:hover {
-            background-color: peru;
-            border: 10px solid peru;
-        }
-
-.left-links a:first-child {
-    margin-left: 0;
-}
-
-.right-links a:last-child {
-    margin-right: 0;
-}
 
 
 label, input, select, button, ul {
@@ -198,10 +164,10 @@ ul {
     }
 
     .user-table thead:hover {
-    }   
+    }
 
     .user-table th {
-        background-color: #757575;
+        background-color: #a5c2ff;
         color: white;
         font-weight: bold;
         padding: 12px;
@@ -217,7 +183,7 @@ ul {
         caption-side: top;
         font-weight: bold;
         padding: 16px;
-        background-color: #757575;
+        background-color: #a5c2ff;
         color: white;
         border-radius: 5px 5px 0 0;
         font-size: 24px;
