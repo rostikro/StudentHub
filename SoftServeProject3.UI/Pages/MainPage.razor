@@ -103,36 +103,58 @@
                     </table>
                 </div>
 
-                <div class="four">
-                    <h3>Список Друзів:</h3>
-                    <table class="table">
-                        @if (myFriends != null && myFriends.Any())
+            <div class="four">
+                <h3>Список Друзів:</h3>
+                <table class="table">
+                    @if (myFriends != null && myFriends.Any())
+                    {
+                        @for (int i = 0; i < myFriends.Count; i += 3)
                         {
-                            @for (int i = 0; i < myFriends.Count; i += 3)
+                            <tr>
+                                @for (int j = i; j < i + 3 && j < myFriends.Count; j++)
+                                {
+                                    <td style="text-align: center;">
+                                        <div>
+                                            <img src="@myFriends[j].photoUrl" class="rounded-image" />
+                                        </div>
+                                        <div>
+                                            <a href="UserProfile/@myFriends[j].username">@myFriends[j].username</a>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <p>Немає друзів ((((((((((((((((((((((((((</p>
+                    }
+                </table>
+            </div>
+            
+            <div class="recently-viewed">
+                <h3>Переглянуті користувачі:</h3>
+                <table class="table">
+                    @if (recentlyViewedProfiles.Any())
+                    {
+                        <tr>
+                            @foreach(var profile in recentlyViewedProfiles)
                             {
-                                <tr>
-                                    @for (int j = i; j < i + 3 && j < myFriends.Count; j++)
-                                    {
-                                        <td style="text-align: center;">
-                                            <div>
-                                                <img src="@myFriends[j].photoUrl" class="rounded-image" />
-                                            </div>
-                                            <div>
-                                                <a href="UserProfile/@myFriends[j].username">@myFriends[j].username</a>
-                                            </div>
-                                        </td>
-                                    }
-                                </tr>
+                                <td style="text-align: center;">
+                                    <img src="@profile.photoUrl" class="rounded-image" />
+                                    <a href="UserProfile/@profile.username">@profile.username</a>
+                                </td>
                             }
-                        }
-                        else
-                        {
-                            <p>Немає друзів ((((((((((((((((((((((((((</p>
-                        }
-                    </table>
-                </div>
+                        </tr>
+                    }
+                    else
+                    {
+                        <p>Список пустий.</p>
+                    }
+                </table>
+            </div>
 
-@*         <div class="two">   
+            @*         <div class="two">   
             <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
             <div class="oval">Нікнейм</div>
             <div class="oval">Факультет</div>
@@ -164,6 +186,8 @@ else
     string errorMessage = "";
     private List<Friend> myFriends = new List<Friend>();
     private List<Friend> myOutgoingRequests = new List<Friend>();
+    
+    private List<Friend> recentlyViewedProfiles = new List<Friend>();
     bool isUserAuthenticated;
     protected override async Task OnInitializedAsync()
     {
@@ -177,8 +201,7 @@ else
                 Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 myFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends");
                 myOutgoingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/outgoingRequests");
-                
-
+                recentlyViewedProfiles = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/getRecentlyViewed");
             }
             else
             {

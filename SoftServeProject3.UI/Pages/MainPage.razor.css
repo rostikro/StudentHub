@@ -92,6 +92,10 @@
     color:wheat;
 }
 
+.recently-viewed {
+    border: solid 1px black;
+}
+
 .three {
     grid-column: 3;
     grid-row: 6/9;

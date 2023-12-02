@@ -76,12 +76,13 @@ namespace SoftServeProject3.Api.Repositories
             var profilesIds = await _users.Find(u => u.Email == email).Project(u => u.RecentlyViewed).FirstOrDefaultAsync();
             
             profilesIds.Reverse();
-            return await GetFriendsMetaAsync(profilesIds);
+
+            return await GetProfilesMetaAsync(profilesIds);
         }
         
-        private async Task<List<Friend>> GetFriendsMetaAsync(List<ObjectId> friendsIds)
+        private async Task<List<Friend>> GetProfilesMetaAsync(List<ObjectId> profilesIds)
         {
-            var friendsFilter = Builders<UserModel>.Filter.In(u => u._id, friendsIds);
+            var friendsFilter = Builders<UserModel>.Filter.In(u => u._id, profilesIds);
             var friendsProject = Builders<UserModel>.Projection
                 .Include(u => u.Username)
                 .Include(u => u.PhotoUrl)
@@ -98,7 +99,7 @@ namespace SoftServeProject3.Api.Repositories
             {
                 var friendsIds = await _users.Find(u => u.Email == email).Project(u => u.Friends).FirstOrDefaultAsync();
 
-                return await GetFriendsMetaAsync(friendsIds);
+                return await GetProfilesMetaAsync(friendsIds);
             }
             catch (Exception e)
             {
@@ -113,7 +114,7 @@ namespace SoftServeProject3.Api.Repositories
             {
                 var friendsIds = await _users.Find(u => u.Email == email).Project(u => u.IncomingFriendRequests).FirstOrDefaultAsync();
 
-                return await GetFriendsMetaAsync(friendsIds);
+                return await GetProfilesMetaAsync(friendsIds);
             }
             catch (Exception e)
             {
@@ -128,7 +129,7 @@ namespace SoftServeProject3.Api.Repositories
             {
                 var friendsIds = await _users.Find(u => u.Email == email).Project(u => u.OutgoingFriendRequests).FirstOrDefaultAsync();
 
-                return await GetFriendsMetaAsync(friendsIds);
+                return await GetProfilesMetaAsync(friendsIds);
             }
             catch (Exception e)
             {

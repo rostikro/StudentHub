@@ -150,7 +150,7 @@ namespace SoftServeProject3.Api.Controllers
             {
                 string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
 
-                var profiles = _userRepository.GetRecentlyViewedAsync(email);
+                var profiles = await _userRepository.GetRecentlyViewedAsync(email);
                 return Ok(profiles);
             }
             catch (Exception e)
