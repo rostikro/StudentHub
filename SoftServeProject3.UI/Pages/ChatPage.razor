@@ -9,49 +9,78 @@
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
 
-
-<h3>Чат</h3>
-
-<div class="selected-user-name">
-    @if (!string.IsNullOrEmpty(selectedUser))
+@if (IsLoaded)
+{
+    @if (isUserAuthenticated)
     {
-        <h3>@selectedUser</h3>
-        @if (typingUsers.Contains(selectedUser))
-        {
-            <p class="typing-indicator">@selectedUser пише...</p>
-        }
-    }
-</div>
+        <SoftServeProject3.UI.wwwroot.navbar.Navbar />
+        <h3>Чат</h3>
+
+        <div class="selected-user-name">
+            @if (!string.IsNullOrEmpty(selectedUser))
+            {
+                <h3>@selectedUser</h3>
+                @if (typingUsers.Contains(selectedUser))
+                {
+                    <p class="typing-indicator">@selectedUser пише...</p>
+                }
+
+            }
+        </div>
 
 
 
 
-<div class="chat-container">
-    <div class="user-list">
-        @foreach (var username in recentContactUsernames)
-        {
-            <button @onclick="() => StartChatWith(username)">@username</button>
-            
-        }
-    </div>
+        <div class="chat-container">
+            <div class="user-list">
+                @if (recentContactUsernames.Count != 0 || selectedUser != null)
+                {
+                    @foreach (var username in recentContactUsernames)
+                    {
+                        <button @onclick="() => StartChatWith(username)">@username</button>
 
-    <div class="message-area" id="messageArea">
-        @foreach (var message in messages)
-        {
-            <div class="@GetMessageClass(message)">
-                @FormatMessage(message)
+                    }
+
+                }
+                else
+                {
+                    <p>
+                        У вас немає недавніх чатів. Знайдіть користувача, з яким би ви хотіли поспілкуватися тут:
+                        <NavLink href="/UserSearch">Пошук</NavLink>
+                    </p>
+                }
             </div>
-        }
-    </div>
-    @if (errorMessage != null)
-    {
-        <p class="text-danger">@errorMessage</p>
+
+            <div class="message-area" id="messageArea">
+                @foreach (var message in messages)
+                {
+                    <div class="@GetMessageClass(message)">
+                        @FormatMessage(message)
+                    </div>
+                }
+            </div>
+            @if (errorMessage != null)
+            {
+                <p class="text-danger">@errorMessage</p>
+            }
+            @if (selectedUser != null)
+            {
+                <div class="message-input-area">
+                    <textarea @bind="messageInput" @oninput="OnInput"></textarea>
+                    <button @onclick="SendMessage">Send</button>
+                </div>
+            }
+           
+        </div>
     }
-    <div class="message-input-area">
-        <textarea @bind="messageInput" @oninput="OnInput"></textarea>
-        <button @onclick="SendMessage">Send</button>
-    </div>
-</div>
+    else
+    {
+
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+        <span class="loader"></span>
+    }
+}
+
 
 @code {
     UpdateProfile myProfile;
@@ -70,6 +99,8 @@
     string errorMessage;
     const int MESSAGE_LIMIT = 500;
     const int WINDOW_OUTPUT_LIMIT = 83;
+    bool IsLoaded = false;
+    bool isUserAuthenticated;
 
     private async void StartChatWith(string username)
     {
@@ -78,73 +109,95 @@
         StateHasChanged();
     }
 
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+
+    }
+
+
     protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrWhiteSpace(Username))
+        IsLoaded = false;
+        isUserAuthenticated = await IsUserAuthenticatedAsync();
+        if (isUserAuthenticated)
         {
-            selectedUser = Username;
-            await LoadChatHistory(selectedUser);
-        }
-        var token = await TokenService.GetToken();
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+            if (!string.IsNullOrWhiteSpace(Username))
             {
-                options.AccessTokenProvider = () => Task.FromResult(token);
-            })
-            .Build();
+                selectedUser = Username;
+                await LoadChatHistory(selectedUser);
+            }
+            var token = await TokenService.GetToken();
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult(token);
+                })
+                .Build();
 
-        hubConnection.On<string, string, string>("ReceiveMessage", (user, message, timestamp) =>
-        {
-
-            if (user == selectedUser)
+            hubConnection.On<string, string, string>("ReceiveMessage", (user, message, timestamp) =>
             {
-                var newMessage = new Message
-                    {
-                        SenderUsername = user,
-                        Text = message,
-                        Timestamp = DateTime.Parse(timestamp) 
-                    };
 
-                messages.Add(newMessage);
+                if (user == selectedUser)
+                {
+                    var newMessage = new Message
+                        {
+                            SenderUsername = user,
+                            Text = message,
+                            Timestamp = DateTime.Parse(timestamp)
+                        };
+
+                    messages.Add(newMessage);
+                    StateHasChanged();
+                }
+            });
+
+            hubConnection.On<string>("UserTyping", (username) =>
+            {
+                if (!typingUsers.Contains(username))
+                {
+                    typingUsers.Add(username);
+                }
+
+                if (typingTimers.ContainsKey(username))
+                {
+                    typingTimers[username].Change(typingTimeout, Timeout.Infinite);
+                }
+                else
+                {
+                    var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
+                    typingTimers.Add(username, timer);
+                }
+
                 StateHasChanged();
-            }
-        });
+            });
+            await hubConnection.StartAsync();
 
-        hubConnection.On<string>("UserTyping", (username) =>
+
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var responseProfile = await Http.GetAsync("https://localhost:7292/Users/profile");
+            responseProfile.EnsureSuccessStatusCode();
+
+            myProfile = await responseProfile.Content.ReadFromJsonAsync<UpdateProfile>();
+
+            var response = await Http.GetAsync("https://localhost:7292/Chat/recent-contacts");
+            if (response.IsSuccessStatusCode)
+            {
+                recentContactUsernames = await response.Content.ReadFromJsonAsync<List<string>>();
+
+            }
+            
+        }
+        else
         {
-            if (!typingUsers.Contains(username))
-            {
-                typingUsers.Add(username);
-            }
-
-            if (typingTimers.ContainsKey(username))
-            {
-                typingTimers[username].Change(typingTimeout, Timeout.Infinite);
-            }
-            else
-            {
-                var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
-                typingTimers.Add(username, timer);
-            }
-
-            StateHasChanged();
-        });
-        await hubConnection.StartAsync();
-
-
-        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var responseProfile = await Http.GetAsync("https://localhost:7292/Users/profile");
-        responseProfile.EnsureSuccessStatusCode();
-
-        myProfile = await responseProfile.Content.ReadFromJsonAsync<UpdateProfile>();
-
-        var response = await Http.GetAsync("https://localhost:7292/Chat/recent-contacts");
-        if (response.IsSuccessStatusCode)
-        {
-            recentContactUsernames = await response.Content.ReadFromJsonAsync<List<string>>();
+            errorMessage = "Увійдіть для того щоб перейти на цю сторінку";
+            
 
         }
+        IsLoaded = true;
+        
         // typingTimer = new Timer(TypingTimerElapsed, selectedUser, Timeout.Infinite, Timeout.Infinite);
     }
     private async Task LoadChatHistory(string selectedUser)
