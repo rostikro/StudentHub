@@ -60,6 +60,24 @@ namespace SoftServeProject3.Api.Repositories
                 throw;
             }
         }
+
+        public async Task UpdateRecentlyViewedAsync(string senderEmail, ObjectId viewedProfile)
+        {
+            // Slice array to 5 elements
+            int slice = -5;
+            
+            await _users.UpdateOneAsync(user => user.Email == senderEmail,
+                Builders<UserModel>.Update.PushEach(u => u.RecentlyViewed, new []{ viewedProfile }, slice));
+        }
+        
+        // TODO Refactor. Rename friends functions
+        public async Task<List<Friend>> GetRecentlyViewedAsync(string email)
+        {
+            var profilesIds = await _users.Find(u => u.Email == email).Project(u => u.RecentlyViewed).FirstOrDefaultAsync();
+            
+            profilesIds.Reverse();
+            return await GetFriendsMetaAsync(profilesIds);
+        }
         
         private async Task<List<Friend>> GetFriendsMetaAsync(List<ObjectId> friendsIds)
         {
