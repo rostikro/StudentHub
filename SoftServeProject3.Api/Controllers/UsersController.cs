@@ -628,7 +628,7 @@ namespace SoftServeProject3.Api.Controllers
                 return BadRequest("Користувача не знайдено.");
 
             if (!BCrypt.Net.BCrypt.Verify(verification.Code, resetPassword.HashCode))
-                return BadRequest("Щось пішло не так : (");
+                return BadRequest("Щось пішло не так :(");
 
             if (verification.ExpirationTime < DateTime.UtcNow)
                 return BadRequest("Час на зміну пароля сплив. Спробуйте відіслати код ще раз.");
@@ -644,7 +644,7 @@ namespace SoftServeProject3.Api.Controllers
             }
 
             if (existingUser == null)
-                return BadRequest("Неможливо знайти користувача : (");
+                return BadRequest("Неможливо знайти користувача :(");
             else
             {
                 await _userRepository.UpdateUserPasswordAsync(existingUser, BCrypt.Net.BCrypt.HashPassword(resetPassword.Password));

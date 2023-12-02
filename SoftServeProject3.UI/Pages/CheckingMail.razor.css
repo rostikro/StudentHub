@@ -1,6 +1,6 @@
 ﻿﻿
 body {
-    background-color: #007439;
+    background-color: white;
     background-size: cover;
     display: flex;
     /* <body> стає гнучким контейнером і всі його прямі дочірні елементи стають гнучкими дочірніми елементами*/
@@ -17,33 +17,8 @@ body {
 }
 
 .form {
-    width: 350px;
-    height: 360px;
-    border: 3px solid #228653;
-    border-radius: 5px;
-    display: flex;
-    /* <form> стає гнучким контейнером і всі його прямі дочірні елементи стають гнучкими дочірніми елементами*/
-    flex-direction: column;
-    /*елементи всередині гнучкого контейнера будуть вирівнюватися вертикально. */
-
-    background-color: #00B358;
-    align-items: center;
-    /*елементи будуть центровані відносно ширини контейнера.*/
+    padding: 16px;
 }
-
-    .form h3 {
-        font-family: popins;
-    }
-
-    .form .email {
-        display: flex;
-        /* <body> стає гнучким контейнером і всі його прямі дочірні елементи стають гнучкими дочірніми елементами*/
-        flex-direction: column;
-        /*елементи всередині гнучкого контейнера будуть вирівнюватися вертикально. */
-        margin-bottom: 10px;
-        padding: 5px;
-        width: 80%;
-    }
 
 label {
     font-weight: bold;
@@ -67,8 +42,63 @@ button {
     border-radius: 10px;
 }
 
-.error-message {
-    color: red;
-    font-weight: bold;
+.sendbtn-disabled {
+    background-color: slategrey;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: not-allowed;
+    width: 100%;
+    opacity: 0.9;
 }
 
+#field-error-message {
+    color: red;
+}
+
+.sendbtn-enabled {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    opacity: 0.9;
+}
+
+#btn-send-again {
+    background-color: #51c77e !important;
+}
+
+#error-message {
+    display: block;
+    font-weight: bold;
+    background-color: #fce4e4;
+    border: 1px solid #fcc2c3;
+    color: #B22222;
+    padding: 20px 30px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    margin: 10px 0;
+    text-align: center !important;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 1s;
+}

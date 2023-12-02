@@ -46,26 +46,8 @@ public class EmailController : ControllerBase
 
             var code = RandomGenerator.GenerateRandomCode();
 
-            bool result;
-
-            if (isReset)
-            {
-                result = await _emailService.SendResetPasswordEmailAsync(emailData, code);
-            }
-            else
-            {
-                result = await _emailService.SendVerificationEmailAsync(emailData, code);
-            }
-
-
-            if (!result)
-            {
-                return BadRequest("Сталася помилка при відсиланні коду:( Спробуйте ще раз.");
-            }
-
-
-
             var existingVerification = await _verRepository.GetByEmail(emailData.EmailTo);
+
             //setting data for verification -> database
             var setData = new ForgotPasswordModel
             {
@@ -73,13 +55,28 @@ public class EmailController : ControllerBase
                 Code = code
             };
 
-            // check if user can send a code to his email now
-
             //changing user code if they exist in verification database + adding resend time 
             if (existingVerification != null)
             {
+                // check if user can send a code to his email now
                 if ((await _verRepository.GetByEmail(emailData.EmailTo)).ResendCode < DateTime.Now)
                 {
+                    bool result;
+
+                    if (isReset)
+                    {
+                        result = await _emailService.SendResetPasswordEmailAsync(emailData, code);
+                    }
+                    else
+                    {
+                        result = await _emailService.SendVerificationEmailAsync(emailData, code);
+                    }
+
+
+                    if (!result)
+                    {
+                        return BadRequest("Сталася помилка при відсиланні коду:( Спробуйте ще раз.");
+                    }
 
                     await _verRepository.UpdateCodeAsync(setData);
 
@@ -89,8 +86,8 @@ public class EmailController : ControllerBase
                 else
                 {
                     //telling user to wait to resend a code
-                    return BadRequest($"Зачейкайте, будь ласка. Код можна відіслати ще раз через " +
-                        $"{Math.Round(((await _verRepository.GetByEmail(emailData.EmailTo)).ResendCode - DateTime.Now).TotalSeconds)} seconds.");
+                    return BadRequest($"Зачекайте, будь ласка. Код можна відіслати ще раз через " +
+                        $"{Math.Round(((await _verRepository.GetByEmail(emailData.EmailTo)).ResendCode - DateTime.Now).TotalSeconds)} секунд.");
                 }
             }
             else
@@ -109,6 +106,7 @@ public class EmailController : ControllerBase
         }
 
     }
+
     [HttpPost]
     [Route("VerifyCodeEmail")]
     public async Task<IActionResult> VerifyCodeAsync(ForgotPasswordModel verData)
