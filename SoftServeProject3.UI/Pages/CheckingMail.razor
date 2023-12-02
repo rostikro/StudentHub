@@ -9,6 +9,7 @@
 @using SoftServeProject3.UI.Services;
 @using System.Globalization
 @using Newtonsoft.Json;
+@using System.ComponentModel.DataAnnotations;
 
 @using System.Net.Http.Headers;
 
@@ -20,38 +21,43 @@
 
 @if (!isUserAuthenticated)
 {
-<body>
-    <div class="form">
-        <h3>Скидання паролю</h3>
+    <body>
+        <div class="form">
+            <h1>Відновлення паролю</h1>
 
-        <div class="email">
-            @if (!showCodeInput)
+            <div class="email">
+                @if (!showCodeInput)
+                {
+                    <EditForm Model=@emailData OnValidSubmit="@SendCode">
+                        <DataAnnotationsValidator />
+                        <label>Введіть вашу пошту:</label>
+                        <StyledInputText @bind-Value="emailData.EmailTo" type="email" placeholder="E-mail"
+                        @oninput="EventCallback.Factory.Create(this, HandleEmailInput)" />
+                        <button type="submit" disabled="@isSendDisabled" class="@SendBtnClass">Відправити код</button>
+                    </EditForm>
+                }
+            </div>
+            <div class="email">
+
+                @if (showCodeInput)
+                {
+                    <p class="codesent"><b>Код було відправлено на @emailData.EmailTo.</b></p>
+                    <p class="codesent"><b>Будь ласка перевірте пошту.</b></p>
+                    <EditForm Model=@forgotPassword OnValidSubmit="@VerifyCode">
+                        <label>Поле для коду:</label>
+                        <StyledInputText @bind-Value="forgotPassword.Code" placeholder="Введіть ваш код"
+                        @oninput="EventCallback.Factory.Create(this, HandleCodeInput)" />
+                        <button type="submit" disabled="@isSendDisabled" class="@SendBtnClass">Скинути пароль</button>
+                    </EditForm>
+                    <button @onclick="SendCode" class="sendbtn-enabled" id="btn-send-again">Відправити код знову</button>
+
+                }
+            </div>
+            @if (errorMessage != "")
             {
-                <EditForm Model="@emailData" OnValidSubmit="@SendCode">
-                    <DataAnnotationsValidator />
-                    <label>E-mail:</label>
-                    <InputText @bind-Value="emailData.EmailTo" type="email" placeholder="Введіть ваш E-mail" />
-                    <ValidationMessage For="@(()=>emailData.EmailTo)" />
-                    <button type="submit">Відправити код</button>
-                </EditForm>
+                <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
             }
         </div>
-        <div class="email">
-
-            @if (showCodeInput)
-            {
-                <p class="codesent"><b>Код було відправлено на @emailData.EmailTo.</b></p>
-                <p class="codesent"><b>Будь ласка перевірте пошту.</b></p>
-                <EditForm Model="@forgotPassword" OnValidSubmit="@VerifyCode">
-                    <label>Поле для коду:</label>
-                    <InputText @bind-Value="forgotPassword.Code" placeholder="Введіть ваш код" />
-                    <button type="submit">Скинути пароль</button>
-                </EditForm>
-                <button @onclick="SendCode">Відправити код знову</button>
-
-            }
-        </div>
-    </div>
     </body>
 }
 else
@@ -62,75 +68,135 @@ else
 
 
 
-    <p>@errorMessage</p>
-    @code {
-        private bool showCodeInput = false;
-        private string errorMessage = "";
+<p>@errorMessage</p>
+@code {
+    private bool showCodeInput = false;
+    private bool isUserAuthenticated;
+    private bool isSendDisabled = true;
+    private bool isCodeSent = false;
 
-        
+    private string errorMessage = "";
+    private string ErrorPulseClass = "";
+    private string EmailFieldError = "";
 
-        /// <summary>
-        /// Відправляє запит на сервер для отримання коду верифікації на електронну пошту користувача.
-        /// </summary>
+    private string SendBtnClass => isSendDisabled ? "sendbtn-disabled" : "sendbtn-enabled";
 
-        EmailDataModel emailData = new EmailDataModel();
-        ForgotPasswordModel forgotPassword = new ForgotPasswordModel();
+    EmailDataModel emailData = new EmailDataModel();
+    ForgotPasswordModel forgotPassword = new ForgotPasswordModel();
 
-        private async Task SendCode()
+    void HandleEmailInput(ChangeEventArgs e)
+    {
+        // Update the variable
+        string input = e.Value.ToString();
+        emailData.EmailTo = input.Replace(" ", "");
+
+        var validationContext = new ValidationContext(emailData) { MemberName = nameof(emailData.EmailTo) };
+        var validationResults = new List<ValidationResult>();
+        Validator.TryValidateProperty(emailData.EmailTo, validationContext, validationResults);
+        EmailFieldError = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+        if (string.IsNullOrEmpty(EmailFieldError))
         {
-            var isResetQueryParam = "?isReset=true";
-            var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword" + isResetQueryParam, emailData);
+            isSendDisabled = false;
+            StateHasChanged();
+        }
+        else
+        {
+            isSendDisabled = true;
+            StateHasChanged();
+        }
 
+    }
+
+    void HandleCodeInput(ChangeEventArgs e)
+    {
+        // Update the variable
+        string input = e.Value.ToString();
+        forgotPassword.Code = input.Replace(" ", "");
+
+        if (!string.IsNullOrEmpty(forgotPassword.Code))
+        {
+            isSendDisabled = false;
+            StateHasChanged();
+        }
+        else
+        {
+            isSendDisabled = true;
+            StateHasChanged();
+        }
+
+    }
+
+
+    private async Task SendCode()
+    {
+        ErrorPulseClass = "";
+
+        var isResetQueryParam = "?isReset=true";
+        if (!isCodeSent)
+        {
+            isCodeSent = true;
+            var response = await Http.PostAsJsonAsync("https://localhost:7292/Email/SendVerificationCodePassword" + isResetQueryParam, emailData);
             if (!response.IsSuccessStatusCode)
+            {
                 errorMessage = await response.Content.ReadAsStringAsync();
+                ErrorPulseClass = "pulse";
+                isCodeSent = false;
+            }
             else
             {
                 showCodeInput = true;
+                isSendDisabled = true;
                 errorMessage = "";
-            }
-
-        }
-        private bool isUserAuthenticated;
-        protected override async Task OnInitializedAsync()
-        {
-            try
-            {
-
-                isUserAuthenticated = await IsUserAuthenticatedAsync();
-
-
-
-
-            }
-            catch (Exception ex)
-            {
-
+                isCodeSent = false;
+                StateHasChanged();
             }
         }
-        private async Task<bool> IsUserAuthenticatedAsync()
-        {
-            var token = await TokenService.GetToken();
-            return TokenService.IsTokenValid(token);
-        }
-        /// <summary>
-        /// Перевіряє введений користувачем код та здійснює подальші дії на основі результату перевірки.
-        /// </summary>
-        private async Task VerifyCode()
-        {
-            forgotPassword.Email = emailData.EmailTo;
-            var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail", forgotPassword);
 
-            if (response.IsSuccessStatusCode)
+    }
+
+    /// <summary>
+    /// Перевіряє введений користувачем код та здійснює подальші дії на основі результату перевірки.
+    /// </summary>
+    private async Task VerifyCode()
+    {
+        ErrorPulseClass = "";
+        forgotPassword.Email = emailData.EmailTo;
+        var response = await Http.PostAsJsonAsync($"https://localhost:7292/Email/VerifyCodeEmail", forgotPassword);
+
+        if (response.IsSuccessStatusCode)
+        {
+            errorMessage = "";
+            Navigation.NavigateTo($"/reset-password?code={BCrypt.Net.BCrypt.HashPassword(forgotPassword.Code)}");
+        }
+        else
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            if (!content.Contains("The Code field is required."))
             {
-                errorMessage = "";
-                Navigation.NavigateTo($"/reset-password?code={BCrypt.Net.BCrypt.HashPassword(forgotPassword.Code)}");
-            }
-            else
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                if (!content.Contains("The Code field is required."))
-                    errorMessage = content;
+                errorMessage = content;
+                ErrorPulseClass = "pulse";
             }
         }
     }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isUserAuthenticated = await IsUserAuthenticatedAsync();
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+    }
+}
 

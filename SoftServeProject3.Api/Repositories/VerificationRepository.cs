@@ -157,12 +157,8 @@ namespace SoftServeProject3.Api.Repositories
         //clear the verifications which has been expired
         public async Task ClearVerifications()
         {
-            var filter = Builders<ForgotPasswordModel>.Filter.Empty;
-            await _verifications.Find(filter).ForEachAsync(item =>
-            {
-                if (item.ExpirationTime < DateTime.UtcNow)
-                    _verifications.DeleteOneAsync(ver => ver == item);
-            });
+            var filter = Builders<ForgotPasswordModel>.Filter.Lt(item => item.ExpirationTime, DateTime.UtcNow);
+            await _verifications.DeleteManyAsync(filter);
         }
     }
 }
