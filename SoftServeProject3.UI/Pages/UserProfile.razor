@@ -1,4 +1,4 @@
-﻿@page "/UserProfile"
+@page "/UserProfile"
 @inject HttpClient Http
 @inject TokenService TokenService
 @inject NavigationManager Navigation
@@ -8,6 +8,10 @@
 @using Newtonsoft.Json;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
+
+@using Microsoft.AspNetCore.SignalR.Client
+
+@using System.ComponentModel.DataAnnotations;
 
 
 <head>
@@ -22,11 +26,13 @@
         @if (userProfile != null)
         {
 
+            
             <body>
                 <div class="wrapper">
-                    
-                        <SoftServeProject3.UI.wwwroot.navbar.Navbar />
-                    
+
+
+                    <SoftServeProject3.UI.wwwroot.navbar.Navbar />
+
 
                     <div class="two">
                         @if (isEditMode)
@@ -34,14 +40,14 @@
                             if (!isUsernameEdit)
                             {
                                 <div style="display: flex;">
-                                    <h2 style="margin-right: 0;">@userProfile.username</h2>
+                                    <h2 style="margin-right: 5px;">&#64;@userProfile.username</h2>
                                     <button @onclick="ToggleUsernameEdit">&#x270E</button>
                                 </div>
                             }
                             else
                             {
                                 <div style="display: flex;">
-                                    <input type="text" @bind="userProfile.username" />
+                                    <input type="text" maxLength="20" @bind="userProfile.username" />
                                     <button @onclick="CheckUsername">&#x2713</button>
                                 </div>
                             }
@@ -50,7 +56,7 @@
                         else
                         {
                             <div class="verified-account">
-                                <h2 style="color:black">@userProfile.username</h2>
+                                <h2 style="color:black">&#64;@userProfile.username</h2>
                                 @if (@isProfileVerified)
                                 {
                                     <img class="verified-icon"
@@ -65,10 +71,8 @@
 
                         @if (isEditMode)
                         {
-                            <div class="form-group">
-                                <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate" />
-                                <label for="profilePrivacy">Зробити профіль приватним</label>
-                            </div>
+                            <hr>
+                            <p style="color:black">Посилання на фото вашого профілю</p>
                             <div class="profile-picture-edit">
                                 <input type="text" @bind="userProfile.photoUrl" class="form-control" />
                             </div>
@@ -77,18 +81,37 @@
                         else
                         {
                             <div class="profile-picture">
-                                <img src="@userProfile.photoUrl" alt="Немає фото профілю">
+                                @if (!string.IsNullOrEmpty(userProfile.photoUrl))
+                                {
+                                    <img draggable="false" src="@userProfile.photoUrl" alt="Фото профілю">
+                                }
+                                else
+                                {
+                                    <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
+                                }
                             </div>
                         }
+                        @if (isEditMode)
+                        {
+
+                            <div class="form-group">
+                                <label for="name">Ваші Ініціали:</label>
+                                <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-group">
+                                <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
+                                <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                            </div>
+                        }
+
+
+
                     </div>
                     <div class="three">
                         <h1>Мій розклад</h1>
-
-                        @if (errorMessage != null)
-                        {
-                            <p class="text-danger">@errorMessage</p>
-                        }
-
                         @if (schedule == null)
                         {
                             <p>Loading...</p>
@@ -96,7 +119,7 @@
 
                         else if (schedule.Count == 0)
                         {
-                            <p>Розклад пустий</p>
+                            <p>Розклад не вказаний.</p>
                         }
 
                         else
@@ -170,21 +193,6 @@
 
 
 
-                    @if (isEditMode)
-                    {
-
-                        <div class="form-group">
-                            <label for="name">Ініціали:</label>
-                            <input type="text" id="name" class="form-control" @bind="@userProfile.name" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="form-group">
-                            <label for="name">@(@userProfile.name != string.Empty ? "Ініціали:" : "")</label>
-                            <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                        </div>
-                    }
 
 
 
@@ -212,7 +220,7 @@
 
                         <div class="five">
                             <label for="description">Опис:</label>
-                            <textarea id="description" class="form-control" @bind="@userProfile.description"></textarea>
+                            <textarea id="description" class="edit-textarea" @bind="@userProfile.description"></textarea>
                         </div>
                     }
                     else
@@ -220,19 +228,31 @@
 
                         <div class="five">
                             <div class="button-content">
-                                <label for="faculty">Факультет:</label>
-                                <span>@userProfile.faculty</span>
+                                <h4>Ваш факультет</h4>
+                                @if (userProfile.faculty != "Немає")
+                                {
+                                    <span><b>@userProfile.faculty</b></span>
+                                }
+                                else
+                                {
+                                    <text>Не обраний</text>
+                                }
+
+
                             </div>
-                            <label for="description">Опис:</label>
-                            <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                            <hr>
+
+                            @if (!string.IsNullOrWhiteSpace(userProfile.description))
+                            {
+                                <div class="button-content">
+                                    <h4>Про себе</h4>
+                                    <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                                </div>
+                            }
                         </div>
                     }
                     @if (isEditMode)
                     {
-                        <div class="form-group">
-                            <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate" />
-                            <label for="socialPrivacy">Зробити соціальні мережі та чат приватними окрім друзів</label>
-                        </div>
 
                     }
                     <div class="soc">
@@ -256,8 +276,6 @@
 
                             }
                         }
-
-
                     </div>
 
 
@@ -265,33 +283,33 @@
                     @if (isEditMode)
                     {
                         <div class="subjectSearch">
-                            <label for="subjectSearch">Пошук предмету:</label>
-                            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
+                            <div style="display:flex; justify-content:center;">
+                                <img class="options-icon" src="https://www.freeiconspng.com/uploads/options-icon-11.png">
+                                <h3><b>Налаштування профілю</b></h3>
+                                <img class="options-icon" src="https://www.freeiconspng.com/uploads/options-icon-11.png">
+                            </div>
+                            <label class="container" for="profilePrivacy">
+                                Зробити профіль приватним
+                                <input type="checkbox" id="profilePrivacy" @bind="@userProfile.isprofileprivate">
+                                <span class="checkmark"></span>
+                            </label>
+                            <label class="container" for="socialPrivacy">
+                                Зробити соціальні мережі та чат приватними окрім друзів
+                                <input type="checkbox" id="socialPrivacy" @bind="@userProfile.isfriendsprivate">
+                                <span class="checkmark"></span>
+                            </label>
 
-                            <label>Обрані предмети:</label>
-                            @if (selectedSubjects.Any())
-                            {
-                                <ul>
-                                    @foreach (var subject in selectedSubjects)
-                                    {
-                                        <li>@subject <button @onclick="@(() => RemoveSubject(subject))">Видалити</button></li>
-                                    }
-                                </ul>
-                            }
                         </div>
                     }
-                    else
-                    {
 
-                    }
 
                     @if (isEditMode)
                     {
 
 
                         <div class="searchSubject">
-
-                            <label>Оберіть предмет(и):</label>
+                            <label for="subjectSearch">Пошук предмету:</label>
+                            <input type="text" id="subjectSearch" @bind="subjectSearch" @bind:event="oninput" />
                             <select @onchange="OnSubjectsSelected" multiple>
                                 @if (filteredSubjects != null)
                                 {
@@ -301,6 +319,24 @@
                                     }
                                 }
                             </select>
+                            <p></p>
+                            @if (selectedSubjects.Any())
+                            {
+                                <label>Обрані предмети:</label>
+                            }
+                            <div class="chosen-subjects">
+                                @if (selectedSubjects.Any())
+                                {
+                                    @foreach (var subject in selectedSubjects)
+                                    {
+                                        <div id="subjects">
+                                            <b>@subject</b>
+                                            <button class="btn btn-outline-danger" id="subject-cancel" @onclick="@(() => RemoveSubject(subject))">Х</button>
+
+                                        </div>
+                                    }
+                                }
+                            </div>
                         </div>
                     }
                     else
@@ -313,7 +349,7 @@
                                 {
                                     if (subject != userProfile.subjects[^1])
                                     {
-                                        <span>@subject - </span>
+                                        <span>@subject, </span>
                                     }
                                     else
                                     {
@@ -332,23 +368,33 @@
                         @if (isEditMode)
                         {
                             <div class="editButtons">
-                                <button type="button" class="btn btn-success" @onclick="SaveAllChanges">Save All Changes</button>
-                                <button type="button" class="btn btn-dark" @onclick="CancelEdit">Cancel</button>
+                                <button type="button" class="btn btn-success" id="change-success" @onclick="SaveAllChanges">Зберегти зміни</button>
+                                <button type="button" class="btn btn-outline-danger" id="change-cancel" @onclick="CancelEdit">Скасувати</button>
                             </div>
 
                         }
                         else
                         {
-
                             <div class="blueButton">
-                                <button class="btn btn-primary" type="button" @onclick="ToggleEditMode">Edit</button>
+                                <button class="btn btn-primary" id="edit-btn" type="button" @onclick="ToggleEditMode">
+                                    <b>Редагувати</b>
+                                    <img class="edit-icon" src="https://cdn-icons-png.flaticon.com/512/2740/2740651.png">
+
+                                </button>
                             </div>
-                            <NavLink class="nav-link" href="" @onclick="Logout">
+
+@*                             <NavLink class="nav-link" href="" @onclick="Logout">
                                 <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+
                             </NavLink>
-                        }
+ *@                      }
                     </div>
                 </div>
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p id="error-message" class="@ErrorPulseClass"> @errorMessage</p>
+                }
+                <div class="photo"></div>
             </body>
         }
         else
@@ -372,6 +418,7 @@
     const int MAX_SUBJECTS = 3;
 
     private string errorMessage;
+    private string ErrorPulseClass = "";
 
     private bool isUserAuthenticated;
     private bool isProfileVerified;
@@ -405,6 +452,8 @@
     private string ButtonText => isEditMode ? "Cancel Edit" : "Edit";
     private string timeValidationError = string.Empty;
 
+    private HubConnection hubConnection;
+
     private void CheckTimeValidity()
     {
         foreach (var daySchedule in schedule)
@@ -427,21 +476,33 @@
         isUsernameEdit = !isUsernameEdit;
     }
 
+    void ErrorMessagePulse()
+    {
+        if (ErrorPulseClass.EndsWith("1"))
+            ErrorPulseClass = "pulse2";
+        else
+            ErrorPulseClass = "pulse1";
+        StateHasChanged();
+    }
+
     private async Task CheckUsername()
     {
+
         if (userProfile.username == originalUsername)
             ToggleUsernameEdit();
         else
         {
+
             await SaveAllChanges();
-            ToggleUsernameEdit();
+            if (string.IsNullOrEmpty(errorMessage))
+                ToggleUsernameEdit();
         }
+
     }
     private void CancelEdit()
     {
         if (originalProfile != null)
         {
-            errorMessage = "";
             userProfile = JsonConvert.DeserializeObject<UpdateProfile>(JsonConvert.SerializeObject(originalProfile));
             isEditMode = false;
             LoadSchedule();
@@ -492,6 +553,7 @@
         else
         {
             errorMessage = $"Не можна додати більше {MAX_RANGES} проміжків";
+            ErrorMessagePulse();
         }
     }
 
@@ -504,13 +566,22 @@
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
+        var token = await TokenService.GetToken();
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+        {
+            options.AccessTokenProvider = () => Task.FromResult(token);
+        })
+        .Build();
+        
+        await hubConnection.StartAsync();
         try
         {
             isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
             if (isUserAuthenticated)
             {
-                var token = await TokenService.GetToken();
+               
                 Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
                 allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
@@ -522,13 +593,17 @@
             }
             else
             {
-                errorMessage = "Failed to load user info";
+                errorMessage = "Не вдалося завантажити інформацію :( Будь ласка, спробуйте перезагрузити сторінку";
+                ErrorMessagePulse();
+
             }
             isLoaded = true;
         }
         catch (Exception ex)
         {
-            errorMessage = $"An error occurred: {ex.Message}";
+            errorMessage = $"Виникла помилка: {ex.Message}";
+            ErrorMessagePulse();
+
         }
     }
     private void FilterFaculties()
@@ -570,13 +645,15 @@
             }
             else
             {
-                errorMessage = "User profile schedule is not available";
+                errorMessage = "Неможливо отримати доступ до вашого графіку :(";
+                ErrorMessagePulse();
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing schedule: {ex.Message}");
-            errorMessage = "Failed to process schedule";
+            errorMessage = "Неможливо завантажити графік :(";
+            ErrorMessagePulse();
         }
     }
 
@@ -596,6 +673,7 @@
 
                 selectedSubjects.AddRange(newSelections.Take(availableSlots));
                 errorMessage = $"Можна обрати максимум {MAX_SUBJECTS} предметів";
+                ErrorMessagePulse();
             }
         }
     }
@@ -683,7 +761,8 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error processing user information: {ex.Message}");
-            errorMessage = "Failed to process user information";
+            errorMessage = "Не вдалося завантажити ваш профіль :(";
+            ErrorMessagePulse();
         }
     }
 
@@ -691,6 +770,18 @@
     {
         try
         {
+            //username validation
+            var validationContext = new ValidationContext(userProfile) { MemberName = nameof(userProfile.username) };
+            var validationResults = new List<ValidationResult>();
+            Validator.TryValidateProperty(userProfile.username, validationContext, validationResults);
+            errorMessage = validationResults.Any() ? validationResults[0].ErrorMessage : "";
+
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                ErrorMessagePulse();
+                return;
+            }
+
             bool isOverlap = false;
             foreach (var daySchedule in schedule)
             {
@@ -704,6 +795,7 @@
             if (isOverlap)
             {
                 errorMessage = "У графіку є перетинаючі часові проміжки.";
+                ErrorMessagePulse();
                 return;
             }
 
@@ -722,6 +814,17 @@
 
                     userProfile.schedule[dayOfWeek] = dtoTimeRanges;
                 }
+                foreach (var socialLink in userProfile.social)
+                {
+                    if (!userProfile.social[socialLink.Key].Contains(socialLink.Key)
+                    && !string.IsNullOrWhiteSpace(userProfile.social[socialLink.Key]))
+                    {
+                        errorMessage = $"Посилання для {socialLink.Key} не є посиланням на сторінку цієї соцмережі."
+                        + " Будь ласка, замінь його на відповідне.";
+                        ErrorMessagePulse();
+                        return;
+                    }
+                }
                 userProfile.social = userProfile.social ?? new Dictionary<string, string>();
                 userProfile.subjects = selectedSubjects;
 
@@ -731,11 +834,14 @@
                 {
                     LoadSchedule();
                     StateHasChanged();
+                    await hubConnection.SendAsync("UpdateSearchList");
+                    await hubConnection.SendAsync("UpdateOtherProfile");
 
                 }
                 else
                 {
                     errorMessage = $"Користувач з нікнеймом {userProfile.username} вже існує. Спробуйте інший.";
+                    ErrorMessagePulse();
                     userProfile.username = originalUsername;
                     StateHasChanged();
 
@@ -746,13 +852,16 @@
             else
             {
                 errorMessage = $"Час завершення повинен бути пізніше часу початку.";
+                ErrorMessagePulse();
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"An error occurred while saving the schedule: {ex.Message}";
+            ErrorMessagePulse();
         }
     }
+
     private bool IsOverlapInDay(List<TimeRange> daySchedule)
     {
         for (int i = 0; i < daySchedule.Count; i++)
@@ -806,6 +915,3 @@
         Navigation.NavigateTo("/");
     }
 }
-
-
-

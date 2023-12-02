@@ -11,57 +11,59 @@
 @using Microsoft.AspNetCore.SignalR.Client;
 
 <style>
-    .wrapper {
+/* .wrapper{
+        max-width: 940px;
+        margin: 0 auto;
 
-    margin: 0 auto;
-}
-
-    .wrapper > div {
-        border-radius: 5px;
-        padding: 1em;
+} */
+    body {
+        margin: 0 0 55px 0;
     }
 
-.wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-
-
-}
-
-    .one {
+    .nav {
         grid-column: 1 / 4;
         grid-row: 1;
-        list-style: none;
-        background-color: #b3b3b3;
-        color: white;
+        top: 0;
+        width: 100%;
+        height: 55px;
+/*         box-shadow: 0 0 3px rgba(0, 0, 0, 0.2); */
+        background-color: #ffffff;
         display: flex;
-        justify-content: space-between;
-        padding: 40px 20px;
+        overflow-x: auto;
+
     }
 
-    .one a {
-        background-color: #757575;
-        display: inline-block;
-        border: 10px solid #757575;
-        border-radius: 5px;
-        color: white;
+    .nav__link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-grow: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        font-family: sans-serif;
+        font-size: 13px;
+        color: #444444;
         text-decoration: none;
-        margin: 0 15px;
-        padding: 0px 5px;
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color 0.1s ease-in-out;
+        min-width: 100px;
+
+
     }
 
-    .one a:hover {
-        background-color: peru;
-        border: 10px solid peru;
+        .nav__link:hover {
+/*             background-color: #eeeeee; */
+        }
+
+    .nav__link--active {
+        color: #009578;
     }
 
-    .left-links a:first-child {
-        margin-left: 0;
+    .nav__icon {
+        font-size: 18px;
     }
 
-    .right-links a:last-child {
-        margin-right: 0;
-    }
 
     .profile-picture {
         background-color: pink;
@@ -69,7 +71,7 @@
         height: 20vh;
         border-radius: 50%;
         overflow: hidden;
-        margin-bottom: 20px; /* Перенесено до профільного зображення для зручності */
+        margin-bottom: 20px; 
     }
 
         .profile-picture img {
@@ -83,21 +85,98 @@
         border-radius: 50%;
         padding: 2px 6px;
         font-size: 0.8em;
-        margin-left: 5px;
+        margin-left: 5px; 
+        position: absolute;
+        transform: translate(230%, -80%);
     }
 
+
+    .left-links {
+        display: flex;
+        align-items: center;
+        margin-right: auto; /* Push the left-links to the left as much as possible */
+        position: absolute;
+        left: 0;
+        top: 10px;
+    }
+
+    .right-links {
+        display: flex;
+        align-items: center;
+        margin-left: auto; /* Push the left-links to the left as much as possible */
+        position: absolute;
+        right: 0;
+        top: 10px;
+
+    }
+
+    .right-links button{
+        border:0;
+        background-color: #ffffff;
+        margin-left: auto;
+    }
+
+        .right-links button:hover{
+                color: #0a58ca;
+        }
+
+    .profile-dropdown {
+
+        position: relative;
+        z-index: 100; 
+    }
+
+    .profile-dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #ffffff;
+
+/*         box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.2); */
+        z-index: 101;
+    }
+
+    .profile-dropdown:hover .profile-dropdown-content {
+        display: block;
+    }
+
+    .profile-dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        font-size: 14px;
+    }
+
+        .profile-dropdown-content a:hover {
+/*             background-color: #f1f1f1; */
+        }
 </style>
 
 
-    <div class="one">
-        <div class="left-links">
-            <a href="MainPage">Home</a>
-            <a href="UserSearch">Search</a>
-            <a href="MainPage">Friends</a>
-        </div>
-        <div class="right-links">
-        <button @onclick="ShowMessagePopup">
-            Запити в друзі @if (incomingRequests?.Any() == true)
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<nav class="nav">
+    <div class="left-links">
+    <a href="MainPage" class="nav__link">
+        <i class="material-icons nav__icon">home</i>
+        <span class="nav__text">Home</span>
+    </a>
+        <a href="UserSearch" class="nav__link">
+        <i class="material-icons nav__icon">search</i>
+        <span class="nav__text">Search</span>
+    </a>
+@*     <a href="UserSearch" class="nav__link">
+        <i class="material-icons nav__icon">people</i>
+        <span class="nav__text">Friends</span>
+    </a> *@
+    </div>
+
+    <div class="right-links">
+
+        <button @onclick="ShowMessagePopup" class="nav__link">
+            <i class="material-icons nav__icon">people</i>
+            <span class="nav__text">Запити в друзі</span>
+            @if (incomingRequests?.Any() == true)
             {
                 <span class="friend-requests-indicator">@incomingRequests.Count</span>
             }
@@ -106,17 +185,30 @@
             {
                 <MessagePopupComponent IsVisible="@showMessagePopup" OnClose="HandleClose" />
             }
-            <a href="UserProfile">Профіль</a>
+
+        <div class="profile-dropdown">
+            <a href="UserProfile" class="nav__link nav__link--active">
+                <i class="material-icons nav__icon">account_circle</i>
+                <span class="nav__text">@(myProfile.Username)</span>
+            </a>
+            <div class="profile-dropdown-content">
+
+                <NavLink class="nav-link" href="" @onclick="Logout">
+                    <span class="oi oi-account-logout" aria-hidden="true"></span> Log Out
+                </NavLink>
+            </div>
         </div>
+
     </div>
+</nav>
     
 @code {
     string errorMessage;
     List<Friend> incomingRequests = new List<Friend>();
     private HubConnection hubConnection;
     public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
+    private UserModel myProfile = new();
 
-    
     protected override async Task OnInitializedAsync()
     {
         var token = await TokenService.GetToken();
@@ -136,8 +228,9 @@
         try
         {
 
-
+            
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            myProfile = await Http.GetFromJsonAsync<UserModel>($"https://localhost:7292/Users/profile/");
             incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
             errorMessage = "Failed to load user info";
         }
@@ -165,5 +258,10 @@
     {
         incomingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/incomingRequests");
         StateHasChanged();
+    }
+    private async Task Logout()
+    {
+        await TokenService.RemoveToken();
+        Navigation.NavigateTo("/");
     }
 }

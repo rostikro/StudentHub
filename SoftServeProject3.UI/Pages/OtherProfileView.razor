@@ -19,6 +19,7 @@
 {
     @if (isUserAuthenticated)
     {
+        @if (Username == myProfile.Username) { Navigation.NavigateTo("/UserProfile"); }
         @if (userProfile != null)
         {
 
@@ -41,9 +42,17 @@
                             }
                         </div>
                         <div class="profile-picture">
-                            <img src="@userProfile.photoUrl" alt="Немає фото профілю">
+                            @{
+                                string profilePhotoUrl = string.IsNullOrEmpty(userProfile.photoUrl)
+                                ? "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg"
+                                : userProfile.photoUrl;
+                            }
+                            <img src="@profilePhotoUrl" alt="Фото профілю">
                         </div>
-
+                        <div class="form-group">
+                            <label for="name">Призвіще Ім'я:</label>
+                            <p id="name" class="form-control-plaintext">@userProfile.name</p>
+                        </div>
                     </div>
                     <div class="three">
                         <h1>Розклад @userProfile.username</h1>
@@ -102,6 +111,10 @@
                             </table>
                         }
                     </div>
+                    @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
+                    {
+                        <button class="btn btn-primary" @onclick="NavigateToChat">Чат</button>
+                    }
 
                     <div class="friend-interaction">
                         <label><b>@FriendStatusStr</b></label>
@@ -141,15 +154,9 @@
                     </div>
 
 
-                    <div class="form-group">
-                        <label for="name">Призвіще Ім'я:</label>
-                        <p id="name" class="form-control-plaintext">@userProfile.name</p>
-                    </div>
+
                     
-                    @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
-                    {
-                        <button class="btn btn-primary" @onclick="NavigateToChat">Чат</button>
-                    }
+
                     
                     
                     <div class="five">
@@ -315,6 +322,13 @@
                 LoadUserProfile();
                 StateHasChanged();
             });
+
+            hubConnection.On("UpdateOtherProfile", () =>
+            {
+                LoadUserProfile();
+                StateHasChanged();
+            });
+
             await hubConnection.StartAsync();
             isLoaded = false;
             isUserAuthenticated = await IsUserAuthenticatedAsync();
@@ -323,7 +337,7 @@
                 allSubjects = await Http.GetFromJsonAsync<List<string>>("https://localhost:7292/Users/subjects");
                 filteredSubjects = allSubjects;
                 await LoadUserProfile();
-                LoadSchedule();
+
             }
             else
             {
@@ -410,6 +424,7 @@
             originalProfile = userProfile;
             selectedSubjects = userProfile.subjects;
             isProfileVerified = userProfile.isProfileVerified;
+            LoadSchedule();
             StateHasChanged();
             await FriendStatusString();
         }
