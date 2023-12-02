@@ -65,6 +65,10 @@ namespace SoftServeProject3.Core.DTOs
         [BsonElement("outgoingFriendRequests")]
         public List<ObjectId> OutgoingFriendRequests { get; set; }
         
+        [JsonProperty("recentlyViewed")]
+        [BsonElement("recentlyViewed")]
+        public List<ObjectId> RecentlyViewed { get; set; }
+        
         [JsonProperty("schedule")]
         [BsonElement("schedule")]
         public Dictionary<string, List<TimeRange>> Schedule { get; set; } //= new ();

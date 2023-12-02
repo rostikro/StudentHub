@@ -83,13 +83,12 @@ namespace SoftServeProject3.Api.Controllers
             try
             {
                 UserModel user;
-
+                
+                string senderEmail = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+                
                 if (username == null)
                 {
-                    string emailToken = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
-                    string userToken = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username;
-
-                    user = await _userRepository.GetUserByEmailAsync(emailToken) ?? await _userRepository.GetUserByUsernameAsync(userToken);
+                    user = await _userRepository.GetUserByEmailAsync(senderEmail);
                     if (user == null)
                     {
                         return BadRequest("Invalid email/username");
@@ -98,6 +97,7 @@ namespace SoftServeProject3.Api.Controllers
                 else
                 {
                     user = await _userRepository.GetUserByUsernameAsync(username);
+                    await _userRepository.UpdateRecentlyViewedAsync(senderEmail, user._id);
                 }
 
                 var serializeOptions = new JsonSerializerSettings
@@ -134,6 +134,24 @@ namespace SoftServeProject3.Api.Controllers
                 await _userRepository.UpdateProfileAsync(profile, email);
 
                 return Ok("Success");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Internal error");
+            }
+        }
+
+        [HttpGet("getRecentlyViewed")]
+        [Authorize]
+        public async Task<IActionResult> GetRecentlyViewedAsync()
+        {
+            try
+            {
+                string email = _jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Email;
+
+                var profiles = _userRepository.GetRecentlyViewedAsync(email);
+                return Ok(profiles);
             }
             catch (Exception e)
             {
