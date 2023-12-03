@@ -67,7 +67,9 @@ namespace SoftServeProject3.Api.Repositories
             int slice = -5;
             
             await _users.UpdateOneAsync(user => user.Email == senderEmail,
-                Builders<UserModel>.Update.PushEach(u => u.RecentlyViewed, new []{ viewedProfile }, slice));
+                Builders<UserModel>.Update.AddToSet(u => u.RecentlyViewed, viewedProfile ));
+            await _users.UpdateOneAsync(user => user.Email == senderEmail,
+                Builders<UserModel>.Update.PushEach(u => u.RecentlyViewed, new List<ObjectId>(), slice));
         }
         
         // TODO Refactor. Rename friends functions
