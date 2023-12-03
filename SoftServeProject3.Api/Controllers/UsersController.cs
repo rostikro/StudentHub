@@ -97,7 +97,8 @@ namespace SoftServeProject3.Api.Controllers
                 else
                 {
                     user = await _userRepository.GetUserByUsernameAsync(username);
-                    await _userRepository.UpdateRecentlyViewedAsync(senderEmail, user._id);
+                    if (_jwtService.DecodeJwtToken(HttpContext.Request.Headers["Authorization"].ToString().Split(" ").Last()).Username != username)
+                        await _userRepository.UpdateRecentlyViewedAsync(senderEmail, user._id);
                 }
 
                 var serializeOptions = new JsonSerializerSettings
