@@ -3,55 +3,228 @@
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject TokenService TokenService
+@inject UserProfileService UserProfileService
 @using Microsoft.AspNetCore.SignalR.Client
 @using SoftServeProject3.UI.Services;
-@using System.Net
+@using System.Net;
 @using SoftServeProject3.Core.DTOs;
 @using System.Net.Http.Headers;
 
 
-<h3>Чат</h3>
 
-<div class="selected-user-name">
-    @if (!string.IsNullOrEmpty(selectedUser))
+@if (IsLoaded)
+{
+    @if (isUserAuthenticated)
     {
-        <h3>@selectedUser</h3>
-        @if (typingUsers.Contains(selectedUser))
-        {
-            <p class="typing-indicator">@selectedUser пише...</p>
-        }
-    }
-</div>
+        <SoftServeProject3.UI.wwwroot.navbar.Navbar />
+        <body>
+        <div class="container">
+            <div class="leftSide">
+                <!-- Header -->
+                <div class="header">
+                    <div class="userimg">
+                            @if (!string.IsNullOrEmpty(myProfile.photoUrl))
+                            {
+                                <img draggable="false" src="@myProfile.photoUrl" alt="Фото профілю">
+                            }
+                            else
+                            {
+                                <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
+                            }
+                    </div>
+                    <ul class="nav_icons">
+                        <li><ion-icon name="scan-circle-outline"></ion-icon></li>
+                        <li><ion-icon name="chatbox"></ion-icon></li>
+                        <li><ion-icon name="ellipsis-vertical"></ion-icon></li>
+                    </ul>
+                </div>
+                <!-- Search Chat -->
+                <div class="search_chat">
+                    <div>
+                        <input type="text" placeholder="Search or start new chat">
+                        <ion-icon name="search-outline"></ion-icon>
+                    </div>
+                </div>
+                <!-- CHAT LIST -->
+                <div class="chatlist">
+                        <div>
+                            @if (recentContactUsernames.Count != 0 || selectedUser != null)
+                            {
+                                @foreach (var username in recentContactUsernames)
+                                {
+
+                                    <button class="block active" style="border:0px" @onclick="() => StartChatWith(username)">
+@*                                         <div class="imgBox">
+                                            <img src="images/img1.jpg" class="cover" alt="">
+                                        </div> *@
+                                        <div class="details">
+                                            <div class="listHead">
+                                                <h4>@username</h4>
+                                                <p class="time">час</p>
+                                            </div>
+                                            <div class="message_p">
+                                                <p>останнє повідомлення</p>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                }
+
+                            }
+                            else
+                            {
+                                <p>
+                                    У вас немає недавніх чатів. Знайдіть користувача, з яким би ви хотіли поспілкуватися тут:
+                                    <NavLink href="/UserSearch">Пошук</NavLink>
+                                </p>
+                            }
+                        </div>
 
 
+                        <div class="block active">
+                        <div class="imgBox">
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTy81HQiZbMfn2-yOG3kYfvgxY3kFTtM5iTlq4kPRq6kg&s" class="cover" alt="">
+                        </div>
+                        <div class="details">
+                            <div class="listHead">
+                                <h4>Vasil(test)</h4>
+                                <p class="time">12:34</p>
+                            </div>
+                            <div class="message_p">
+                                <p>останнє повідомлення (test)</p>
+                                <b>1</b>
+                            </div>
+                        </div>
+                    </div>
 
-
-<div class="chat-container">
-    <div class="user-list">
-        @foreach (var username in recentContactUsernames)
-        {
-            <button @onclick="() => StartChatWith(username)">@username</button>
-            
-        }
-    </div>
-
-    <div class="message-area" id="messageArea">
-        @foreach (var message in messages)
-        {
-            <div class="@GetMessageClass(message)">
-                @FormatMessage(message)
+                        <div class="@* block unread *@block active">
+                        <div class="imgBox">
+                                <img src="https://big.informator.ua/wp-content/uploads/2022/11/znykla-1.jpg" class="cover" alt="">
+                        </div>
+                        <div class="details">
+                            <div class="listHead">
+                                <h4>Olivia(test)</h4>
+                                <p class="time">Yesterday</p>
+                            </div>
+                            <div class="message_p">
+                                <p>останнє повідомлення (test)</p>
+                                <b>2</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        }
-    </div>
-    @if (errorMessage != null)
-    {
-        <p class="text-danger">@errorMessage</p>
+            <div class="rightSide">
+                <div class="header">
+                    <div class="imgText">
+                        <div class="userimg">
+                            <img src="images/img1.jpg" alt="" class="cover">
+                        </div>
+                            <div>
+                                @if (!string.IsNullOrEmpty(selectedUser))
+                                {
+                                    <h5>@selectedUser</h5>
+                                    @if (typingUsers.Contains(selectedUser))
+                                    {
+                                        <p class="typing-indicator">@selectedUser пише...</p>
+                                    }
+
+                                } <span>online</span>
+                            </div>
+                    </div>
+                    <ul class="nav_icons">
+                        <li><ion-icon name="search-outline"></ion-icon></li>
+                        <li><ion-icon name="ellipsis-vertical"></ion-icon></li>
+                    </ul>
+                </div>
+
+                <!-- CHAT-BOX -->
+                <div class="chatbox">
+                        <div class="message-area" id="messageArea">
+                            @foreach (var message in messages)
+                            {
+                                <div class="@GetMessageClass(message)">
+                                    @FormatMessage(message)
+                                </div>
+                            }
+                        </div>
+
+                </div>
+
+                <!-- CHAT INPUT -->
+                    <div class="chat_input">
+                        @if (errorMessage != null)
+                        {
+                            <p class="text-danger">@errorMessage</p>
+                        }
+                        @if (selectedUser != null)
+                        {
+                            <ion-icon name="happy-outline"></ion-icon>
+                            <input type="text" @bind="messageInput" @oninput="OnInput" @onkeydown="HandleKeyDown" placeholder="Введіть повідомлення">
+@*                             ТЕПЕР непотрібна кнопка
+                            <button @onclick="SendMessage">
+                                <i class="material-icons nav__icon">send</i>
+                                <span class="nav__text"></span>
+                            </button> *@
+                            <ion-icon name="mic"></ion-icon>
+                        }
+                    </div>
+            </div>
+
+
+        </div>
+
+
+        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+@*         <div class="selected-user-name">
+            @if (!string.IsNullOrEmpty(selectedUser))
+            {
+                <h3>@selectedUser</h3>
+                @if (typingUsers.Contains(selectedUser))
+                {
+                    <p class="typing-indicator">@selectedUser пише...</p>
+                }
+
+            }
+        </div>   *@
+
+
+
+
+
+@*             <div class="user-list">
+                @if (recentContactUsernames.Count != 0 || selectedUser != null)
+                {
+                    @foreach (var username in recentContactUsernames)
+                    {
+                        <button @onclick="() => StartChatWith(username)">@username</button>
+
+                    }
+
+                }
+                else
+                {
+                    <p>
+                        У вас немає недавніх чатів. Знайдіть користувача, з яким би ви хотіли поспілкуватися тут:
+                        <NavLink href="/UserSearch">Пошук</NavLink>
+                    </p>
+                }
+            </div> *@
+
+
+
+        </body>
     }
-    <div class="message-input-area">
-        <textarea @bind="messageInput" @oninput="OnInput"></textarea>
-        <button @onclick="SendMessage">Send</button>
-    </div>
-</div>
+    else
+    {
+
+        <p>Будь ласка, <a href="/login">ввійдіть</a> для доступу до цієї сторінки.</p>
+        <span class="loader"></span>
+    }
+}
+
 
 @code {
     UpdateProfile myProfile;
@@ -70,6 +243,8 @@
     string errorMessage;
     const int MESSAGE_LIMIT = 500;
     const int WINDOW_OUTPUT_LIMIT = 83;
+    bool IsLoaded = false;
+    bool isUserAuthenticated;
 
     private async void StartChatWith(string username)
     {
@@ -78,73 +253,99 @@
         StateHasChanged();
     }
 
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var token = await TokenService.GetToken();
+        return TokenService.IsTokenValid(token);
+
+    }
+
+
     protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrWhiteSpace(Username))
+        IsLoaded = false;
+        isUserAuthenticated = await IsUserAuthenticatedAsync();
+        if (isUserAuthenticated)
         {
-            selectedUser = Username;
-            await LoadChatHistory(selectedUser);
-        }
-        var token = await TokenService.GetToken();
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+            if (!string.IsNullOrWhiteSpace(Username))
             {
-                options.AccessTokenProvider = () => Task.FromResult(token);
-            })
-            .Build();
+                selectedUser = Username;
+                await LoadChatHistory(selectedUser);
+            }
+            var token = await TokenService.GetToken();
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("https://localhost:7292/chatHub"), options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult(token);
+                })
+                .Build();
 
-        hubConnection.On<string, string, string>("ReceiveMessage", (user, message, timestamp) =>
-        {
-
-            if (user == selectedUser)
+            hubConnection.On<string, string, string>("ReceiveMessage", (user, message, timestamp) =>
             {
-                var newMessage = new Message
-                    {
-                        SenderUsername = user,
-                        Text = message,
-                        Timestamp = DateTime.Parse(timestamp) 
-                    };
 
-                messages.Add(newMessage);
+                if (user == selectedUser)
+                {
+                    var newMessage = new Message
+                        {
+                            SenderUsername = user,
+                            Text = message,
+                            Timestamp = DateTime.Parse(timestamp)
+                        };
+
+                    messages.Add(newMessage);
+                    StateHasChanged();
+                }
+            });
+
+            hubConnection.On<string>("UserTyping", (username) =>
+            {
+                if (!typingUsers.Contains(username))
+                {
+                    typingUsers.Add(username);
+                }
+
+                if (typingTimers.ContainsKey(username))
+                {
+                    typingTimers[username].Change(typingTimeout, Timeout.Infinite);
+                }
+                else
+                {
+                    var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
+                    typingTimers.Add(username, timer);
+                }
+
                 StateHasChanged();
-            }
-        });
+            });
+            await hubConnection.StartAsync();
 
-        hubConnection.On<string>("UserTyping", (username) =>
+
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+
+
+
+
+            var responseProfile = await Http.GetAsync("https://localhost:7292/Users/profile");
+            responseProfile.EnsureSuccessStatusCode();
+
+            myProfile = await responseProfile.Content.ReadFromJsonAsync<UpdateProfile>();
+
+            var response = await Http.GetAsync("https://localhost:7292/Chat/recent-contacts");
+            if (response.IsSuccessStatusCode)
+            {
+                recentContactUsernames = await response.Content.ReadFromJsonAsync<List<string>>();
+
+            }
+            
+        }
+        else
         {
-            if (!typingUsers.Contains(username))
-            {
-                typingUsers.Add(username);
-            }
-
-            if (typingTimers.ContainsKey(username))
-            {
-                typingTimers[username].Change(typingTimeout, Timeout.Infinite);
-            }
-            else
-            {
-                var timer = new Timer(_ => TypingTimerElapsed(username), null, typingTimeout, Timeout.Infinite);
-                typingTimers.Add(username, timer);
-            }
-
-            StateHasChanged();
-        });
-        await hubConnection.StartAsync();
-
-
-        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var responseProfile = await Http.GetAsync("https://localhost:7292/Users/profile");
-        responseProfile.EnsureSuccessStatusCode();
-
-        myProfile = await responseProfile.Content.ReadFromJsonAsync<UpdateProfile>();
-
-        var response = await Http.GetAsync("https://localhost:7292/Chat/recent-contacts");
-        if (response.IsSuccessStatusCode)
-        {
-            recentContactUsernames = await response.Content.ReadFromJsonAsync<List<string>>();
+            errorMessage = "Увійдіть для того щоб перейти на цю сторінку";
+            
 
         }
+        IsLoaded = true;
+        
         // typingTimer = new Timer(TypingTimerElapsed, selectedUser, Timeout.Infinite, Timeout.Infinite);
     }
     private async Task LoadChatHistory(string selectedUser)
@@ -242,6 +443,15 @@
         }
 
         await hubConnection.SendAsync("UserTyping", selectedUser);
+    }
+
+    // відправка повідомлення через ентер у інпуті
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.CtrlKey && !e.AltKey && !e.ShiftKey)
+        {
+            await SendMessage();
+        }
     }
 
 }

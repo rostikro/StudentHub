@@ -60,10 +60,31 @@ namespace SoftServeProject3.Api.Repositories
                 throw;
             }
         }
-        
-        private async Task<List<Friend>> GetFriendsMetaAsync(List<ObjectId> friendsIds)
+
+        public async Task UpdateRecentlyViewedAsync(string senderEmail, ObjectId viewedProfile)
         {
-            var friendsFilter = Builders<UserModel>.Filter.In(u => u._id, friendsIds);
+            // Slice array to 5 elements
+            int slice = -5;
+            
+            await _users.UpdateOneAsync(user => user.Email == senderEmail,
+                Builders<UserModel>.Update.AddToSet(u => u.RecentlyViewed, viewedProfile ));
+            await _users.UpdateOneAsync(user => user.Email == senderEmail,
+                Builders<UserModel>.Update.PushEach(u => u.RecentlyViewed, new List<ObjectId>(), slice));
+        }
+        
+        // TODO Refactor. Rename friends functions
+        public async Task<List<Friend>> GetRecentlyViewedAsync(string email)
+        {
+            var profilesIds = await _users.Find(u => u.Email == email).Project(u => u.RecentlyViewed).FirstOrDefaultAsync();
+            
+            profilesIds.Reverse();
+
+            return await GetProfilesMetaAsync(profilesIds);
+        }
+        
+        private async Task<List<Friend>> GetProfilesMetaAsync(List<ObjectId> profilesIds)
+        {
+            var friendsFilter = Builders<UserModel>.Filter.In(u => u._id, profilesIds);
             var friendsProject = Builders<UserModel>.Projection
                 .Include(u => u.Username)
                 .Include(u => u.PhotoUrl)
@@ -80,7 +101,7 @@ namespace SoftServeProject3.Api.Repositories
             {
                 var friendsIds = await _users.Find(u => u.Email == email).Project(u => u.Friends).FirstOrDefaultAsync();
 
-                return await GetFriendsMetaAsync(friendsIds);
+                return await GetProfilesMetaAsync(friendsIds);
             }
             catch (Exception e)
             {
@@ -95,7 +116,7 @@ namespace SoftServeProject3.Api.Repositories
             {
                 var friendsIds = await _users.Find(u => u.Email == email).Project(u => u.IncomingFriendRequests).FirstOrDefaultAsync();
 
-                return await GetFriendsMetaAsync(friendsIds);
+                return await GetProfilesMetaAsync(friendsIds);
             }
             catch (Exception e)
             {
@@ -110,7 +131,7 @@ namespace SoftServeProject3.Api.Repositories
             {
                 var friendsIds = await _users.Find(u => u.Email == email).Project(u => u.OutgoingFriendRequests).FirstOrDefaultAsync();
 
-                return await GetFriendsMetaAsync(friendsIds);
+                return await GetProfilesMetaAsync(friendsIds);
             }
             catch (Exception e)
             {

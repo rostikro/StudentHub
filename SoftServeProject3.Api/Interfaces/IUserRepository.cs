@@ -8,6 +8,8 @@ namespace SoftServeProject3.Api.Interfaces
         
         Task UpdateUserAsync(string email);
         Task UpdateProfileAsync(UpdateProfile profile, string email);
+        Task UpdateRecentlyViewedAsync(string senderEmail, ObjectId viewedProfile);
+        Task<List<Friend>> GetRecentlyViewedAsync(string email);
         Task<List<Friend>> GetFriendsAsync(string email);
         Task<List<Friend>> GetIncomingFriendRequestsAsync(string email);
         Task<List<Friend>> GetOutgoingFriendRequestsAsync(string email);

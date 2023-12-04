@@ -74,6 +74,8 @@
                     </script>
 
                 </div>
+                <div class="back">
+
                 <div class="three">
                     <h3>Список відпралених запитів:</h3>
                     <table class="table">
@@ -98,41 +100,77 @@
                         }
                         else
                         {
-                            <p>Немає відпарвлених</p>
+                            <p>спробуйде додати когось у друзі</p>
                         }
                     </table>
                 </div>
 
-                <div class="four">
-                    <h3>Список Друзів:</h3>
-                    <table class="table">
-                        @if (myFriends != null && myFriends.Any())
+            <div class="four">
+                <h3>Список Друзів:</h3>
+                <table class="table">
+                    @if (myFriends != null && myFriends.Any())
+                    {
+                        @for (int i = 0; i < myFriends.Count; i += 3)
                         {
-                            @for (int i = 0; i < myFriends.Count; i += 3)
-                            {
-                                <tr>
-                                    @for (int j = i; j < i + 3 && j < myFriends.Count; j++)
-                                    {
-                                        <td style="text-align: center;">
-                                            <div>
-                                                <img src="@myFriends[j].photoUrl" class="rounded-image" />
-                                            </div>
-                                            <div>
-                                                <a href="UserProfile/@myFriends[j].username">@myFriends[j].username</a>
-                                            </div>
-                                        </td>
-                                    }
-                                </tr>
-                            }
+                            <tr>
+                                @for (int j = i; j < i + 3 && j < myFriends.Count; j++)
+                                {
+                                    <td style="text-align: center;">
+                                        <div>
+                                            <img src="@myFriends[j].photoUrl" class="rounded-image" />
+                                        </div>
+                                        <div>
+                                            <a href="UserProfile/@myFriends[j].username">@myFriends[j].username</a>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <p>У вас немає друзів</p>
+                    }
+                </table>
+            </div>
+
+                <div class="recently-viewed">
+                    <h3>Переглянуті користувачі:</h3>
+                    <table class="table">
+                        @if (recentlyViewedProfiles.Any())
+                        {
+                            <tr>
+                                @foreach (var profile in recentlyViewedProfiles)
+                                {
+                                    <td style="text-align: center;">
+                                        @if (!string.IsNullOrEmpty(profile.photoUrl))
+                                        {
+                                            <img src="@profile.photoUrl" class="rounded-image" />
+                                        }
+                                        else
+                                        {
+
+                                            <img src="https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg" class="rounded-image" />
+                                        }
+                                        <a href="UserProfile/@profile.username">@profile.username</a>
+                                    </td>
+                                }
+                            </tr>
                         }
                         else
                         {
-                            <p>Немає друзів ((((((((((((((((((((((((((</p>
+                            <p>Список пустий.</p>
                         }
                     </table>
                 </div>
 
-@*         <div class="two">   
+
+                </div>
+
+
+
+
+            @*         <div class="two">   
             <a href="https://github.com/rilking1"><div class="circle1"> </div></a>
             <div class="oval">Нікнейм</div>
             <div class="oval">Факультет</div>
@@ -140,12 +178,56 @@
 
         </div> *@
 
-        <div>
 
-        </div>
+
         
 
             </div>
+
+            @* забумбулькав флоатер *@
+            @* звідси подсасуються іконочкі *@
+            <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+            <footer class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="footer-col">
+                            <h4> VSC/SoftServe</h4>
+
+                        </div>
+                        <div class="footer-col">
+                            <h4>company</h4>
+                            <ul>
+                                <li><a href="#">about us</a></li>
+                                <li><a href="#">our services</a></li>
+                                <li><a href="#">privacy policy</a></li>
+                                <li><a href="#">affiliate program</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-col">
+                            <h4>get help</h4>
+                            <ul>
+                                <li><a href="#">FAQ</a></li>
+                                <li><a href="#">feedback</a></li>
+                                <li><a href="#">bugs</a></li>
+                                <li><a href="#">News</a></li>
+                                <li><a href="#">documentation</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="footer-col">
+                            <h4>follow us</h4>
+                            <div class="social-links">
+                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#"><i class="fab fa-twitter"></i></a>
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+
         </body>
     }
     else
@@ -164,6 +246,8 @@ else
     string errorMessage = "";
     private List<Friend> myFriends = new List<Friend>();
     private List<Friend> myOutgoingRequests = new List<Friend>();
+    
+    private List<Friend> recentlyViewedProfiles = new List<Friend>();
     bool isUserAuthenticated;
     protected override async Task OnInitializedAsync()
     {
@@ -177,8 +261,7 @@ else
                 Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 myFriends = await Http.GetFromJsonAsync<List<Friend>>($"https://localhost:7292/Users/friends");
                 myOutgoingRequests = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/friends/outgoingRequests");
-                
-
+                recentlyViewedProfiles = await Http.GetFromJsonAsync<List<Friend>>("https://localhost:7292/Users/getRecentlyViewed");
             }
             else
             {
