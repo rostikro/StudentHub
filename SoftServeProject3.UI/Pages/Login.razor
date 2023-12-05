@@ -247,7 +247,7 @@ else
             if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token))
             {
                 await TokenService.StoreToken(token.ToString());
-                Navigation.NavigateTo("/MainPage", forceLoad: true);
+                Navigation.NavigateTo("/UserProfile", forceLoad: true);
             }
         }
         else
