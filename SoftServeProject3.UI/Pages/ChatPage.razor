@@ -11,18 +11,20 @@
 @using System.Net.Http.Headers;
 
 
-
+<head>
+    <PageTitle>Чат</PageTitle>
+</head>
 @if (IsLoaded)
 {
     @if (isUserAuthenticated)
     {
         <SoftServeProject3.UI.wwwroot.navbar.Navbar />
         <body>
-        <div class="container">
-            <div class="leftSide">
-                <!-- Header -->
-                <div class="header">
-                    <div class="userimg">
+            <div class="container">
+                <div class="leftSide">
+                    <!-- Header -->
+                    <div class="header">
+                        <div class="userimg">
                             @if (!string.IsNullOrEmpty(myProfile.photoUrl))
                             {
                                 <img draggable="false" src="@myProfile.photoUrl" alt="Фото профілю">
@@ -31,22 +33,22 @@
                             {
                                 <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
                             }
+                        </div>
+                        <ul class="nav_icons">
+                            <li><ion-icon name="scan-circle-outline"></ion-icon></li>
+                            <li><ion-icon name="chatbox"></ion-icon></li>
+                            <li><ion-icon name="ellipsis-vertical"></ion-icon></li>
+                        </ul>
                     </div>
-                    <ul class="nav_icons">
-                        <li><ion-icon name="scan-circle-outline"></ion-icon></li>
-                        <li><ion-icon name="chatbox"></ion-icon></li>
-                        <li><ion-icon name="ellipsis-vertical"></ion-icon></li>
-                    </ul>
-                </div>
-                <!-- Search Chat -->
-                <div class="search_chat">
-                    <div>
-                        <input type="text" placeholder="Search or start new chat">
-                        <ion-icon name="search-outline"></ion-icon>
+                    <!-- Search Chat -->
+                    <div class="search_chat">
+                        <div>
+                            <input type="text" placeholder="Search or start new chat">
+                            <ion-icon name="search-outline"></ion-icon>
+                        </div>
                     </div>
-                </div>
-                <!-- CHAT LIST -->
-                <div class="chatlist">
+                    <!-- CHAT LIST -->
+                    <div class="chatlist">
                         <div>
                             @if (recentContactUsernames.Count != 0 || selectedUser != null)
                             {
@@ -54,9 +56,9 @@
                                 {
 
                                     <button class="block active" style="border:0px" @onclick="() => StartChatWith(username)">
-@*                                         <div class="imgBox">
-                                            <img src="images/img1.jpg" class="cover" alt="">
-                                        </div> *@
+                                        @*                                         <div class="imgBox">
+                        <img src="images/img1.jpg" class="cover" alt="">
+                        </div> *@
                                         <div class="details">
                                             <div class="listHead">
                                                 <h4>@username</h4>
@@ -81,45 +83,45 @@
                         </div>
 
 
-                        <div class="block active">
-                        <div class="imgBox">
+                        @* <div class="block active">
+                            <div class="imgBox">
                                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTy81HQiZbMfn2-yOG3kYfvgxY3kFTtM5iTlq4kPRq6kg&s" class="cover" alt="">
-                        </div>
-                        <div class="details">
-                            <div class="listHead">
-                                <h4>Vasil(test)</h4>
-                                <p class="time">12:34</p>
                             </div>
-                            <div class="message_p">
-                                <p>останнє повідомлення (test)</p>
-                                <b>1</b>
+                            <div class="details">
+                                <div class="listHead">
+                                    <h4>Vasil(test)</h4>
+                                    <p class="time">12:34</p>
+                                </div>
+                                <div class="message_p">
+                                    <p>останнє повідомлення (test)</p>
+                                    <b>1</b>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                        <div class="@* block unread *@block active">
-                        <div class="imgBox">
+                        <div class=" block unread block active">
+                            <div class="imgBox">
                                 <img src="https://big.informator.ua/wp-content/uploads/2022/11/znykla-1.jpg" class="cover" alt="">
-                        </div>
-                        <div class="details">
-                            <div class="listHead">
-                                <h4>Olivia(test)</h4>
-                                <p class="time">Yesterday</p>
                             </div>
-                            <div class="message_p">
-                                <p>останнє повідомлення (test)</p>
-                                <b>2</b>
+                            <div class="details">
+                                <div class="listHead">
+                                    <h4>Olivia(test)</h4>
+                                    <p class="time">Yesterday</p>
+                                </div>
+                                <div class="message_p">
+                                    <p>останнє повідомлення (test)</p>
+                                    <b>2</b>
+                                </div>
                             </div>
-                        </div>
+                        </div> *@
                     </div>
                 </div>
-            </div>
-            <div class="rightSide">
-                <div class="header">
-                    <div class="imgText">
-                        <div class="userimg">
-                            <img src="images/img1.jpg" alt="" class="cover">
-                        </div>
+                <div class="rightSide">
+                    <div class="header">
+                        <div class="imgText">
+                            <div class="userimg">
+                                
+                            </div>
                             <div>
                                 @if (!string.IsNullOrEmpty(selectedUser))
                                 {
@@ -129,17 +131,17 @@
                                         <p class="typing-indicator">@selectedUser пише...</p>
                                     }
 
-                                } <span>online</span>
+                                } 
                             </div>
+                        </div>
+                        <ul class="nav_icons">
+                            <li><ion-icon name="search-outline"></ion-icon></li>
+                            <li><ion-icon name="ellipsis-vertical"></ion-icon></li>
+                        </ul>
                     </div>
-                    <ul class="nav_icons">
-                        <li><ion-icon name="search-outline"></ion-icon></li>
-                        <li><ion-icon name="ellipsis-vertical"></ion-icon></li>
-                    </ul>
-                </div>
 
-                <!-- CHAT-BOX -->
-                <div class="chatbox">
+                    <!-- CHAT-BOX -->
+                    <div class="chatbox">
                         <div class="message-area" id="messageArea">
                             @foreach (var message in messages)
                             {
@@ -149,9 +151,9 @@
                             }
                         </div>
 
-                </div>
+                    </div>
 
-                <!-- CHAT INPUT -->
+                    <!-- CHAT INPUT -->
                     <div class="chat_input">
                         @if (errorMessage != null)
                         {
@@ -161,57 +163,57 @@
                         {
                             <ion-icon name="happy-outline"></ion-icon>
                             <input type="text" @bind="messageInput" @oninput="OnInput" @onkeydown="HandleKeyDown" placeholder="Введіть повідомлення">
-@*                             ТЕПЕР непотрібна кнопка
-                            <button @onclick="SendMessage">
-                                <i class="material-icons nav__icon">send</i>
-                                <span class="nav__text"></span>
-                            </button> *@
+                            @*                             ТЕПЕР непотрібна кнопка
+                <button @onclick="SendMessage">
+                <i class="material-icons nav__icon">send</i>
+                <span class="nav__text"></span>
+                </button> *@
                             <ion-icon name="mic"></ion-icon>
                         }
                     </div>
+                </div>
+
+
             </div>
 
 
-        </div>
+            <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+            <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
+            @*         <div class="selected-user-name">
+    @if (!string.IsNullOrEmpty(selectedUser))
+    {
+    <h3>@selectedUser</h3>
+    @if (typingUsers.Contains(selectedUser))
+    {
+    <p class="typing-indicator">@selectedUser пише...</p>
+    }
 
-        <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-        <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
-@*         <div class="selected-user-name">
-            @if (!string.IsNullOrEmpty(selectedUser))
-            {
-                <h3>@selectedUser</h3>
-                @if (typingUsers.Contains(selectedUser))
-                {
-                    <p class="typing-indicator">@selectedUser пише...</p>
-                }
-
-            }
-        </div>   *@
+    }
+    </div>   *@
 
 
 
 
 
-@*             <div class="user-list">
-                @if (recentContactUsernames.Count != 0 || selectedUser != null)
-                {
-                    @foreach (var username in recentContactUsernames)
-                    {
-                        <button @onclick="() => StartChatWith(username)">@username</button>
+            @*             <div class="user-list">
+    @if (recentContactUsernames.Count != 0 || selectedUser != null)
+    {
+    @foreach (var username in recentContactUsernames)
+    {
+    <button @onclick="() => StartChatWith(username)">@username</button>
 
-                    }
+    }
 
-                }
-                else
-                {
-                    <p>
-                        У вас немає недавніх чатів. Знайдіть користувача, з яким би ви хотіли поспілкуватися тут:
-                        <NavLink href="/UserSearch">Пошук</NavLink>
-                    </p>
-                }
-            </div> *@
+    }
+    else
+    {
+    <p>
+    У вас немає недавніх чатів. Знайдіть користувача, з яким би ви хотіли поспілкуватися тут:
+    <NavLink href="/UserSearch">Пошук</NavLink>
+    </p>
+    }
+    </div> *@
 
 
 
@@ -336,16 +338,16 @@
                 recentContactUsernames = await response.Content.ReadFromJsonAsync<List<string>>();
 
             }
-            
+
         }
         else
         {
             errorMessage = "Увійдіть для того щоб перейти на цю сторінку";
-            
+
 
         }
         IsLoaded = true;
-        
+
         // typingTimer = new Timer(TypingTimerElapsed, selectedUser, Timeout.Infinite, Timeout.Infinite);
     }
     private async Task LoadChatHistory(string selectedUser)
@@ -376,21 +378,21 @@
 
             await hubConnection.SendAsync("SendMessageToUser", selectedUser, messageInput);
 
-            
+
             var formattedDateTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
             var newMessage = new Message
                 {
-                    SenderUsername = myProfile.username, 
+                    SenderUsername = myProfile.username,
                     Text = messageInput,
                     Timestamp = DateTime.Now
                 };
             messages.Add(newMessage);
 
             messageInput = string.Empty;
-            await hubConnection.SendAsync("MessageRead", selectedUser, newMessageId); 
+            await hubConnection.SendAsync("MessageRead", selectedUser, newMessageId);
         }
     }
-   
+
     public async ValueTask DisposeAsync()
     {
         if (hubConnection is not null)
@@ -435,11 +437,11 @@
 
         messageInput = messageInput.Replace("\n", "");
 
-        
+
         for (int i = WINDOW_OUTPUT_LIMIT; i < messageInput.Length; i += WINDOW_OUTPUT_LIMIT)
         {
             messageInput = messageInput.Insert(i, "\n");
-            i++; 
+            i++;
         }
 
         await hubConnection.SendAsync("UserTyping", selectedUser);
