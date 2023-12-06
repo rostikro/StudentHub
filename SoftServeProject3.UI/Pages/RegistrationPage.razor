@@ -363,7 +363,8 @@ else
                 IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                 IsProfilePrivate = false,
                 IsFriendsPrivate = false,
-                IsProfileVerified = regModel.Email.Trim().EndsWith("knu.ua") ? true : false
+                IsProfileVerified = regModel.Email.Trim().EndsWith("knu.ua") ? true : false,
+                RecentlyViewed = new List<MongoDB.Bson.ObjectId>(),
             };
 
 

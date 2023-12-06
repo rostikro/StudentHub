@@ -613,7 +613,8 @@ namespace SoftServeProject3.Api.Controllers
                     IncomingFriendRequests = new List<MongoDB.Bson.ObjectId>(),
                     IsProfilePrivate = false,
                     IsFriendsPrivate = false,
-                    IsProfileVerified = userEmail.EndsWith("@knu.ua") ? true : false
+                    IsProfileVerified = userEmail.EndsWith("@knu.ua") ? true : false,
+                    RecentlyViewed = new List<MongoDB.Bson.ObjectId>(),
                 };
                 var claimsReg = new List<Claim>
             {
