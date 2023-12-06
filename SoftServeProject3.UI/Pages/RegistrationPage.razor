@@ -91,6 +91,7 @@
                     <p>Код верифікації був відправлений на <b>@regModel.Email</b>.</p>
                     <p>Будь ласка, підтвердіть, що пошта ваша, ввівши код у поле нижче.</p>
                     <hr>
+
                     <label><b>Поле для коду:</b></label>
                     <input @bind="code" type="text" class="inputfld" placeholder="Введіть ваш код" />
                 @if (!isCodeVerified)
@@ -314,6 +315,7 @@ else
         // Скидуємо стани, щоб користувач міг знову ввести дані
         isCodeSent = false;
         isCodeVerified = false;
+        isRegDisabled = false;
         code = "";
     }
 
