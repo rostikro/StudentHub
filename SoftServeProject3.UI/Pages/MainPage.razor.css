@@ -35,7 +35,7 @@
 
 
 .slideshow-container {
-    width: 100%; /* Забезпечує розтягнення фотографій на всю ширину блоку */
+    width: 100%; 
     height: 100%;
     position: relative;
     margin: auto;
@@ -95,16 +95,21 @@
 .recently-viewed {
     background-color: #dce6ff;
     border-radius: 5px;
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 6/8;
 
 }
 
+.table a {
+
+    color: black; /* to inherit the color from the parent */
+    text-decoration: none;
+}
+
 .three {
     background-color: #dce6ff;
-    grid-column: 3;
+    grid-column: 2;
     grid-row: 6/9;
-
     border-radius: 5px;
 }
 .four {
@@ -250,15 +255,14 @@
     align-items: center;
     justify-content: center;
 }*/
-.td img {
-    width: 10px;
-}
 
 .rounded-image {
-    width: 50px; /* Задайте бажаний розмір фотографій */
+    width: 50px;
     height: 50px;
     border-radius: 50%;
+    background-image: url("https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg");
 }
+
 .back {
     background-color: #a5c2ff;
     grid-column: 1/4;
@@ -284,11 +288,12 @@
 
 ul {
     list-style: none;
+    padding-left: 0px;
 }
 
 .footer {
     background-color: #6897fd;
-    padding: 70px 0;
+    padding: 25px 0;
     margin: 200px 0px 0px 0px;
 }
 
@@ -304,6 +309,24 @@ ul {
         margin-bottom: 35px;
         font-weight: 500;
         position: relative;
+    }
+    .footer-col h3 {
+        font-size: 50px;
+        color: #ffffff;
+        text-transform: capitalize;
+        margin-bottom: 35px;
+        font-weight: 500;
+        position: relative;
+    }
+    .footer-col h3::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -10px;
+        background-color: #0f5bff;
+        height: 2px;
+        box-sizing: border-box;
+        width: 90px;
     }
 
         .footer-col h4::before {
@@ -329,6 +352,7 @@ ul {
         font-weight: 300;
         color: #bbbbbb;
         display: block;
+
         transition: all 0.3s ease;
     }
 

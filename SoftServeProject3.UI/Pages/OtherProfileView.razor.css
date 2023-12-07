@@ -16,7 +16,7 @@
         border-radius: 5px;
         padding: 1em;
     }
-
+            
 .wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -55,14 +55,14 @@
     text-align: center;
     grid-column: 2/4;
     grid-row: 2 / 6;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .four {
     grid-column: 1;
     grid-row: 3;
     text-align: center;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .username-container h3 {
@@ -75,25 +75,25 @@
 .five {
     grid-column: 1;
     grid-row: 5;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .six {
     grid-column: 1;
     grid-row: 4;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .Subject {
     grid-column: 2/4;
     grid-row: 6/8;
-    background-color: #757575;
+    background-color: #a5c2ff;
 }
 
 .button-content {
     grid-column: 1;
     grid-row: 6;
-    background-color: #757575;
+    background-color: #a5c2ff;
     font-size: 18px;
     display: flex;
     align-items: center;
@@ -104,26 +104,26 @@
 .oval {
     width: auto;
     height: auto;
-    background-color: #ffe8a3; /* Колір підпису */
+    background-color: #ffe8a3; 
     display: flex;
     align-items: center;
-    overflow: hidden; /* Додайте цю властивість для обмеження вмісту в овалі */
+    overflow: hidden;
     justify-content: center;
 }
 
 tbody {
-    background-color: palegreen;
+    background-color: #a5c2ff;
 }
 
 tr {
-    background-color: #DFE1E0;
+    background-color: #dce6ff;
 }
 
 .day {
     color: red;
     height: 5vh; /* Робить контейнер повністю висоти вікна */
     width: 10vh;
-    border: 10px solid #757575;
+    border: 10px solid #a5c2ff;
     border-radius: 20px;
     display: flex;
     overflow: hidden;
@@ -132,11 +132,11 @@ tr {
 }
 
 td {
-    background-color: #DFE1E0;
+    background-color: #dce6ff;
 }
 
     td div {
-        background-color: #DFE1E0;
+        background-color: #dce6ff;
     }
 
         td div button {
@@ -170,7 +170,7 @@ button {
     color: white;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    background-color: #757575;
+    background-color: #a5c2ff;
     gap: 20px;
 }
 
@@ -235,7 +235,7 @@ button {
 }
 
 .subject-group {
-    background-color: #949494; /* Колір фотографії */
+    background-color: #a5c2ff; /* Колір фотографії */
     grid-column: 2/4;
     grid-row: 6/7;
 }
@@ -247,14 +247,14 @@ button {
 
 .subjectSearch {
     display: grid;
-    background-color: #949494; /* Колір фотографії */
+    background-color: #a5c2ff; /* Колір фотографії */
     grid-column: 2/4;
     grid-row: 7/8;
     /*    grid-template-columns: 1fr 1fr 1fr;*/
 }
 
 .searchSubject {
-    background-color: #949494; /* Колір фотографії */
+    background-color: #a5c2ff; /* Колір фотографії */
     grid-column: 2/4;
     grid-row: 6;
 }
@@ -265,7 +265,7 @@ button {
     }
 
 .friend-interaction {
-    background-color: darkgrey;
+    background-color: #a5c2ff;
     padding: 10px;
     box-sizing: border-box;
 }
@@ -275,8 +275,12 @@ button {
     }
 
 .btn {
-    display: inline-block;
+    border: 1px solid #0b5ed7;
 }
+    .btn:hover {
+        background-color: #0b5ed7;
+    }
+
 /*verified profile*/
 .verified-account {
     font-size: 20px;
@@ -288,4 +292,20 @@ button {
     margin-left: 10px;
     width: 50px;
     height: 45px;
+}
+.form-group{
+    color:black;
+
+
+}
+.photo {
+    background-image: url("https://i.postimg.cc/LsLZ8CWp/26568813-2204-w037-n003-325b-p1-325.jpg");
+    height: 60vh; /* Adjust as needed */
+    width: 100%; /* Adjust as needed */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    z-index: 1000;
+    bottom: 0;
+    display: flex;
 }

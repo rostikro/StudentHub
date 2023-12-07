@@ -76,93 +76,117 @@
                 </div>
                 <div class="back">
 
-                <div class="three">
-                    <h3>Список відпралених запитів:</h3>
-                    <table class="table">
-                        @if (myOutgoingRequests != null && myOutgoingRequests.Any())
-                        {
-                            @for (int i = 0; i < myOutgoingRequests.Count; i += 3)
+                    <div class="three">
+                        <h3>Список відпралених запитів:</h3>
+                        <table class="table">
+                            @if (myOutgoingRequests != null && myOutgoingRequests.Any())
+                            {
+                                @for (int i = 0; i < myOutgoingRequests.Count; i += 3)
+                                {
+                                    <tr>
+                                        @for (int j = i; j < i + 3 && j < myOutgoingRequests.Count; j++)
+                                        {
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    @{
+                                                        string outgoingRequestPhotoUrl = string.IsNullOrEmpty(myOutgoingRequests[j].photoUrl)
+                                                        ? "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg"
+                                                        : myOutgoingRequests[j].photoUrl;
+                                                    }
+                                                    <img src="@outgoingRequestPhotoUrl" class="rounded-image" onerror="this.onerror=null; this.src='https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg ';" />
+                                                </div>
+                                                <div>
+                                                    <a href="UserProfile/@myOutgoingRequests[j].username">@myOutgoingRequests[j].username</a>
+                                                </div>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <p>спробуйде додати когось у друзі</p>
+                            }
+                        </table>
+                    </div>
+
+
+                    <div class="four">
+                        <h3>Список Друзів:</h3>
+                        <table class="table">
+                            @if (myFriends != null && myFriends.Any())
+                            {
+                                @for (int i = 0; i < myFriends.Count; i += 3)
+                                {
+                                    <tr>
+                                        @for (int j = i; j < i + 3 && j < myFriends.Count; j++)
+                                        {
+                                            <td style="text-align: center;">
+                                                <div>
+                                                    @{
+                                                        string friendPhotoUrl = string.IsNullOrEmpty(myFriends[j].photoUrl)
+                                                        ? "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg"
+                                                        : myFriends[j].photoUrl;
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(friendPhotoUrl))
+                                                    {
+                                                        <img src="@friendPhotoUrl" class="rounded-image" onerror="this.onerror=null; this.src='https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg    ';" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" class="rounded-image" />
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <a href="UserProfile/@myFriends[j].username">@myFriends[j].username</a>
+                                                </div>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <p>У вас немає друзів</p>
+                            }
+                        </table>
+                    </div>
+
+                    <div class="recently-viewed">
+                        <h3>Переглянуті користувачі:</h3>
+                        <table class="table">
+                            @if (recentlyViewedProfiles.Any())
                             {
                                 <tr>
-                                    @for (int j = i; j < i + 3 && j < myOutgoingRequests.Count; j++)
+                                    @foreach (var profile in recentlyViewedProfiles)
                                     {
                                         <td style="text-align: center;">
                                             <div>
-                                                <img src="@(!string.IsNullOrEmpty(myOutgoingRequests[j].photoUrl) ? myOutgoingRequests[j].photoUrl : "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg")" class="rounded-image" />
+                                                @{
+                                                    string profilePhotoUrl = string.IsNullOrEmpty(profile.photoUrl)
+                                                    ? "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg"
+                                                    : profile.photoUrl;
+                                                }
+                                                @if (!string.IsNullOrEmpty(profilePhotoUrl))
+                                                {
+                                                    <img src="@profilePhotoUrl" class="rounded-image" onerror="this.onerror=null; this.src='https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg';" />
+                                                }
+                                                else
+                                                {
+                                                    <img src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" class="rounded-image" />
+                                                }
                                             </div>
-                                            <div>
-                                                <a href="UserProfile/@myOutgoingRequests[j].username">@myOutgoingRequests[j].username</a>
-                                            </div>
+                                            <a href="UserProfile/@profile.username">@profile.username</a>
                                         </td>
                                     }
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <p>спробуйде додати когось у друзі</p>
-                        }
-                    </table>
-                </div>
-
-            <div class="four">
-                <h3>Список Друзів:</h3>
-                <table class="table">
-                    @if (myFriends != null && myFriends.Any())
-                    {
-                        @for (int i = 0; i < myFriends.Count; i += 3)
-                        {
-                            <tr>
-                                @for (int j = i; j < i + 3 && j < myFriends.Count; j++)
-                                {
-                                    <td style="text-align: center;">
-                                        <div>
-                                            <img src="@myFriends[j].photoUrl" class="rounded-image" />
-                                        </div>
-                                        <div>
-                                            <a href="UserProfile/@myFriends[j].username">@myFriends[j].username</a>
-                                        </div>
-                                    </td>
-                                }
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <p>У вас немає друзів</p>
-                    }
-                </table>
-            </div>
-
-                <div class="recently-viewed">
-                    <h3>Переглянуті користувачі:</h3>
-                    <table class="table">
-                        @if (recentlyViewedProfiles.Any())
-                        {
-                            <tr>
-                                @foreach (var profile in recentlyViewedProfiles)
-                                {
-                                    <td style="text-align: center;">
-                                        @if (!string.IsNullOrEmpty(profile.photoUrl))
-                                        {
-                                            <img src="@profile.photoUrl" class="rounded-image" />
-                                        }
-                                        else
-                                        {
-
-                                            <img src="https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg" class="rounded-image" />
-                                        }
-                                        <a href="UserProfile/@profile.username">@profile.username</a>
-                                    </td>
-                                }
-                            </tr>
-                        }
-                        else
-                        {
-                            <p>Список пустий.</p>
-                        }
-                    </table>
-                </div>
+                            else
+                            {
+                                <p>Список пустий.</p>
+                            }
+                        </table>
+                    </div>
 
 
                 </div>
@@ -191,7 +215,7 @@
                 <div class="container">
                     <div class="row">
                         <div class="footer-col">
-                            <h4> VSC/SoftServe</h4>
+                            <h3> VSC</h3>
 
                         </div>
                         <div class="footer-col">
@@ -200,7 +224,7 @@
                                 <li><a href="#">about us</a></li>
                                 <li><a href="#">our services</a></li>
                                 <li><a href="#">privacy policy</a></li>
-                                <li><a href="#">affiliate program</a></li>
+
                             </ul>
                         </div>
                         <div class="footer-col">
@@ -208,9 +232,9 @@
                             <ul>
                                 <li><a href="#">FAQ</a></li>
                                 <li><a href="#">feedback</a></li>
-                                <li><a href="#">bugs</a></li>
+
                                 <li><a href="#">News</a></li>
-                                <li><a href="#">documentation</a></li>
+
                             </ul>
                         </div>
 
