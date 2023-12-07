@@ -155,17 +155,33 @@
 
 
 
-                    
 
-                    
-                    
+
+
+
                     <div class="five">
                         <div class="button-content">
-                            <label for="faculty">Факультет:</label>
-                            <span>@userProfile.faculty</span>
+                            <h4>Ваш факультет</h4>
+                            @if (userProfile.faculty != "Немає")
+                            {
+                                <span><b>@userProfile.faculty</b></span>
+                            }
+                            else
+                            {
+                                <text>Не обраний</text>
+                            }
+
+
                         </div>
-                        <label for="description">Опис:</label>
-                        <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                        <hr>
+
+                        @if (!string.IsNullOrWhiteSpace(userProfile.description))
+                        {
+                            <div class="button-content">
+                                <h4>Про себе</h4>
+                                <p id="description" class="form-control-plaintext">@userProfile.description</p>
+                            </div>
+                        }
                     </div>
 
                     @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)

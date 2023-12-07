@@ -18,6 +18,18 @@
     
 
 }
+.w3-hover-white {
+    background-color: #bbb !important;
+}
+
+    .w3-hover-white:hover {
+        background-color: darkgray !important;
+    }
+
+.w3-white {
+    background-color: black !important;
+}
+
 
 .two {
     grid-column: 1 / 4;
