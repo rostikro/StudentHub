@@ -298,12 +298,19 @@ ul {
     border-radius: 0%; /* Remove circular shape */
     transition: background-color 0.2s ease-in-out; /* Smooth transition on hover */
 }
+.filter-btns button{
+    border:1px solid #0b5ed7;
 
-    /* Hover effect for pagination buttons */
-    .page-link:hover {
-        background-color: #0092ff;
-        color: #fff;
-    }
+}
+
+.filter-btns button:hover {
+    background-color: #0b5ed7;
+}
+/* Hover effect for pagination buttons */
+.page-link:hover {
+    background-color: #0092ff;
+    color: #fff;
+}
 
     /* Active state for pagination buttons */
     .page-link.active {

@@ -47,10 +47,10 @@
                                 ? "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg"
                                 : userProfile.photoUrl;
                             }
-                            <img src="@profilePhotoUrl" alt="Фото профілю">
+                            <img src="@profilePhotoUrl" alt="Фото профілю" onerror="this.onerror=null; this.src='https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg';">
                         </div>
                         <div class="form-group">
-                            <label for="name">Призвіще Ім'я:</label>
+                            <label for="name">Призвіще Ім'я</label>
                             <p id="name" class="form-control-plaintext">@userProfile.name</p>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                     </div>
                     @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
                     {
-                        <button class="btn btn-primary" @onclick="NavigateToChat">Чат</button>
+                        <button class="btn" @onclick="NavigateToChat">Чат</button>
                     }
 
                     <div class="friend-interaction">
@@ -170,23 +170,20 @@
 
                     @if (friendStatus == FriendStatus.FRIEND && userProfile.isfriendsprivate || !userProfile.isfriendsprivate)
                     {
-                        <div class="soc">
-                            @foreach (var socialLink in userProfile.social)
-                            {
-
-                                @if (!string.IsNullOrEmpty(socialLink.Value))
+                        @if (userProfile.social.Any(socialLink => !string.IsNullOrEmpty(socialLink.Value)))
+                        {
+                            <div class="soc">
+                                @foreach (var socialLink in userProfile.social)
                                 {
-                                    <div class="social">
-                                        <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
-                                    </div>
+                                    @if (!string.IsNullOrEmpty(socialLink.Value))
+                                    {
+                                        <div class="social">
+                                            <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                                        </div>
+                                    }
                                 }
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="soc">
-                        </div>
+                            </div>
+                        }
                     }
 
 
@@ -219,6 +216,7 @@
 
 
                 </div>
+                <div class="photo"></div>
             </body>
         }
         else

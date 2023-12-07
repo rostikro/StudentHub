@@ -80,17 +80,18 @@
 
                         else
                         {
-                            <div class="profile-picture">
+                            <div class="profile-picture" alt=" ">
                                 @if (!string.IsNullOrEmpty(userProfile.photoUrl))
                                 {
-                                    <img draggable="false" src="@userProfile.photoUrl" alt="Фото профілю">
+                                    <img draggable="false" src="@userProfile.photoUrl" onerror="this.onerror=null; this.src='https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg';">
                                 }
                                 else
                                 {
-                                    <img draggable="false" src="https://t4.ftcdn.net/jpg/01/16/06/45/240_F_116064582_KlXENacGmdt4xl8H6fQRYfSZLntLNKSX.jpg" alt="Немає фото профілю">
+                                    <img draggable="false" src="https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.jpg" alt=" ">
                                 }
                             </div>
                         }
+
                         @if (isEditMode)
                         {
 
@@ -255,28 +256,31 @@
                     {
 
                     }
-                    <div class="soc">
-                        @foreach (var socialLink in userProfile.social)
-                        {
-                            @if (isEditMode)
+                    @if (isEditMode || userProfile.social.Any(socialLink => !string.IsNullOrEmpty(socialLink.Value)))
+                    {
+                        <div class="soc">
+                            @foreach (var socialLink in userProfile.social)
                             {
-                                <div class="form-group">
-                                    <label for="@socialLink.Key">@socialLink.Key:</label>
-                                    <input type="text" id="@socialLink.Key" class="form-control" @bind="userProfile.social[socialLink.Key]" />
-                                </div>
-                            }
-                            else
-                            {
-                                @if (!string.IsNullOrEmpty(socialLink.Value))
+                                @if (isEditMode)
                                 {
-                                    <div class="social">
-                                        <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                                    <div class="form-group">
+                                        <label for="@socialLink.Key">@socialLink.Key:</label>
+                                        <input type="text" id="@socialLink.Key" class="form-control" @bind="userProfile.social[socialLink.Key]" />
                                     </div>
                                 }
-
+                                else
+                                {
+                                    @if (!string.IsNullOrEmpty(socialLink.Value))
+                                    {
+                                        <div class="social">
+                                            <a href="@socialLink.Value"><div class="@GetSocialClass(socialLink.Key)"></div></a>
+                                        </div>
+                                    }
+                                }
                             }
-                        }
-                    </div>
+                        </div>
+                    }
+
 
 
 
@@ -342,7 +346,7 @@
                     else
                     {
                         <div class="subject-group">
-                            <label for="subject">Предмети:</label>
+                            <label for="subject">Предмети:&nbsp;</label>
                             @if (userProfile.subjects != null && userProfile.subjects.Any())
                             {
                                 foreach (var subject in userProfile.subjects)
