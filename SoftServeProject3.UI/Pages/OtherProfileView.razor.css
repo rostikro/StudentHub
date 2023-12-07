@@ -1,4 +1,4 @@
-﻿body {
+body {
     background-color: white;
     height: 160vh;
 }
@@ -99,6 +99,10 @@
     align-items: center;
     overflow: hidden;
     justify-content: center;
+    flex-direction: column;
+    font-size: 20px;
+    margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .oval {
