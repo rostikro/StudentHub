@@ -8,14 +8,12 @@
 @using SoftServeProject3.Core.DTOs;
 @using System.ComponentModel.DataAnnotations;
 
-<head>
-    <PageTitle>Checking mail</PageTitle>
-</head>
+
 
 @if (!isUserAuthenticated)
 {
     <head>
-        <PageTitle>Log In</PageTitle>
+        <PageTitle>Логін</PageTitle>
         <script src="https://accounts.google.com/gsi/client" async defer></script>
         <script src="~/js/loginfields.js" async defer></script>
     </head>
